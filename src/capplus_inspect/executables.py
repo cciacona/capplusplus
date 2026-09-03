@@ -207,6 +207,7 @@ def _parse_pe_imports(
     sections: list[dict[str, Any]],
     size_of_headers: int,
     *,
+    image_base: int,
     pe32_plus: bool,
 ) -> list[dict[str, Any]]:
     if not directory or directory["rva"] == 0 or directory["size"] == 0:
@@ -238,8 +239,13 @@ def _parse_pe_imports(
                 value = _u64(data, entry_offset) if pe32_plus else u32(data, entry_offset)
                 if value == 0:
                     break
+                symbol: dict[str, Any] = {
+                    "lookup_table_rva": thunk_rva + thunk_index * thunk_size,
+                    "iat_rva": first_thunk + thunk_index * thunk_size,
+                    "iat_address": image_base + first_thunk + thunk_index * thunk_size,
+                }
                 if value & ordinal_mask:
-                    symbols.append({"ordinal": value & 0xFFFF})
+                    symbol["ordinal"] = value & 0xFFFF
                 else:
                     hint_name_offset = _rva_to_offset(
                         value, sections, size_of_headers, len(data)
@@ -251,7 +257,8 @@ def _parse_pe_imports(
                         "PE imported symbol name",
                         maximum=2048,
                     )
-                    symbols.append({"name": name, "hint": hint})
+                    symbol.update({"name": name, "hint": hint})
+                symbols.append(symbol)
             else:
                 raise FormatError("PE import thunk table is unreasonably large")
         imports.append(
@@ -259,6 +266,9 @@ def _parse_pe_imports(
                 "library": library_name,
                 "timestamp": stamp,
                 "forwarder_chain": forwarder,
+                "name_rva": name_rva,
+                "original_first_thunk_rva": original_thunk,
+                "first_thunk_rva": first_thunk,
                 "symbols": symbols,
             }
         )
@@ -358,6 +368,7 @@ def _parse_pe(data: bytes | memoryview, header_offset: int) -> dict[str, Any]:
         import_directory,
         sections,
         size_of_headers,
+        image_base=image_base,
         pe32_plus=pe32_plus,
     )
     optional: dict[str, Any] = {
@@ -491,6 +502,71 @@ def _parse_le(data: bytes | memoryview, header_offset: int) -> dict[str, Any]:
             }
         )
 
+    module_page_count = field(0x14)
+    page_size = field(0x28)
+    last_page_size = field(0x2C)
+    page_map_offset = field(0x48)
+    data_pages_offset = field(0x80)
+    if module_page_count > 1_000_000:
+        raise FormatError("LE page count is unreasonable", offset=header_offset + 0x14)
+    if module_page_count and page_size == 0:
+        raise FormatError("LE page size is zero", offset=header_offset + 0x28)
+    if page_size and last_page_size > page_size:
+        raise FormatError(
+            "LE last-page size exceeds the page size", offset=header_offset + 0x2C
+        )
+    page_map_file_offset = header_offset + page_map_offset
+    require_range(
+        data,
+        page_map_file_offset,
+        module_page_count * 4,
+        "LE object page map",
+    )
+    pages: list[dict[str, Any]] = []
+    for index in range(module_page_count):
+        offset = page_map_file_offset + index * 4
+        data_page_number = int.from_bytes(bytes(data[offset : offset + 3]), "big")
+        if data_page_number > module_page_count:
+            raise FormatError("LE data-page number is out of range", offset=offset)
+        flags = _u8(data, offset + 3)
+        file_offset = (
+            data_pages_offset + (data_page_number - 1) * page_size
+            if data_page_number
+            else None
+        )
+        stored_size = (
+            last_page_size
+            if data_page_number == module_page_count and last_page_size
+            else page_size
+        )
+        if file_offset is not None:
+            require_range(data, file_offset, stored_size, "LE data page")
+        pages.append(
+            {
+                "index": index + 1,
+                "data_page_number": data_page_number,
+                "flags": flags,
+                "file_offset": file_offset,
+                "stored_size": stored_size if file_offset is not None else 0,
+            }
+        )
+
+    for item in objects:
+        if item["page_count"] == 0:
+            item["pages"] = []
+            item["raw_offset"] = None
+            item["stored_size"] = 0
+            continue
+        first = item["page_map_index"] - 1
+        count = item["page_count"]
+        if first < 0 or first + count > len(pages):
+            raise FormatError("LE object page range is invalid")
+        object_pages = pages[first : first + count]
+        item["pages"] = object_pages
+        offsets = [page["file_offset"] for page in object_pages]
+        item["raw_offset"] = offsets[0] if offsets and offsets[0] is not None else None
+        item["stored_size"] = sum(page["stored_size"] for page in object_pages)
+
     imported_module_offset = field(0x70)
     imported_module_count = field(0x74)
     imported_modules = (
@@ -536,17 +612,17 @@ def _parse_le(data: bytes | memoryview, header_offset: int) -> dict[str, Any]:
         "target_os_name": LE_OS_NAMES.get(target_os, "unrecognized"),
         "module_version": field(0x0C),
         "module_flags": field(0x10),
-        "module_page_count": field(0x14),
+        "module_page_count": module_page_count,
         "entry_object": field(0x18),
         "entry_offset": field(0x1C),
         "stack_object": field(0x20),
         "initial_stack_pointer": field(0x24),
-        "page_size": field(0x28),
-        "bytes_on_last_page": field(0x2C),
+        "page_size": page_size,
+        "bytes_on_last_page": last_page_size,
         "fixup_section_size": field(0x30),
         "loader_section_size": field(0x38),
         "object_table_offset": object_table_offset,
-        "object_page_map_offset": field(0x48),
+        "object_page_map_offset": page_map_offset,
         "resource_table_offset": field(0x50),
         "resource_count": field(0x54),
         "resident_name_table_offset": resident_offset,
@@ -556,7 +632,7 @@ def _parse_le(data: bytes | memoryview, header_offset: int) -> dict[str, Any]:
         "imported_module_table_offset": imported_module_offset,
         "imported_module_count": imported_module_count,
         "imported_procedure_table_offset": field(0x78),
-        "data_pages_offset": field(0x80),
+        "data_pages_offset": data_pages_offset,
         "preload_page_count": field(0x84),
         "nonresident_name_table_offset": nonresident_offset,
         "nonresident_name_table_size": nonresident_size,
@@ -566,6 +642,7 @@ def _parse_le(data: bytes | memoryview, header_offset: int) -> dict[str, Any]:
         "extra_heap_allocation": field(0xA8),
         "object_count": object_count,
         "objects": objects,
+        "pages": pages,
         "imported_modules": imported_modules,
         "resident_names": resident_names,
         "nonresident_names": nonresident_names,

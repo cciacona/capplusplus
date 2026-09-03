@@ -113,14 +113,14 @@ header bounds, sections, imports, LE objects and names, opt-in string output,
 plain-MZ handling, CLI routing, and the three-report survey workflow without
 including original data.
 
-The current parser intentionally stops short of disassembly and control-flow
-analysis. The next executable-analysis targets are:
+The structural parser intentionally stops short of general disassembly. The
+[loader-boundary survey](loaders.md) now completes the first targeted
+control-flow task with bounded direct-call and immediate-reference scans. The
+remaining executable-analysis targets are:
 
-1. Cross-reference file-format strings and imported file APIs to locate the
-   original resource, map, game-set, and save loaders.
-2. Identify the simulation clock and random-number state update sites using
+1. Identify the simulation clock and random-number state update sites using
    save observations as external test oracles.
-3. Map DirectDraw, DirectSound, WinMM, and Windows-message call sites to isolate
+2. Map DirectDraw, DirectSound, WinMM, and Windows-message call sites to isolate
    rendering, audio, timing, and input from platform-independent behavior.
-4. Record behavior as black-box contracts and synthetic tests before writing
+3. Record behavior as black-box contracts and synthetic tests before writing
    replacement engine code.
