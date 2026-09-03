@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Refocused the README on evergreen project information and moved development
+  history to this changelog.
+- Hardened CI with scoped triggers, concurrency cancellation, SHA-pinned
+  official actions, Python 3.14 coverage, and a stable aggregate `CI` check.
+- Added monthly grouped Dependabot updates for GitHub Actions.
+- Added a security policy, structured issue forms, and a clean-room pull request
+  checklist.
 - Added bounded MZ, PE32/PE32+, and LE executable inspection.
 - Added PE section, data-directory, library, and imported-symbol decoding.
 - Added LE object, module-name, and resident-name decoding.
