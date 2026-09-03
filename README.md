@@ -32,6 +32,14 @@ other proprietary game data. You must provide files from your own copy.
 Original inputs are never modified. ZIP archives are streamed without extraction,
 and export commands refuse to replace existing files unless `--force` is supplied.
 
+## Unreleased 0.3 work
+
+The development branch can now parse the supplied DOS executable's MZ/LE
+headers and objects, and the Windows executable's PE32 headers, sections, and
+complete import table. It also supports bounded ASCII and UTF-16LE string
+discovery. See the [executable survey](docs/executables.md) for reproducible
+commands, exact observations, source references, and limitations.
+
 ## Requirements
 
 - Python 3.10 or newer
@@ -88,6 +96,13 @@ capplus-inspect compare-saves "21ST_001.SAV" "QUAA_001.SAV"
 capplus-inspect compare-saves "21ST_001.SAV" "QUAA_001.SAV" --json
 ```
 
+Inspect an executable without including proprietary strings in the report:
+
+```powershell
+capplus-inspect inspect "CAPPLUS.EXE" --json
+capplus-inspect inspect "CapWin.exe" --include-strings --minimum-string-length 8 --json
+```
+
 Export sprites and render a map:
 
 ```powershell
@@ -110,6 +125,7 @@ PYTHONPATH=src python3 -m unittest discover -s tests -t . -v
 ## Documentation
 
 - [Observed binary formats](docs/formats.md)
+- [Executable survey](docs/executables.md)
 - [Validation results](docs/validation.md)
 - [Clean-room development policy](CLEAN_ROOM.md)
 - [Contributing](CONTRIBUTING.md)
