@@ -12,7 +12,7 @@ engine and parity-test harness can consume.
 The project contains no game executable, artwork, audio, maps, scenarios, or
 other proprietary game data. You must provide files from your own copy.
 
-## What capplus-inspect 0.2.0 can do
+## Capabilities
 
 - Validate a DOS or Windows installation directory, or inspect its ZIP directly.
 - Recognize the analyzed unmodified DOS and Windows executables by SHA-256.
@@ -27,22 +27,12 @@ other proprietary game data. You must provide files from your own copy.
 - Parse version-100 `.SAV` metadata and the complete 24-section marker chain.
 - Decode the confirmed town array, town/item keys, selected market floats, and RNG state.
 - Compare two saves section-by-section and measure cross-build float drift in ULPs.
+- Inspect MZ/LE and PE32 executable structure, including objects, sections, and imports.
+- Survey original file-loader boundaries across the DOS and Windows builds.
 - Emit human-readable summaries or deterministic, schema-versioned JSON.
 
 Original inputs are never modified. ZIP archives are streamed without extraction,
 and export commands refuse to replace existing files unless `--force` is supplied.
-
-## Unreleased 0.3 work
-
-The development branch can now parse the supplied DOS executable's MZ/LE
-headers and objects, and the Windows executable's PE32 headers, sections, and
-complete import table. It also supports bounded ASCII and UTF-16LE string
-discovery. The targeted loader survey traces the original resource, game-set,
-map, scenario, and save boundaries across both builds and codifies their
-size-prefixed compatibility-record behavior. See the
-[executable survey](docs/executables.md) and
-[loader contracts](docs/loaders.md) for reproducible commands, exact
-observations, source references, and limitations.
 
 ## Requirements
 
@@ -134,6 +124,7 @@ PYTHONPATH=src python3 -m unittest discover -s tests -t . -v
 - [Validation results](docs/validation.md)
 - [Clean-room development policy](CLEAN_ROOM.md)
 - [Contributing](CONTRIBUTING.md)
+- [Release history](CHANGELOG.md)
 - [Complete 1.0 parity roadmap](ROADMAP.md)
 
 ## Status and caveats

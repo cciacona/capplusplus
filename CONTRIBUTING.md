@@ -27,6 +27,15 @@ On Windows, activate the environment from `.venv\Scripts` and use `py` or
    changes require a `schema_version` increment.
 7. Run the full standard-library test suite.
 
+## Documentation scope
+
+- Keep `README.md` evergreen: explain the project, its capabilities, setup, and
+  everyday usage without narrating individual development updates.
+- Record released and unreleased changes in `CHANGELOG.md`.
+- Keep planned milestones and future scope in `ROADMAP.md`.
+- Put detailed technical findings in focused files under `docs/` and link them
+  from the README when they are useful to users or contributors.
+
 ## Reporting an observation
 
 Useful reports include the game build hash, exact action sequence, initial and
