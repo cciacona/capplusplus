@@ -1,0 +1,377 @@
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+import zipfile
+from pathlib import Path
+from typing import Any, Sequence
+
+from . import __version__
+from .containers import inspect_resource, inspect_set
+from .errors import InspectError
+from .images import export_indexed_images
+from .installation import inspect_installation
+from .maps import inspect_map, render_map
+from .saves import compare_saves, inspect_save
+from .util import json_ready
+
+
+def _inspect_path(path: Path, *, deep: bool, rows: int) -> dict[str, Any]:
+    if not path.exists():
+        raise InspectError("input path does not exist")
+    if path.is_dir() or (path.is_file() and zipfile.is_zipfile(path)):
+        return inspect_installation(path, deep=deep)
+    data = path.read_bytes()
+    suffix = path.suffix.lower()
+    if suffix == ".sav":
+        result = inspect_save(data)
+    elif suffix == ".set":
+        result = inspect_set(data, include_rows=rows)
+    elif suffix == ".map":
+        result = inspect_map(data)
+    else:
+        result = inspect_resource(data)
+    result["input"] = str(path.resolve())
+    return result
+
+
+def _render_installation(result: dict[str, Any]) -> list[str]:
+    assets = result["core_assets"]
+    lines = [
+        "Capitalism Plus installation",
+        f"  input: {result['input']}",
+        f"  source: {result['source_kind']}",
+        f"  build: {result['variant']}",
+        f"  files: {result['file_count']}",
+        f"  core assets: {assets['matched']}/{assets['expected']} recognized",
+        f"  complete and unmodified: {'yes' if assets['complete_and_unmodified'] else 'no'}",
+    ]
+    for executable in result["executables"]:
+        status = "recognized" if executable["recognized_unmodified"] else "unknown/modified"
+        lines.append(f"  {executable['variant']} executable: {status}")
+    if assets["modified"]:
+        lines.append(f"  modified core files: {len(assets['modified'])}")
+    if assets["missing"]:
+        lines.append(f"  missing core files: {len(assets['missing'])}")
+    if "deep" in result:
+        deep = result["deep"]
+        lines.extend(
+            [
+                "  deep inspection:",
+                f"    game sets: {len(deep['game_sets'])}",
+                f"    maps: {len(deep['maps'])}",
+                f"    resources: {len(deep['resources'])}",
+                f"    saves: {len(deep['saves'])}",
+                f"    errors: {len(deep['errors'])}",
+            ]
+        )
+    return lines
+
+
+def _render_save(result: dict[str, Any]) -> list[str]:
+    lines = [
+        "Capitalism Plus save",
+        f"  input: {result['input']}",
+        f"  internal name: {result['internal_filename']}",
+        f"  version: {result['save_version']}",
+        f"  date: {result['current_date']} (JDN {result['current_date_jdn']})",
+        f"  company: {result['company_name']}",
+        f"  scenario: {result['scenario_title']}",
+        f"  settings: {', '.join(result['settings_references']) or '<none found>'}",
+        f"  sections: {result['section_count']}/24",
+    ]
+    if result.get("rng"):
+        lines.append(f"  RNG state: {result['rng']['state_hex']}")
+    town = result.get("town_array", {})
+    if town.get("parsed"):
+        names = ", ".join(item["name"] for item in town["towns"])
+        dynamic = town["dynamic_array"]
+        lines.extend(
+            [
+                f"  towns: {len(town['towns'])} ({names})",
+                f"  town/item records: {dynamic['element_count']} x {dynamic['element_size']} bytes",
+                f"  item IDs represented: {dynamic['item_id_count']}",
+            ]
+        )
+    else:
+        lines.append(f"  town array: not decoded ({town.get('error', 'unknown error')})")
+    return lines
+
+
+def _render_set(result: dict[str, Any]) -> list[str]:
+    lines = [
+        "Capitalism Plus game set",
+        f"  input: {result['input']}",
+        f"  tables: {result['table_count']}",
+    ]
+    lines.extend(
+        f"  {table['name']:<9} records={table['record_count']:<4} fields={table['field_count']}"
+        for table in result["tables"]
+    )
+    return lines
+
+
+def _render_map(result: dict[str, Any]) -> list[str]:
+    lines = [
+        "Capitalism Plus map",
+        f"  input: {result['input']}",
+        f"  bytes: {result['size']}",
+        f"  name: {result['display_name']}",
+        f"  grid: {result['grid']['width']}x{result['grid']['height']} "
+        f"({result['grid']['cell_size']}-byte cells)",
+        f"  cities: {result['city_count']}",
+    ]
+    lines.extend(
+        f"  {city['name']:<21} x={city['x']:<3} y={city['y']:<3} population={city['population']}"
+        for city in result["cities"]
+    )
+    return lines
+
+
+def _render_palette(result: dict[str, Any]) -> list[str]:
+    return [
+        "Capitalism Plus palette",
+        f"  input: {result['input']}",
+        f"  bytes: {result['size']}",
+        f"  colors: {result['color_count']}",
+        f"  channel range: {result['channel_minimum']}..{result['channel_maximum']}",
+    ]
+
+
+def _render_image_export(result: dict[str, Any]) -> list[str]:
+    return [
+        "Capitalism Plus image export",
+        f"  source: {result['source']}",
+        f"  source format: {result['source_format']}",
+        f"  images written: {result['image_count']}",
+        f"  output: {result['output_directory']}",
+        f"  manifest: {result['manifest']}",
+    ]
+
+
+def _render_map_render(result: dict[str, Any]) -> list[str]:
+    return [
+        "Capitalism Plus map render",
+        f"  map: {result['display_name']}",
+        f"  dimensions: {result['width']}x{result['height']}",
+        f"  city markers: {result['city_markers']}",
+        f"  output: {result['output']}",
+    ]
+
+
+def _render_resource(result: dict[str, Any]) -> list[str]:
+    lines = [
+        "Capitalism Plus resource",
+        f"  input: {result['input']}",
+        f"  format: {result['format']}",
+        f"  bytes: {result['size']}",
+    ]
+    if "member_count" in result:
+        lines.append(f"  members: {result['member_count']}")
+        for member in result["members"]:
+            label = member.get("name") or f"#{member['index']}"
+            detail = ""
+            if member["kind"] == "indexed_image":
+                detail = f" {member['width']}x{member['height']}"
+            elif member["kind"] == "dbase":
+                detail = f" records={member['record_count']} fields={member['field_count']}"
+            lines.append(f"  {label:<12} {member['kind']}{detail} ({member['size']} bytes)")
+    elif "image_count" in result:
+        lines.append(f"  images: {result['image_count']}")
+    return lines
+
+
+def _render_comparison(result: dict[str, Any]) -> list[str]:
+    agreement = result["agreement_against_larger_file"] * 100
+    lines = [
+        "Capitalism Plus save comparison",
+        f"  left: {result['left']['filename']} ({result['left']['date']})",
+        f"  right: {result['right']['filename']} ({result['right']['date']})",
+        f"  same size: {'yes' if result['same_size'] else 'no'}",
+        f"  byte-identical: {'yes' if result['byte_identical'] else 'no'}",
+        f"  same-position agreement: {agreement:.4f}%",
+        f"  equal bytes: {result['equal_bytes_at_same_offsets']}",
+    ]
+    changed = [section for section in result["sections"] if not section["byte_identical"]]
+    lines.append(f"  non-identical sections: {len(changed)}")
+    for section in changed:
+        lines.append(
+            f"    {section['marker']}: {section['left_size']} -> {section['right_size']} bytes; "
+            f"{section['differing_bytes_at_same_offsets']} same-offset byte differences"
+        )
+    town = result.get("town_array")
+    if town:
+        lines.extend(
+            [
+                f"  known transient pointer-byte differences: {town['transient_pointer_bytes_different']}",
+                f"  changed known market floats: {town['changed_known_float_fields']}",
+                f"  maximum known float drift: {town['maximum_known_float_ulp_distance']} ULP",
+            ]
+        )
+    return lines
+
+
+def _render_text(result: dict[str, Any]) -> str:
+    format_name = result.get("format")
+    if format_name == "capitalism_plus_installation":
+        lines = _render_installation(result)
+    elif format_name == "capitalism_plus_save":
+        lines = _render_save(result)
+    elif format_name == "capitalism_plus_game_set":
+        lines = _render_set(result)
+    elif format_name == "capitalism_plus_map":
+        lines = _render_map(result)
+    elif format_name == "capitalism_plus_palette":
+        lines = _render_palette(result)
+    elif format_name == "capitalism_plus_image_export":
+        lines = _render_image_export(result)
+    elif format_name == "capitalism_plus_map_render":
+        lines = _render_map_render(result)
+    elif format_name == "capitalism_plus_save_comparison":
+        lines = _render_comparison(result)
+    else:
+        lines = _render_resource(result)
+    return "\n".join(lines)
+
+
+def _build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="capplus-inspect",
+        description="Non-destructive inspection and export of user-supplied Capitalism Plus files.",
+    )
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    inspect_parser = subparsers.add_parser(
+        "inspect", help="inspect a game directory, ZIP, save, map, game set, or resource"
+    )
+    inspect_parser.add_argument("path", type=Path)
+    inspect_parser.add_argument(
+        "--deep",
+        action="store_true",
+        help="parse all core formats when inspecting an installation",
+    )
+    inspect_parser.add_argument(
+        "--rows",
+        type=int,
+        default=0,
+        metavar="N",
+        help="include the first N rows of each DBF table for direct .SET inspection",
+    )
+    inspect_parser.add_argument("--json", action="store_true", help="emit stable JSON")
+    inspect_parser.add_argument(
+        "--require-clean",
+        action="store_true",
+        help="return exit status 3 unless all 72 known core files are unmodified",
+    )
+
+    compare_parser = subparsers.add_parser(
+        "compare-saves", help="compare two save files section-by-section"
+    )
+    compare_parser.add_argument("left", type=Path)
+    compare_parser.add_argument("right", type=Path)
+    compare_parser.add_argument("--json", action="store_true", help="emit stable JSON")
+
+    export_parser = subparsers.add_parser(
+        "export-images",
+        help="export supported indexed images to lossless palette PNG files",
+    )
+    export_parser.add_argument("input", type=Path)
+    export_parser.add_argument("output_directory", type=Path)
+    export_parser.add_argument(
+        "--palette", type=Path, required=True, help="PAL_STD.RES or compatible palette"
+    )
+    export_parser.add_argument(
+        "--transparent-index",
+        default="245",
+        metavar="N|none",
+        help="transparent palette index (default: 245), or 'none' for opaque output",
+    )
+    export_parser.add_argument("--scale", type=int, default=1, help="integer scale 1..32")
+    export_parser.add_argument("--force", action="store_true", help="replace existing outputs")
+    export_parser.add_argument("--json", action="store_true", help="emit stable JSON")
+
+    render_parser = subparsers.add_parser(
+        "render-map", help="render the decoded 240x198 map overview to a palette PNG"
+    )
+    render_parser.add_argument("input", type=Path)
+    render_parser.add_argument("output", type=Path)
+    render_parser.add_argument(
+        "--palette", type=Path, required=True, help="PAL_STD.RES or compatible palette"
+    )
+    render_parser.add_argument("--scale", type=int, default=4, help="integer scale 1..32")
+    render_parser.add_argument(
+        "--no-cities", action="store_true", help="do not overlay city position markers"
+    )
+    render_parser.add_argument("--force", action="store_true", help="replace an existing output")
+    render_parser.add_argument("--json", action="store_true", help="emit stable JSON")
+    return parser
+
+
+def _parse_transparent_index(value: str) -> int | None:
+    if value.lower() == "none":
+        return None
+    try:
+        result = int(value, 0)
+    except ValueError as error:
+        raise InspectError("--transparent-index must be 0..255 or 'none'") from error
+    if not 0 <= result <= 255:
+        raise InspectError("--transparent-index must be 0..255 or 'none'")
+    return result
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    parser = _build_parser()
+    args = parser.parse_args(argv)
+    try:
+        if args.command == "inspect":
+            if args.rows < 0:
+                parser.error("--rows must be non-negative")
+            result = _inspect_path(args.path, deep=args.deep, rows=args.rows)
+            require_clean_failed = bool(
+                args.require_clean
+                and result.get("format") == "capitalism_plus_installation"
+                and not result["core_assets"]["complete_and_unmodified"]
+            )
+            as_json = args.json
+        elif args.command == "compare-saves":
+            result = compare_saves(args.left.read_bytes(), args.right.read_bytes())
+            result["inputs"] = [str(args.left.resolve()), str(args.right.resolve())]
+            require_clean_failed = False
+            as_json = args.json
+        elif args.command == "export-images":
+            result = export_indexed_images(
+                args.input.read_bytes(),
+                args.palette.read_bytes(),
+                args.output_directory,
+                source_name=str(args.input.resolve()),
+                palette_name=str(args.palette.resolve()),
+                transparent_index=_parse_transparent_index(args.transparent_index),
+                scale=args.scale,
+                force=args.force,
+            )
+            require_clean_failed = False
+            as_json = args.json
+        else:
+            result = render_map(
+                args.input.read_bytes(),
+                args.palette.read_bytes(),
+                args.output,
+                scale=args.scale,
+                mark_cities=not args.no_cities,
+                force=args.force,
+            )
+            result["input"] = str(args.input.resolve())
+            result["palette"] = str(args.palette.resolve())
+            require_clean_failed = False
+            as_json = args.json
+    except (InspectError, OSError) as error:
+        print(f"capplus-inspect: {error}", file=sys.stderr)
+        return 2
+
+    if as_json:
+        print(json.dumps(json_ready(result), indent=2, sort_keys=True, ensure_ascii=False))
+    else:
+        print(_render_text(result))
+    return 3 if require_clean_failed else 0
