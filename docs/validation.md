@@ -1,4 +1,4 @@
-# Validation record through 0.2.0
+# Validation record through the 0.3 development snapshot
 
 The tool was checked against the user-supplied, unmodified DOS and Windows
 game directories and three mutually compatible version-100 saves.
@@ -60,8 +60,11 @@ point rounding as normalization concerns.
 
 ## Automated suite
 
-The distributable suite contains 20 tests covering DBF parsing, all three
+The development suite contains 28 tests covering DBF parsing, all three
 resource-container patterns, palettes, indexed PNG encoding, image export and
 overwrite protection, map structure/rendering, version-100 save framing, save
 comparison, installation-root discovery, CLI exit behavior, and malformed input rejection.
-All fixtures are generated synthetically and contain no original game data.
+It also covers synthetic PE32 sections and imports, LE objects and names,
+printable-string extraction, plain-MZ handling, executable CLI routing, and the
+cross-build survey workflow. All fixtures are generated synthetically and
+contain no original game data.

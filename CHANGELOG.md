@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Added bounded MZ, PE32/PE32+, and LE executable inspection.
+- Added PE section, data-directory, library, and imported-symbol decoding.
+- Added LE object, module-name, and resident-name decoding.
+- Added opt-in ASCII and UTF-16LE string output with summary counts by default.
+- Added a reproducible three-report DOS/Windows executable survey and synthetic
+  fixtures.
+
 ## 0.2.0 — 2026-09-02
 
 - Identified the `.MAP` core as a 240×198 grid of 47,520 eight-byte cells plus a

@@ -10,6 +10,7 @@ from typing import Any, Sequence
 from . import __version__
 from .containers import inspect_resource, inspect_set
 from .errors import InspectError
+from .executables import inspect_executable
 from .images import export_indexed_images
 from .installation import inspect_installation
 from .maps import inspect_map, render_map
@@ -17,14 +18,27 @@ from .saves import compare_saves, inspect_save
 from .util import json_ready
 
 
-def _inspect_path(path: Path, *, deep: bool, rows: int) -> dict[str, Any]:
+def _inspect_path(
+    path: Path,
+    *,
+    deep: bool,
+    rows: int,
+    include_strings: bool,
+    minimum_string_length: int,
+) -> dict[str, Any]:
     if not path.exists():
         raise InspectError("input path does not exist")
     if path.is_dir() or (path.is_file() and zipfile.is_zipfile(path)):
         return inspect_installation(path, deep=deep)
     data = path.read_bytes()
     suffix = path.suffix.lower()
-    if suffix == ".sav":
+    if suffix == ".exe":
+        result = inspect_executable(
+            data,
+            include_strings=include_strings,
+            minimum_string_length=minimum_string_length,
+        )
+    elif suffix == ".sav":
         result = inspect_save(data)
     elif suffix == ".set":
         result = inspect_set(data, include_rows=rows)
@@ -160,6 +174,73 @@ def _render_map_render(result: dict[str, Any]) -> list[str]:
     ]
 
 
+def _render_executable(result: dict[str, Any]) -> list[str]:
+    recognized = result.get("recognized_build") or "unknown or modified build"
+    lines = [
+        "Capitalism Plus executable",
+        f"  input: {result['input']}",
+        f"  bytes: {result['size']}",
+        f"  SHA-256: {result['sha256']}",
+        f"  recognized build: {recognized}",
+        f"  executable format: {result['executable_format']}",
+    ]
+    if result["recognized_new_header"]:
+        lines.append(
+            f"  new header offset: 0x{result['dos_header']['new_header_offset']:X}"
+        )
+    else:
+        lines.append("  new-format header: none recognized")
+    if "pe" in result:
+        pe = result["pe"]
+        optional = pe["optional_header"]
+        lines.extend(
+            [
+                f"  machine: {pe['machine_name']} (0x{pe['machine']:04X})",
+                f"  entry point RVA: 0x{optional['entry_point_rva']:X}",
+                f"  image base: 0x{optional['image_base']:X}",
+                f"  subsystem: {optional['subsystem_name']}",
+                f"  sections: {pe['section_count']}",
+                f"  imported libraries: {pe['imported_library_count']}",
+                f"  imported symbols: {pe['imported_symbol_count']}",
+            ]
+        )
+        lines.extend(
+            f"    {section['name']:<8} RVA=0x{section['virtual_address']:08X} "
+            f"raw=0x{section['raw_offset']:08X}+0x{section['raw_size']:X}"
+            for section in pe["sections"]
+        )
+        lines.extend(
+            f"    {library['library']}: {len(library['symbols'])} symbols"
+            for library in pe["imports"]
+        )
+    elif "le" in result:
+        le = result["le"]
+        lines.extend(
+            [
+                f"  CPU: {le['cpu_name']} ({le['cpu']})",
+                f"  target OS: {le['target_os_name']} ({le['target_os']})",
+                f"  entry point: object {le['entry_object']} + 0x{le['entry_offset']:X}",
+                f"  page size: {le['page_size']}",
+                f"  objects: {le['object_count']}",
+                f"  imported modules: {', '.join(le['imported_modules']) or '<none>'}",
+            ]
+        )
+        lines.extend(
+            f"    object {item['index']}: base=0x{item['base_address']:08X} "
+            f"size=0x{item['virtual_size']:X} pages={item['page_count']} "
+            f"flags={','.join(item['flag_names']) or 'none'}"
+            for item in le["objects"]
+        )
+    summary = result["string_summary"]
+    lines.append(
+        f"  strings (minimum {summary['minimum_length']}): "
+        f"{summary['ascii_count']} ASCII, {summary['utf16le_count']} UTF-16LE"
+    )
+    if "strings" in result:
+        lines.append(f"  included strings: {len(result['strings'])}")
+    return lines
+
+
 def _render_resource(result: dict[str, Any]) -> list[str]:
     lines = [
         "Capitalism Plus resource",
@@ -228,6 +309,8 @@ def _render_text(result: dict[str, Any]) -> str:
         lines = _render_image_export(result)
     elif format_name == "capitalism_plus_map_render":
         lines = _render_map_render(result)
+    elif format_name == "capitalism_plus_executable":
+        lines = _render_executable(result)
     elif format_name == "capitalism_plus_save_comparison":
         lines = _render_comparison(result)
     else:
@@ -244,7 +327,8 @@ def _build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     inspect_parser = subparsers.add_parser(
-        "inspect", help="inspect a game directory, ZIP, save, map, game set, or resource"
+        "inspect",
+        help="inspect a game directory, ZIP, executable, save, map, game set, or resource",
     )
     inspect_parser.add_argument("path", type=Path)
     inspect_parser.add_argument(
@@ -258,6 +342,18 @@ def _build_parser() -> argparse.ArgumentParser:
         default=0,
         metavar="N",
         help="include the first N rows of each DBF table for direct .SET inspection",
+    )
+    inspect_parser.add_argument(
+        "--include-strings",
+        action="store_true",
+        help="include printable strings when inspecting an executable",
+    )
+    inspect_parser.add_argument(
+        "--minimum-string-length",
+        type=int,
+        default=5,
+        metavar="N",
+        help="minimum executable string length (default: 5)",
     )
     inspect_parser.add_argument("--json", action="store_true", help="emit stable JSON")
     inspect_parser.add_argument(
@@ -328,7 +424,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.command == "inspect":
             if args.rows < 0:
                 parser.error("--rows must be non-negative")
-            result = _inspect_path(args.path, deep=args.deep, rows=args.rows)
+            if not 1 <= args.minimum_string_length <= 1024:
+                parser.error("--minimum-string-length must be between 1 and 1024")
+            result = _inspect_path(
+                args.path,
+                deep=args.deep,
+                rows=args.rows,
+                include_strings=args.include_strings,
+                minimum_string_length=args.minimum_string_length,
+            )
             require_clean_failed = bool(
                 args.require_clean
                 and result.get("format") == "capitalism_plus_installation"
