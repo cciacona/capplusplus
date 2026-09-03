@@ -1,0 +1,34 @@
+name: Feature request
+description: Propose a change to Cap++, capplus-inspect, or the development workflow.
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What limitation or workflow problem should this address?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the desired behavior, not original implementation details.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+
+  - type: checkboxes
+    id: profile
+    attributes:
+      label: Compatibility profile
+      options:
+        - label: This preserves the locked Classic profile, or clearly belongs to Extended mode.
+          required: true

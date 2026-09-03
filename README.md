@@ -123,6 +123,7 @@ PYTHONPATH=src python3 -m unittest discover -s tests -t . -v
 - [Original file-loader contracts](docs/loaders.md)
 - [Validation results](docs/validation.md)
 - [Clean-room development policy](CLEAN_ROOM.md)
+- [Security policy](SECURITY.md)
 - [Contributing](CONTRIBUTING.md)
 - [Release history](CHANGELOG.md)
 - [Complete 1.0 parity roadmap](ROADMAP.md)

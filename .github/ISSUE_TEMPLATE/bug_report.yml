@@ -1,0 +1,81 @@
+name: Bug report
+description: Report reproducible incorrect behavior in Cap++ or capplus-inspect.
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not upload or paste original game executables, assets, saves, or other
+        proprietary data. Use hashes, offsets, field names, and minimal synthetic
+        examples where possible.
+
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: The capplus-inspect version or Cap++ commit being tested.
+      placeholder: v0.2.0 or 8ba692b
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Installation validation
+        - Executable inspection
+        - Game-set or table parsing
+        - Map parsing or rendering
+        - Resource or image export
+        - Save parsing or comparison
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system, Python version, and invocation method.
+      placeholder: Windows 11, Python 3.13, installed wheel
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      description: Include the exact command and the smallest reproducible sequence.
+      placeholder: |
+        1. Run ...
+        2. Inspect ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include sanitized output or a minimal hexdump if useful.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: clean_room
+    attributes:
+      label: Clean-room confirmation
+      options:
+        - label: I have not attached proprietary game files or decompiler output.
+          required: true

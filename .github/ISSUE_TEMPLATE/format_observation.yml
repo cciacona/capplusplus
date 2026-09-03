@@ -1,0 +1,70 @@
+name: Format or behavior observation
+description: Submit a reproducible clean-room reverse-engineering observation.
+title: "[Research] "
+labels:
+  - research
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Observations must follow `CLEAN_ROOM.md`. Do not attach original game files,
+        expressive extracted content, or decompiler output.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Executables and loaders
+        - Formats and containers
+        - Maps
+        - Saves
+        - Graphics and interface assets
+        - Audio and music
+        - Simulation and AI
+        - Tooling and tests
+    validations:
+      required: true
+
+  - type: input
+    id: build
+    attributes:
+      label: Source build
+      description: Identify the DOS or Windows build using its known hash or version.
+      placeholder: Windows build, known SHA-256 ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: experiment
+    attributes:
+      label: Controlled experiment
+      description: Describe the initial state, one changed variable, and exact steps.
+    validations:
+      required: true
+
+  - type: textarea
+    id: observation
+    attributes:
+      label: Observation
+      description: State the factual result and distinguish confirmed facts from inference.
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Sanitized evidence
+      description: Provide offsets, sizes, hashes, numeric values, or minimal non-expressive bytes.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: clean_room
+    attributes:
+      label: Clean-room confirmation
+      options:
+        - label: I have read and followed `CLEAN_ROOM.md`.
+          required: true
+        - label: This report contains no proprietary files or decompiler output.
+          required: true
