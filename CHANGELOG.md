@@ -1,0 +1,26 @@
+# Changelog
+
+## 0.2.0 — 2026-09-02
+
+- Identified the `.MAP` core as a 240×198 grid of 47,520 eight-byte cells plus a
+  52-byte header and 32-byte footer.
+- Added exact palette-indexed map rendering with city markers.
+- Added 256-color palette inspection.
+- Added lossless indexed-PNG export for direct, sequential, offset-indexed, and
+  named/mixed original image resources.
+- Added palette transparency, integer scaling, JSON manifests, atomic output,
+  and overwrite protection.
+- Expanded the synthetic suite to 20 tests.
+- Replaced the short roadmap with a complete feature-parity plan through 1.0.
+
+## 0.1.0 — 2026-09-02
+
+- Added directory and ZIP installation validation for the analyzed DOS and
+  Windows builds.
+- Added named, offset-indexed, and sequential-image container inspection.
+- Added embedded dBASE table parsing for `.SET` files.
+- Added `.MAP` city-tail parsing.
+- Added version-100 save metadata, section-chain, RNG, and town-array parsing.
+- Added section-aware save comparison with pointer normalization evidence and
+  float ULP statistics.
+- Added schema-versioned JSON and a synthetic 15-test suite.
