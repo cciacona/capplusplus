@@ -7,6 +7,7 @@ from typing import Any
 
 from . import SCHEMA_VERSION
 from .errors import FormatError
+from .records import read_compatible_record
 from .util import (
     c_string,
     f32,
@@ -138,25 +139,6 @@ def _resolve_section_offsets(data: bytes, first_offset: int) -> tuple[list[int],
     return best, len(solutions)
 
 
-def _read_framed_record(
-    data: bytes,
-    offset: int,
-    *,
-    expected_size: int | None = None,
-    limit: int | None = None,
-) -> tuple[bytes, int, int]:
-    saved_size = u16(data, offset)
-    size = expected_size if saved_size == 0 else saved_size
-    if size is None:
-        raise FormatError("zero-sized record prefix requires an expected size", offset=offset)
-    start = offset + 2
-    end = start + size
-    if limit is not None and end > limit:
-        raise FormatError("framed record crosses its section boundary", offset=offset)
-    require_range(data, start, size, "framed record")
-    return data[start:end], end, saved_size
-
-
 def _decode_town_array(
     data: bytes, start: int, end: int
 ) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -178,7 +160,7 @@ def _decode_town_array(
     town_raw_offsets: list[int] = []
     for index in range(header["town_count"]):
         record_prefix = offset
-        raw, offset, saved_size = _read_framed_record(
+        raw, offset, saved_size = read_compatible_record(
             data,
             offset,
             expected_size=TOWN_RECORD_EXPECTED,
@@ -190,13 +172,13 @@ def _decode_town_array(
         town_raw_records.append(raw)
         town_raw_offsets.append(record_prefix + 2)
 
-        item_data, offset, item_saved = _read_framed_record(
+        item_data, offset, item_saved = read_compatible_record(
             data,
             offset,
             expected_size=ITEM_INDEX_EXPECTED,
             limit=end,
         )
-        firm_data, offset, firm_saved = _read_framed_record(
+        firm_data, offset, firm_saved = read_compatible_record(
             data,
             offset,
             expected_size=FIRM_INDEX_EXPECTED,
@@ -232,7 +214,7 @@ def _decode_town_array(
         )
 
     dynamic_header_offset = offset
-    dynamic_raw, offset, dynamic_saved_size = _read_framed_record(
+    dynamic_raw, offset, dynamic_saved_size = read_compatible_record(
         data,
         offset,
         expected_size=44,
@@ -249,7 +231,7 @@ def _decode_town_array(
         raise FormatError("implausible town dynamic-array dimensions", offset=dynamic_header_offset)
     expected_data_size = element_count * element_size
     market_data_offset = offset
-    market_data, offset, market_saved_size = _read_framed_record(
+    market_data, offset, market_saved_size = read_compatible_record(
         data,
         offset,
         expected_size=expected_data_size,

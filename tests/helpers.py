@@ -140,11 +140,13 @@ def make_pe32_executable() -> bytes:
     data[0x470 : 0x470 + 14] = b"\0\0ExitProcess\0"
     data[0x580 : 0x58B] = b"ASCII_TEST\0"
     data[0x590 : 0x5A4] = "WIDE_TEST\0".encode("utf-16le")
+    data[0x5B0 : 0x5C2] = b"RESOURCE\\TEST.RES\0"
+    struct.pack_into("<I", data, 0x210, 0x4021B0)
     return bytes(data)
 
 
 def make_le_executable() -> bytes:
-    data = bytearray(0x180)
+    data = bytearray(0x1200)
     data[:2] = b"MZ"
     struct.pack_into("<HHHHHHHHHHHHH", data, 2, 0x180, 1, 0, 4, 0, 0xFFFF, 0, 0x100, 0, 0, 0, 0x40, 0)
     struct.pack_into("<I", data, 0x3C, 0x80)
@@ -159,14 +161,18 @@ def make_le_executable() -> bytes:
     struct.pack_into("<IIII", data, le + 0x18, 1, 0x1234, 1, 0x8000)
     struct.pack_into("<II", data, le + 0x28, 4096, 512)
     struct.pack_into("<II", data, le + 0x40, 0xC4, 1)
-    struct.pack_into("<I", data, le + 0x48, 0xE5)
+    struct.pack_into("<I", data, le + 0x48, 0xF0)
     struct.pack_into("<I", data, le + 0x58, 0xE5)
     struct.pack_into("<II", data, le + 0x70, 0xDC, 1)
     struct.pack_into("<I", data, le + 0x80, 0x1000)
 
-    struct.pack_into("<IIIIII", data, le + 0xC4, 0x9000, 0x10000, 0x2007, 1, 9, 0)
+    struct.pack_into("<IIIIII", data, le + 0xC4, 0x200, 0x10000, 0x2007, 1, 1, 0)
     data[le + 0xDC : le + 0xE5] = b"\x08DOSCALLS"
     data[le + 0xE5 : le + 0xF0] = b"\x07CAPPLUS\x01\x00\x00"
+    data[le + 0xF0 : le + 0xF4] = b"\x00\x00\x01\x00"
+    data[0x1000:0x1200] = bytes((index & 0xFF for index in range(0x200)))
+    struct.pack_into("<I", data, 0x1000, 0x100)
+    data[0x1100 : 0x1111] = b"GAMESET\\TEST.SET\0"
     return bytes(data)
 
 

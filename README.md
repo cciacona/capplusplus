@@ -37,8 +37,12 @@ and export commands refuse to replace existing files unless `--force` is supplie
 The development branch can now parse the supplied DOS executable's MZ/LE
 headers and objects, and the Windows executable's PE32 headers, sections, and
 complete import table. It also supports bounded ASCII and UTF-16LE string
-discovery. See the [executable survey](docs/executables.md) for reproducible
-commands, exact observations, source references, and limitations.
+discovery. The targeted loader survey traces the original resource, game-set,
+map, scenario, and save boundaries across both builds and codifies their
+size-prefixed compatibility-record behavior. See the
+[executable survey](docs/executables.md) and
+[loader contracts](docs/loaders.md) for reproducible commands, exact
+observations, source references, and limitations.
 
 ## Requirements
 
@@ -126,6 +130,7 @@ PYTHONPATH=src python3 -m unittest discover -s tests -t . -v
 
 - [Observed binary formats](docs/formats.md)
 - [Executable survey](docs/executables.md)
+- [Original file-loader contracts](docs/loaders.md)
 - [Validation results](docs/validation.md)
 - [Clean-room development policy](CLEAN_ROOM.md)
 - [Contributing](CONTRIBUTING.md)

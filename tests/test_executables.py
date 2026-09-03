@@ -24,6 +24,9 @@ class ExecutableTests(unittest.TestCase):
         self.assertEqual([item["name"] for item in result["pe"]["sections"]], [".text", ".idata"])
         self.assertEqual(result["pe"]["imports"][0]["library"], "KERNEL32.dll")
         self.assertEqual(result["pe"]["imports"][0]["symbols"][0]["name"], "ExitProcess")
+        self.assertEqual(
+            result["pe"]["imports"][0]["symbols"][0]["iat_address"], 0x402050
+        )
         self.assertNotIn("strings", result)
 
     def test_parses_le_objects_and_imported_modules(self) -> None:
@@ -35,6 +38,20 @@ class ExecutableTests(unittest.TestCase):
         self.assertEqual(le["imported_modules"], ["DOSCALLS"])
         self.assertEqual(le["resident_names"], [{"name": "CAPPLUS", "ordinal": 1}])
         self.assertEqual(le["objects"][0]["flag_names"], ["read", "write", "execute", "big_default"])
+        self.assertEqual(le["objects"][0]["raw_offset"], 0x1000)
+        self.assertEqual(le["pages"][0]["stored_size"], 0x200)
+
+    def test_rejects_le_pages_with_zero_page_size(self) -> None:
+        data = bytearray(make_le_executable())
+        data[0xA8:0xAC] = bytes(4)
+        with self.assertRaises(FormatError):
+            inspect_executable(data)
+
+    def test_rejects_out_of_range_le_data_page(self) -> None:
+        data = bytearray(make_le_executable())
+        data[0x170:0x173] = b"\0\0\2"
+        with self.assertRaises(FormatError):
+            inspect_executable(data)
 
     def test_string_extraction_is_opt_in(self) -> None:
         result = inspect_executable(make_pe32_executable(), include_strings=True)

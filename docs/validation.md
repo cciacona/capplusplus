@@ -58,13 +58,27 @@ point rounding as normalization concerns.
 - Because the corresponding source assets are byte-identical, DOS and Windows
   exports are also byte-identical.
 
+## Executable loader boundaries
+
+- Both known executable profiles pass exact hash and direct-call-count gates.
+- The shared file layer resolves to seven matching DOS/Windows contracts.
+- Read-open has 24 direct DOS callers and 23 direct Windows callers; create has
+  six in each build.
+- Six Windows file APIs resolve to exact PE IAT slots and code references.
+- Referenced strings cover resources, game sets, maps, saves, scenarios, and
+  support files in both builds.
+- The synthetic framed-record probe preserves exact records, zero-extends
+  smaller records, skips oversized tails, and rejects declared truncation.
+
 ## Automated suite
 
-The development suite contains 28 tests covering DBF parsing, all three
+The development suite contains 39 tests covering DBF parsing, all three
 resource-container patterns, palettes, indexed PNG encoding, image export and
 overwrite protection, map structure/rendering, version-100 save framing, save
 comparison, installation-root discovery, CLI exit behavior, and malformed input rejection.
 It also covers synthetic PE32 sections and imports, LE objects and names,
 printable-string extraction, plain-MZ handling, executable CLI routing, and the
 cross-build survey workflow. All fixtures are generated synthetically and
-contain no original game data.
+contain no original game data. Loader tests additionally cover PE virtual
+addresses and IAT slots, LE page/object-relative references, cross-build report
+generation, compatible-record size handling, and malformed truncation.

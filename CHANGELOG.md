@@ -8,6 +8,13 @@
 - Added opt-in ASCII and UTF-16LE string output with summary counts by default.
 - Added a reproducible three-report DOS/Windows executable survey and synthetic
   fixtures.
+- Added PE import-address-table locations and LE page-to-file mappings.
+- Added a deterministic cross-build loader survey for original resources,
+  game sets, maps, scenarios, saves, and support files.
+- Documented matching DOS/Windows file-operation contracts and their runtime/API
+  boundaries without committing decompiler output.
+- Implemented size-prefixed compatibility reads, including zero-extension,
+  oversized-tail skipping, and a controlled malformed-record probe.
 
 ## 0.2.0 — 2026-09-02
 
