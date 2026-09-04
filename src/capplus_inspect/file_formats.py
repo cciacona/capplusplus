@@ -2,8 +2,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from .containers import inspect_resource
+from .containers import inspect_resource, inspect_set
+from .executables import inspect_executable
+from .maps import inspect_map
 from .plans import inspect_layout_plan
+from .saves import inspect_save
 from .support_files import inspect_known_support_file
 from .ui_resources import inspect_known_ui_resource
 
@@ -28,3 +31,36 @@ def inspect_auxiliary_file(
         cursor_image_data=cursor_image_data,
     )
     return ui if ui is not None else inspect_resource(data)
+
+
+def inspect_file_bytes(
+    data: bytes,
+    filename: str,
+    *,
+    rows: int = 0,
+    include_strings: bool = False,
+    minimum_string_length: int = 5,
+    cursor_image_data: bytes | None = None,
+) -> dict[str, Any]:
+    """Route bytes through the same filename-aware parser used by the CLI."""
+
+    normalized = filename.replace("\\", "/")
+    basename = normalized.rsplit("/", 1)[-1]
+    suffix = "." + basename.rsplit(".", 1)[-1].lower() if "." in basename else ""
+    if suffix == ".exe":
+        return inspect_executable(
+            data,
+            include_strings=include_strings,
+            minimum_string_length=minimum_string_length,
+        )
+    if suffix == ".sav":
+        return inspect_save(data)
+    if suffix == ".set":
+        return inspect_set(data, include_rows=rows)
+    if suffix == ".map":
+        return inspect_map(data)
+    return inspect_auxiliary_file(
+        data,
+        basename,
+        cursor_image_data=cursor_image_data,
+    )

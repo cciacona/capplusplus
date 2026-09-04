@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/cciacona/capplusplus/blob/main/src/capplus_inspect/schemas/format-catalog-v1.schema.json",
+  "title": "Cap++ binary format catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "catalog_version",
+    "report_schema_version",
+    "formats"
+  ],
+  "properties": {
+    "$schema": {"type": "string"},
+    "format": {"const": "capitalism_plus_binary_format_catalog"},
+    "catalog_version": {"const": 1},
+    "report_schema_version": {"const": 1},
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["valid", "format_count", "field_count", "inferred_field_count"],
+      "properties": {
+        "valid": {"const": true},
+        "format_count": {"type": "integer", "minimum": 1},
+        "field_count": {"type": "integer", "minimum": 1},
+        "inferred_field_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "formats": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/format"}
+    }
+  },
+  "$defs": {
+    "roundtrip": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "scope"],
+      "properties": {
+        "mode": {
+          "enum": [
+            "exact_structural",
+            "exact_opaque",
+            "normalized_comparison",
+            "inspect_only"
+          ]
+        },
+        "scope": {"type": "string", "minLength": 1}
+      }
+    },
+    "field": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "offset",
+        "size",
+        "binary_type",
+        "status",
+        "observation_methods",
+        "confidence",
+        "notes"
+      ],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "offset": {"type": ["integer", "string"]},
+        "size": {"type": ["integer", "string"]},
+        "binary_type": {"type": "string", "minLength": 1},
+        "status": {"enum": ["confirmed", "inferred", "unknown"]},
+        "observation_methods": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "black_box_observation",
+              "controlled_game_experiment",
+              "cross_build_comparison",
+              "executable_analysis",
+              "public_documentation",
+              "static_file_comparison",
+              "structural_validation",
+              "visual_validation"
+            ]
+          }
+        },
+        "confidence": {"enum": ["low", "medium", "high"]},
+        "notes": {"type": "string", "minLength": 1}
+      }
+    },
+    "format": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "description",
+        "file_patterns",
+        "parser",
+        "roundtrip",
+        "fields"
+      ],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "description": {"type": "string", "minLength": 1},
+        "file_patterns": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "parser": {"type": "string", "minLength": 1},
+        "roundtrip": {"$ref": "#/$defs/roundtrip"},
+        "fields": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/field"}
+        }
+      }
+    }
+  }
+}

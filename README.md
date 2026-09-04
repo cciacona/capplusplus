@@ -33,6 +33,11 @@ other proprietary game data. You must provide files from your own copy.
 - Compare two saves section-by-section and measure cross-build float drift in ULPs.
 - Inspect MZ/LE and PE32 executable structure, including objects, sections, and imports.
 - Survey original file-loader boundaries across the DOS and Windows builds.
+- Publish a versioned machine-readable format catalog with evidence and
+  confidence recorded for every inferred field.
+- Prove byte-exact structural reconstruction of supported non-save files and
+  report opaque preservation separately from decoded coverage.
+- Run deterministic bounded parser fuzzing from redistributable synthetic fixtures.
 - Emit human-readable summaries or deterministic, schema-versioned JSON.
 
 Original inputs are never modified. ZIP archives are streamed without extraction,
@@ -116,6 +121,14 @@ capplus-inspect inspect "GAMESET\1STD.PLA" --json
 capplus-inspect export-font "RESOURCE\FNT_STD.RES" ".\font-std" --scale 4
 ```
 
+Run the format completeness and parser-safety gates:
+
+```powershell
+capplus-inspect schema-catalog --json > format-catalog.json
+capplus-inspect roundtrip "C:\Games\Capitalism Plus"
+capplus-inspect fuzz --iterations 2048 --seed 0x4341502B2B
+```
+
 Exit codes are `0` for success, `2` for an unreadable or invalid input, and `3`
 when `--require-clean` detects missing or changed core files.
 
@@ -134,6 +147,7 @@ PYTHONPATH=src python3 -m unittest discover -s tests -t . -v
 - [Executable survey](docs/executables.md)
 - [Original file-loader contracts](docs/loaders.md)
 - [UI, layout-plan, and support-file formats](docs/ui-resources.md)
+- [Format completeness and safety gates](docs/format-gates.md)
 - [Validation results](docs/validation.md)
 - [Clean-room development policy](CLEAN_ROOM.md)
 - [Security policy](SECURITY.md)

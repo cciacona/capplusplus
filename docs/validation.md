@@ -91,7 +91,7 @@ point rounding as normalization concerns.
 
 ## Automated suite
 
-The development suite contains 55 tests covering DBF parsing, all three
+The development suite contains 70 tests covering DBF parsing, all three
 resource-container patterns, palettes, indexed PNG encoding, image export and
 overwrite protection, map structure/rendering, version-100 save framing, save
 comparison, installation-root discovery, CLI exit behavior, and malformed input rejection.
@@ -104,3 +104,28 @@ generation, compatible-record size handling, and malformed truncation.
 UI tests additionally cover font bit order and empty glyphs, text and language
 containers, cursor offset resolution, ordered help geometry, empty plan/help
 cases, malformed offsets, 3×3 plan records, and framed config/HOF data.
+
+Format-gate tests additionally cover the 20-format machine-readable catalog,
+mandatory provenance for all nine currently inferred field records, exhaustive
+region coverage, preservation-writer mutation, disabled save writing, directory
+corpus selection, save normalization limits, fuzz bounds, and deterministic
+fuzz transcript reproduction.
+
+## Reconstruction and fuzz gates
+
+Each supplied DOS and Windows installation independently reconstructs all 75
+selected non-save files byte-for-byte. Each run contains 73 structurally
+segmented files and two explicitly opaque files (`JOB.RTI` and `JOB.RTX`) across
+18 represented source formats.
+
+The fixed 2,048-iteration synthetic fuzz campaign covers 16 generated inputs.
+With seed `0x4341502B2B`, it accepts 979 structurally valid mutations, rejects
+1,069 malformed mutations, reports no unexpected exception, and produces
+transcript SHA-256
+`022ee92ec733c1c2545138fa5d8eb6abbe4fb25951b84450da466c2a2a8092fa`.
+
+The matched DOS/Windows save comparison satisfies every structural precondition
+for normalization. It classifies 677 of the 1,035 same-position differing bytes
+inside registered pointer or tracked-float locations and leaves 358 differences
+explicitly unclassified. All 370 changed tracked floats remain within the
+observed one-to-four-ULP cross-build range.

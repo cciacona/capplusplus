@@ -1,0 +1,242 @@
+{
+  "$schema": "./format-catalog-v1.schema.json",
+  "format": "capitalism_plus_binary_format_catalog",
+  "catalog_version": 1,
+  "report_schema_version": 1,
+  "formats": [
+    {
+      "id": "dbase",
+      "description": "dBASE-compatible table stream used directly and inside game sets.",
+      "file_patterns": ["embedded SET member", "CURSOR.RES", "*.DBF"],
+      "parser": "capplus_inspect.dbf.inspect_dbf",
+      "roundtrip": {"mode": "exact_structural", "scope": "Header, field descriptors, records, terminator, and trailing bytes are preserved."},
+      "fields": [
+        {"path": "header.record_count", "offset": 4, "size": 4, "binary_type": "u32le", "status": "confirmed", "observation_methods": ["structural_validation", "public_documentation"], "confidence": "high", "notes": "The declared count exactly bounds fixed-size rows in every supplied table."},
+        {"path": "header.header_length", "offset": 8, "size": 2, "binary_type": "u16le", "status": "confirmed", "observation_methods": ["structural_validation", "public_documentation"], "confidence": "high", "notes": "Points immediately past the field-descriptor terminator."},
+        {"path": "fields[]", "offset": 32, "size": "32 each", "binary_type": "dBASE field descriptor", "status": "confirmed", "observation_methods": ["structural_validation", "public_documentation"], "confidence": "high", "notes": "Names, types, widths, decimal counts, and row offsets follow the dBASE descriptor layout."}
+      ]
+    },
+    {
+      "id": "named_container",
+      "description": "Named member directory shared by game sets and several resources.",
+      "file_patterns": ["*.SET", "HELP.RES", "named *.RES"],
+      "parser": "capplus_inspect.containers.parse_named_index",
+      "roundtrip": {"mode": "exact_structural", "scope": "Directory bytes and every member payload are preserved in original order."},
+      "fields": [
+        {"path": "member_count", "offset": 0, "size": 2, "binary_type": "u16le", "status": "confirmed", "observation_methods": ["static_file_comparison", "structural_validation"], "confidence": "high", "notes": "The count determines the number of named entries before the sentinel."},
+        {"path": "entries[].name", "offset": "2 + index*13", "size": 9, "binary_type": "NUL-terminated ASCII", "status": "confirmed", "observation_methods": ["static_file_comparison", "structural_validation"], "confidence": "high", "notes": "Eight-character identifiers occupy a nine-byte terminated slot."},
+        {"path": "entries[].offset", "offset": "11 + index*13", "size": 4, "binary_type": "u32le absolute file offset", "status": "confirmed", "observation_methods": ["structural_validation"], "confidence": "high", "notes": "Offsets are monotonic and the final sentinel equals file size."}
+      ]
+    },
+    {
+      "id": "offset_container",
+      "description": "Numeric member directory used by text, language, and image resources.",
+      "file_patterns": ["TEXT.RES", "LANGUAGE.RES", "offset-indexed *.RES"],
+      "parser": "capplus_inspect.containers.parse_offset_index",
+      "roundtrip": {"mode": "exact_structural", "scope": "Directory bytes and every member payload are preserved in original order."},
+      "fields": [
+        {"path": "member_count", "offset": 0, "size": 2, "binary_type": "u16le", "status": "confirmed", "observation_methods": ["static_file_comparison", "structural_validation"], "confidence": "high", "notes": "The count determines the number of members before the sentinel offset."},
+        {"path": "offsets[]", "offset": 2, "size": "4*(member_count+1)", "binary_type": "u32le absolute file offsets", "status": "confirmed", "observation_methods": ["structural_validation"], "confidence": "high", "notes": "Offsets are monotonic and the final offset equals file size."}
+      ]
+    },
+    {
+      "id": "sequential_images",
+      "description": "Back-to-back size-framed indexed image records.",
+      "file_patterns": ["I_CURSOR.RES", "sequential-image *.RES"],
+      "parser": "capplus_inspect.containers.parse_sequential_images",
+      "roundtrip": {"mode": "exact_structural", "scope": "Each size prefix, dimensions field, and pixel buffer is preserved."},
+      "fields": [
+        {"path": "images[].payload_size", "offset": "record start", "size": 4, "binary_type": "u32le", "status": "confirmed", "observation_methods": ["structural_validation"], "confidence": "high", "notes": "Equals four dimension bytes plus width times height pixel bytes."},
+        {"path": "images[].dimensions", "offset": "record start + 4", "size": 4, "binary_type": "u16le width, u16le height", "status": "confirmed", "observation_methods": ["structural_validation", "visual_validation"], "confidence": "high", "notes": "Dimensions exactly bound the following palette-index buffer."}
+      ]
+    },
+    {
+      "id": "direct_indexed_image",
+      "description": "One uncompressed palette-indexed image without an outer directory.",
+      "file_patterns": ["*.PIC", "direct image member"],
+      "parser": "capplus_inspect.images.decode_indexed_images",
+      "roundtrip": {"mode": "exact_structural", "scope": "Dimensions and the complete palette-index buffer are preserved."},
+      "fields": [
+        {"path": "width", "offset": 0, "size": 2, "binary_type": "u16le", "status": "confirmed", "observation_methods": ["structural_validation", "visual_validation"], "confidence": "high", "notes": "Width participates in the exact 4 + width*height length check."},
+        {"path": "height", "offset": 2, "size": 2, "binary_type": "u16le", "status": "confirmed", "observation_methods": ["structural_validation", "visual_validation"], "confidence": "high", "notes": "Height participates in the exact 4 + width*height length check."},
+        {"path": "pixels", "offset": 4, "size": "width*height", "binary_type": "u8 palette indices", "status": "confirmed", "observation_methods": ["visual_validation"], "confidence": "high", "notes": "Lossless indexed-PNG exports reproduce the original images."}
+      ]
+    },
+    {
+      "id": "raw_binary",
+      "description": "Recognized input whose internal structure is not yet assigned.",
+      "file_patterns": ["unclassified resource or auxiliary file"],
+      "parser": "capplus_inspect.containers.inspect_resource",
+      "roundtrip": {"mode": "exact_opaque", "scope": "The complete byte stream is retained as one immutable opaque region."},
+      "fields": [
+        {"path": "bytes", "offset": 0, "size": "file size", "binary_type": "opaque bytes", "status": "unknown", "observation_methods": ["structural_validation"], "confidence": "high", "notes": "No semantic interpretation is claimed; preservation is byte-for-byte."}
+      ]
+    },
+    {
+      "id": "capitalism_plus_game_set",
+      "description": "Named container whose members are complete dBASE streams.",
+      "file_patterns": ["*.SET"],
+      "parser": "capplus_inspect.containers.inspect_set",
+      "roundtrip": {"mode": "exact_structural", "scope": "The outer directory and all embedded table streams are preserved exactly."},
+      "fields": [
+        {"path": "tables[]", "offset": "named-container member offsets", "size": "member size", "binary_type": "dBASE stream", "status": "confirmed", "observation_methods": ["static_file_comparison", "structural_validation"], "confidence": "high", "notes": "Every member in all supplied game sets passes strict dBASE framing."},
+        {"path": "tables[].name", "offset": "named-container entry", "size": 9, "binary_type": "ASCII identifier", "status": "confirmed", "observation_methods": ["static_file_comparison"], "confidence": "high", "notes": "Names identify the shipped economy tables without changing their order."}
+      ]
+    },
+    {
+      "id": "capitalism_plus_palette",
+      "description": "Eight-byte header followed by 256 RGB triples.",
+      "file_patterns": ["PAL_STD.RES", "IFCOLOR.RES"],
+      "parser": "capplus_inspect.palette.inspect_palette",
+      "roundtrip": {"mode": "exact_structural", "scope": "Both header words and all 768 color bytes are preserved."},
+      "fields": [
+        {"path": "declared_size", "offset": 0, "size": 4, "binary_type": "u32le", "status": "confirmed", "observation_methods": ["structural_validation"], "confidence": "high", "notes": "Always equals the 776-byte file size in supported palettes."},
+        {"path": "header_word_1", "offset": 4, "size": 4, "binary_type": "opaque u32le", "status": "unknown", "observation_methods": ["static_file_comparison"], "confidence": "high", "notes": "The value is preserved but no meaning is assigned."},
+        {"path": "colors[]", "offset": 8, "size": 768, "binary_type": "256 RGB888 triples", "status": "confirmed", "observation_methods": ["visual_validation", "structural_validation"], "confidence": "high", "notes": "Channels are already in the 0..255 range and render decoded assets correctly."}
+      ]
+    },
+    {
+      "id": "capitalism_plus_map",
+      "description": "Fixed map core followed by zero or more city records.",
+      "file_patterns": ["*.MAP"],
+      "parser": "capplus_inspect.maps.inspect_map",
+      "roundtrip": {"mode": "exact_structural", "scope": "Header, grid, footer, and ordered city records are preserved."},
+      "fields": [
+        {"path": "header.names", "offset": 0, "size": 52, "binary_type": "two fixed CP1252 strings", "status": "confirmed", "observation_methods": ["static_file_comparison"], "confidence": "high", "notes": "Contains the internal path and display name in fixed slots."},
+        {"path": "grid.cells[].byte_3", "offset": "52 + cell*8 + 3", "size": 1, "binary_type": "u8 palette index", "status": "confirmed", "observation_methods": ["visual_validation", "static_file_comparison"], "confidence": "high", "notes": "Direct rendering reconstructs every supplied overview map and aligns with city coordinates."},
+        {"path": "grid.cells[].other_bytes", "offset": "52 + cell*8 except +3", "size": 7, "binary_type": "opaque bytes", "status": "unknown", "observation_methods": ["static_file_comparison"], "confidence": "high", "notes": "Preserved without semantic names pending controlled map-editor experiments."},
+        {"path": "footer", "offset": 380212, "size": 32, "binary_type": "opaque bytes", "status": "unknown", "observation_methods": ["static_file_comparison"], "confidence": "high", "notes": "The fixed footer is preserved exactly; its fields remain undecoded."},
+        {"path": "cities[].coordinates", "offset": "380244 + city*29", "size": 4, "binary_type": "u16le x, u16le y", "status": "confirmed", "observation_methods": ["visual_validation", "structural_validation"], "confidence": "high", "notes": "Every coordinate lies in and aligns with the 240x198 map space."},
+        {"path": "cities[].population", "offset": "380248 + city*29", "size": 4, "binary_type": "u32le", "status": "inferred", "observation_methods": ["static_file_comparison"], "confidence": "low", "notes": "Values resemble city populations, but a controlled editor experiment has not confirmed the meaning."}
+      ]
+    },
+    {
+      "id": "capitalism_plus_save_v100",
+      "description": "Cross-platform version-100 save with metadata, settings, and 24 tagged sections.",
+      "file_patterns": ["*.SAV"],
+      "parser": "capplus_inspect.saves.inspect_save",
+      "roundtrip": {"mode": "normalized_comparison", "scope": "No writer is enabled; comparisons apply an explicit, versioned cross-build normalization policy."},
+      "fields": [
+        {"path": "metadata", "offset": 2, "size": "leading u16 value", "binary_type": "size-framed record", "status": "confirmed", "observation_methods": ["cross_build_comparison", "structural_validation"], "confidence": "high", "notes": "DOS and Windows saves use the same record framing and fixed string/date locations."},
+        {"path": "section_markers[]", "offset": "after settings block", "size": "24*u16 plus payloads", "binary_type": "ordered tagged sections", "status": "confirmed", "observation_methods": ["cross_build_comparison", "executable_analysis"], "confidence": "high", "notes": "Both executable readers and writers reference the same 24 tags in the same order."},
+        {"path": "section_1001.rng_state", "offset": "section 1001 payload", "size": 4, "binary_type": "u32le", "status": "confirmed", "observation_methods": ["cross_build_comparison", "executable_analysis"], "confidence": "high", "notes": "The stored value matches the state of the recovered RNG implementation."},
+        {"path": "section_101B.towns[].pointer_fields", "offset": "town record + 0x4B and +0x4F", "size": 8, "binary_type": "two u32le values", "status": "inferred", "observation_methods": ["cross_build_comparison", "executable_analysis"], "confidence": "high", "notes": "Values vary by runtime build and are discarded by the original loader; normalization zeros them."},
+        {"path": "section_101B.market[].tracked_floats", "offset": "element + 0x7C, +0x80, +0x84, +0x88", "size": 16, "binary_type": "four IEEE-754 float32 values", "status": "inferred", "observation_methods": ["cross_build_comparison"], "confidence": "medium", "notes": "Matched DOS and Windows saves differ by only 1..4 ULP; comparison reports rather than silently removes the drift."},
+        {"path": "unassigned_section_payloads", "offset": "tag-dependent", "size": "tag-dependent", "binary_type": "opaque bytes", "status": "unknown", "observation_methods": ["cross_build_comparison", "structural_validation"], "confidence": "high", "notes": "Unassigned bytes are hashed and preserved; no original-format save writer is enabled."}
+      ]
+    },
+    {
+      "id": "capitalism_plus_executable",
+      "description": "MZ wrapper containing either a PE32 or DOS4GW LE image.",
+      "file_patterns": ["CAPPLUS.EXE", "CAPWIN.EXE", "*.EXE"],
+      "parser": "capplus_inspect.executables.inspect_executable",
+      "roundtrip": {"mode": "exact_structural", "scope": "MZ/stub and new-format image regions are retained unchanged; executable editing is not supported."},
+      "fields": [
+        {"path": "dos_header.new_header_offset", "offset": 60, "size": 4, "binary_type": "u32le file offset", "status": "confirmed", "observation_methods": ["public_documentation", "structural_validation"], "confidence": "high", "notes": "Selects the PE or LE header when it lies within the file."},
+        {"path": "pe.sections_and_imports", "offset": "PE header relative", "size": "header-dependent", "binary_type": "PE32 structures", "status": "confirmed", "observation_methods": ["public_documentation", "structural_validation"], "confidence": "high", "notes": "Fields follow the published PE layout and are bounds checked."},
+        {"path": "le.objects_and_pages", "offset": "LE header relative", "size": "header-dependent", "binary_type": "LE structures", "status": "confirmed", "observation_methods": ["public_documentation", "structural_validation"], "confidence": "high", "notes": "Object/page mappings reproduce known DOS file offsets."}
+      ]
+    },
+    {
+      "id": "capitalism_plus_bitmap_font",
+      "description": "One-bit horizontal font sheet with cumulative glyph boundaries.",
+      "file_patterns": ["FNT_*.RES"],
+      "parser": "capplus_inspect.fonts.inspect_font",
+      "roundtrip": {"mode": "exact_structural", "scope": "Header, boundary table, and packed bitmap are preserved."},
+      "fields": [
+        {"path": "character_range", "offset": 36, "size": 4, "binary_type": "u16le first and last code", "status": "confirmed", "observation_methods": ["executable_analysis", "structural_validation"], "confidence": "high", "notes": "The range determines the exact number of cumulative boundary entries."},
+        {"path": "bitmap_geometry", "offset": 80, "size": 4, "binary_type": "u16le row stride and height", "status": "confirmed", "observation_methods": ["executable_analysis", "structural_validation"], "confidence": "high", "notes": "Geometry exactly bounds the packed bitmap."},
+        {"path": "bitmap", "offset": "88 + 2*(glyph_count+1)", "size": "row_stride*height", "binary_type": "MSB-first one-bit pixels", "status": "confirmed", "observation_methods": ["executable_analysis", "visual_validation"], "confidence": "high", "notes": "MSB-first decoding reproduces all supplied glyph atlases."}
+      ]
+    },
+    {
+      "id": "capitalism_plus_text_screens",
+      "description": "Offset-indexed 80x25 character/attribute screens.",
+      "file_patterns": ["TEXT.RES"],
+      "parser": "capplus_inspect.ui_resources.inspect_text_screens",
+      "roundtrip": {"mode": "exact_structural", "scope": "Offset directory and every character/attribute pair are preserved."},
+      "fields": [
+        {"path": "screens[].cells[].character", "offset": "member + (row*80+column)*2", "size": 1, "binary_type": "CP437 byte", "status": "confirmed", "observation_methods": ["visual_validation", "structural_validation"], "confidence": "high", "notes": "Decoded character rows reproduce the DOS text screen."},
+        {"path": "screens[].cells[].attribute", "offset": "character offset + 1", "size": 1, "binary_type": "VGA attribute byte", "status": "confirmed", "observation_methods": ["visual_validation"], "confidence": "high", "notes": "Foreground/background attributes retain exact original values."}
+      ]
+    },
+    {
+      "id": "capitalism_plus_language_glyphs",
+      "description": "Offset-indexed supplemental palette glyph images.",
+      "file_patterns": ["LANGUAGE.RES"],
+      "parser": "capplus_inspect.ui_resources.inspect_language_glyphs",
+      "roundtrip": {"mode": "exact_structural", "scope": "Offset directory, dimensions, and pixel bytes are preserved."},
+      "fields": [
+        {"path": "glyphs[].geometry_and_pixels", "offset": "member offset", "size": "4 + width*height", "binary_type": "direct indexed image", "status": "confirmed", "observation_methods": ["structural_validation", "visual_validation"], "confidence": "high", "notes": "All supplied member dimensions exactly bound their pixel buffers."},
+        {"path": "glyphs[].semantic_assignment", "offset": "not encoded in decoded structure", "size": 0, "binary_type": "unknown", "status": "unknown", "observation_methods": ["static_file_comparison"], "confidence": "high", "notes": "Numeric order is retained; no language or character meaning is assigned."}
+      ]
+    },
+    {
+      "id": "capitalism_plus_cursor_images",
+      "description": "Sequential indexed image stream referenced by cursor metadata.",
+      "file_patterns": ["I_CURSOR.RES"],
+      "parser": "capplus_inspect.ui_resources.inspect_cursor_images",
+      "roundtrip": {"mode": "exact_structural", "scope": "Every image frame is preserved in source order."},
+      "fields": [
+        {"path": "images[]", "offset": "sequential record offsets", "size": "8 + width*height", "binary_type": "size-framed indexed image", "status": "confirmed", "observation_methods": ["structural_validation", "visual_validation"], "confidence": "high", "notes": "Seven supplied images pass exact framing and render correctly."}
+      ]
+    },
+    {
+      "id": "capitalism_plus_cursor_table",
+      "description": "dBASE cursor metadata with binary image offsets.",
+      "file_patterns": ["CURSOR.RES"],
+      "parser": "capplus_inspect.ui_resources.inspect_cursor_table",
+      "roundtrip": {"mode": "exact_structural", "scope": "The complete dBASE stream, including binary pointer-field bytes, is preserved."},
+      "fields": [
+        {"path": "cursors[].hotspot", "offset": "DBF record + 9", "size": 6, "binary_type": "two right-aligned ASCII integers", "status": "confirmed", "observation_methods": ["visual_validation", "structural_validation"], "confidence": "high", "notes": "Values remain within the dimensions of the referenced images."},
+        {"path": "cursors[].bitmap_offset", "offset": "DBF record + 15", "size": 4, "binary_type": "u32le or four spaces", "status": "inferred", "observation_methods": ["cross_build_comparison", "structural_validation"], "confidence": "high", "notes": "Every nonblank value resolves to an exact record boundary in I_CURSOR.RES."}
+      ]
+    },
+    {
+      "id": "capitalism_plus_context_help",
+      "description": "Named CP1252 help topics with ordered rectangular hotspots.",
+      "file_patterns": ["HELP.RES"],
+      "parser": "capplus_inspect.ui_resources.inspect_help",
+      "roundtrip": {"mode": "exact_structural", "scope": "Named directory and original topic bytes, line endings, and DOS EOF markers are preserved."},
+      "fields": [
+        {"path": "topics[].text", "offset": "named member offset", "size": "member size", "binary_type": "CP1252 CRLF text", "status": "confirmed", "observation_methods": ["static_file_comparison", "structural_validation"], "confidence": "high", "notes": "All supplied topics decode losslessly as CP1252 with ordered form-feed blocks."},
+        {"path": "topics[].regions[].rectangle", "offset": "first line of each form-feed block", "size": "four decimal integers", "binary_type": "text geometry", "status": "inferred", "observation_methods": ["static_file_comparison", "visual_validation"], "confidence": "medium", "notes": "The four values form non-reversed screen rectangles aligned with contextual help regions."}
+      ]
+    },
+    {
+      "id": "capitalism_plus_layout_plans",
+      "description": "Categorized 3x3 firm layout plans with stable item references.",
+      "file_patterns": ["*.PLA", "*.PLO", "*.PLP"],
+      "parser": "capplus_inspect.plans.inspect_layout_plan",
+      "roundtrip": {"mode": "exact_structural", "scope": "Category headers, raw 127-byte plan records, and 72-byte stable-reference records are preserved."},
+      "fields": [
+        {"path": "categories[].array_header", "offset": "category + 4", "size": 29, "binary_type": "original dynamic-array header", "status": "confirmed", "observation_methods": ["executable_analysis", "structural_validation"], "confidence": "high", "notes": "Reader/writer call boundaries confirm the header and 127-byte element size."},
+        {"path": "records[].cells[].functional_unit_id", "offset": "record + 37 + cell*2", "size": 2, "binary_type": "u16le", "status": "inferred", "observation_methods": ["executable_analysis", "static_file_comparison"], "confidence": "medium", "notes": "Nine ordered values align with the 3x3 plan grid and firm functional-unit identifiers."},
+        {"path": "records[].cells[].item_id", "offset": "record + 55 + cell*2", "size": 2, "binary_type": "u16le", "status": "inferred", "observation_methods": ["executable_analysis", "static_file_comparison"], "confidence": "medium", "notes": "Nine ordered values align with stable eight-byte item references."},
+        {"path": "records[].transient_pointer_region", "offset": "record + 73", "size": 36, "binary_type": "opaque pointer-like bytes", "status": "inferred", "observation_methods": ["executable_analysis", "cross_build_comparison"], "confidence": "medium", "notes": "The region is kept opaque because runtime-pointer handling is not yet fully proven."}
+      ]
+    },
+    {
+      "id": "capitalism_plus_configuration",
+      "description": "One size-compatible configuration record.",
+      "file_patterns": ["CAPITAL.CFG"],
+      "parser": "capplus_inspect.support_files.inspect_configuration",
+      "roundtrip": {"mode": "exact_structural", "scope": "Stored size prefix and physical payload are preserved, including version-tolerant tails."},
+      "fields": [
+        {"path": "record", "offset": 0, "size": "2 + stored record size", "binary_type": "compatible record", "status": "confirmed", "observation_methods": ["executable_analysis", "structural_validation"], "confidence": "high", "notes": "The original reader expects 737 logical bytes and applies compatible-record rules."},
+        {"path": "candidate_text_fields", "offset": "variable", "size": "variable", "binary_type": "printable ASCII runs", "status": "unknown", "observation_methods": ["static_file_comparison"], "confidence": "high", "notes": "Strings and offsets are reported without assigning configuration semantics."}
+      ]
+    },
+    {
+      "id": "capitalism_plus_hall_of_fame",
+      "description": "A 580-byte leaderboard record followed by a 13-byte save-name record.",
+      "file_patterns": ["CAPITAL.HOF"],
+      "parser": "capplus_inspect.support_files.inspect_hall_of_fame",
+      "roundtrip": {"mode": "exact_structural", "scope": "Both size prefixes and physical payloads are preserved exactly."},
+      "fields": [
+        {"path": "leaderboard.slots", "offset": 2, "size": "10*58", "binary_type": "ten fixed records", "status": "inferred", "observation_methods": ["executable_analysis", "static_file_comparison"], "confidence": "medium", "notes": "The 580-byte logical record divides evenly into ten observed leaderboard-sized slots."},
+        {"path": "save_filename_record", "offset": "after leaderboard frame", "size": 13, "binary_type": "fixed CP1252 string", "status": "confirmed", "observation_methods": ["executable_analysis", "static_file_comparison"], "confidence": "high", "notes": "The second compatible record contains the active internal save filename."}
+      ]
+    }
+  ]
+}

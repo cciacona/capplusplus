@@ -12,6 +12,11 @@ Terminology:
   still needs a controlled in-game experiment.
 - **Unknown**: preserved as opaque bytes.
 
+The versioned, machine-readable counterpart to these notes is the
+[binary-format catalog](../src/capplus_inspect/schemas/format-catalog-v1.json).
+Its provenance, exact-reconstruction, normalization, and fuzzing requirements
+are described in [Format completeness and safety gates](format-gates.md).
+
 ## Game sets (`.SET`)
 
 A game set is a named container. Its members are complete dBASE streams.
@@ -251,5 +256,11 @@ tracked for comparison. Their economic meanings remain unknown.
 The comparator aligns sections by tag, not by raw file offset. Town/item elements
 are aligned by `(town_id, item_id)`. It separately reports changes in inferred
 transient pointer bytes and the IEEE-754 ULP distance of the four known floats.
+
+Comparison output includes the complete versioned normalization policy, the
+structural conditions required before that policy applies, and separate counts
+for registered and unclassified difference bytes. Pointer bytes may be excluded
+from normalized record hashes; float drift is measured but never silently
+rewritten. See [Save normalization](format-gates.md#save-normalization).
 
 No current parser writes saves. Unknown bytes are never silently rewritten.

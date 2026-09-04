@@ -76,6 +76,63 @@ TOWN_RECORD_EXPECTED = 371
 ITEM_INDEX_EXPECTED = 168
 FIRM_INDEX_EXPECTED = 364
 MARKET_FLOAT_OFFSETS = (0x7C, 0x80, 0x84, 0x88)
+SAVE_NORMALIZATION_POLICY_VERSION = 1
+OBSERVED_CROSS_BUILD_FLOAT_TOLERANCE_ULP = 4
+
+
+def save_normalization_policy() -> dict[str, Any]:
+    """Return the explicit policy used to classify cross-build save drift."""
+
+    return {
+        "id": "capitalism_plus_save_cross_build",
+        "version": SAVE_NORMALIZATION_POLICY_VERSION,
+        "scope": (
+            "Structurally matched version-100 DOS/Windows saves with the same date, "
+            "scenario reference, RNG state, section sizes, and town/item keys."
+        ),
+        "rules": [
+            {
+                "id": "town_runtime_pointers",
+                "section": "101B",
+                "locations": ["town_record+0x4B..0x4E", "town_record+0x4F..0x52"],
+                "action": "exclude_from_normalized_record_hash",
+                "status": "inferred",
+                "observation_methods": [
+                    "cross_build_comparison",
+                    "executable_analysis",
+                ],
+                "confidence": "high",
+                "permitted_difference": (
+                    "Any byte value is permitted at these two runtime-only fields because "
+                    "the original loader discards them."
+                ),
+            },
+            {
+                "id": "town_market_float_rounding",
+                "section": "101B",
+                "locations": [
+                    "town_item_record+0x7C",
+                    "town_item_record+0x80",
+                    "town_item_record+0x84",
+                    "town_item_record+0x88",
+                ],
+                "action": "report_ieee754_ulp_distance",
+                "status": "inferred",
+                "observation_methods": ["cross_build_comparison"],
+                "confidence": "medium",
+                "permitted_difference": (
+                    "At most four float32 ULPs, and only inside a structurally matched "
+                    "cross-build pair; values are reported and never silently rewritten."
+                ),
+                "maximum_observed_ulp": OBSERVED_CROSS_BUILD_FLOAT_TOLERANCE_ULP,
+            },
+        ],
+        "limitations": [
+            "The policy does not declare arbitrary saves equivalent.",
+            "Differences outside registered locations remain unclassified.",
+            "No original-format save writer is enabled.",
+        ],
+    }
 
 
 def _marker_occurrences(data: bytes, marker: int, start: int) -> list[int]:
@@ -417,27 +474,44 @@ def _compare_town_arrays(left: dict[str, Any], right: dict[str, Any]) -> dict[st
     shared_keys = sorted(set(left_market) & set(right_market))
     ulp_distribution: Counter[int] = Counter()
     changed_float_fields = 0
+    compared_float_fields = 0
+    changed_float_bytes = 0
+    float_fields_over_tolerance = 0
     maximum_ulp = 0
     for key in shared_keys:
         a, b = left_market[key], right_market[key]
         for offset in MARKET_FLOAT_OFFSETS:
             if offset + 4 > min(len(a), len(b)):
                 continue
+            compared_float_fields += 1
             left_value, right_value = f32(a, offset), f32(b, offset)
             if left_value == right_value:
                 continue
+            changed_float_bytes += sum(
+                left_byte != right_byte
+                for left_byte, right_byte in zip(
+                    a[offset : offset + 4], b[offset : offset + 4]
+                )
+            )
             distance = float32_ulp_distance(left_value, right_value)
             if distance is not None:
                 changed_float_fields += 1
                 ulp_distribution[distance] += 1
                 maximum_ulp = max(maximum_ulp, distance)
+                if distance > OBSERVED_CROSS_BUILD_FLOAT_TOLERANCE_ULP:
+                    float_fields_over_tolerance += 1
 
     return {
         "comparable_town_records": comparable_towns,
+        "comparable_transient_pointer_bytes": comparable_towns * 8,
         "transient_pointer_bytes_different": pointer_bytes_different,
         "shared_town_item_keys": len(shared_keys),
+        "compared_known_float_fields": compared_float_fields,
         "changed_known_float_fields": changed_float_fields,
+        "changed_known_float_bytes": changed_float_bytes,
         "maximum_known_float_ulp_distance": maximum_ulp,
+        "known_float_fields_over_observed_tolerance": float_fields_over_tolerance,
+        "known_float_drift_within_observed_tolerance": float_fields_over_tolerance == 0,
         "known_float_ulp_distribution": {
             str(distance): count for distance, count in sorted(ulp_distribution.items())
         },
@@ -472,6 +546,38 @@ def compare_saves(left_data: bytes, right_data: bytes) -> dict[str, Any]:
             }
         )
 
+    town_comparison = _compare_town_arrays(
+        left_internal.get("town", {}), right_internal.get("town", {})
+    )
+    section_sizes_match = all(
+        section["left_size"] == section["right_size"] for section in section_results
+    )
+    same_rng = left.get("rng") == right.get("rng")
+    normalization_context = {
+        "save_version_100": left["save_version"] == right["save_version"] == SAVE_VERSION,
+        "same_date": left["current_date_jdn"] == right["current_date_jdn"],
+        "same_scenario_title": left["scenario_title"] == right["scenario_title"],
+        "same_settings_references": left["settings_references"] == right["settings_references"],
+        "same_rng_state": same_rng,
+        "same_section_sizes": section_sizes_match,
+        "same_town_item_key_count": bool(
+            town_comparison
+            and town_comparison["shared_town_item_keys"]
+            == len(left_internal.get("town", {}).get("market_keys", []))
+            == len(right_internal.get("town", {}).get("market_keys", []))
+        ),
+    }
+    policy_applicable = all(normalization_context.values())
+    differing_same_position = min(len(left_data), len(right_data)) - same_position_equal
+    classified_bytes = None
+    unclassified_bytes = None
+    if policy_applicable and town_comparison is not None:
+        classified_bytes = (
+            town_comparison["transient_pointer_bytes_different"]
+            + town_comparison["changed_known_float_bytes"]
+        )
+        unclassified_bytes = max(0, differing_same_position - classified_bytes)
+
     return {
         "schema_version": SCHEMA_VERSION,
         "format": "capitalism_plus_save_comparison",
@@ -498,7 +604,25 @@ def compare_saves(left_data: bytes, right_data: bytes) -> dict[str, Any]:
         "equal_bytes_at_same_offsets": same_position_equal,
         "agreement_against_larger_file": same_position_equal / denominator,
         "sections": section_results,
-        "town_array": _compare_town_arrays(
-            left_internal.get("town", {}), right_internal.get("town", {})
-        ),
+        "town_array": town_comparison,
+        "normalization": {
+            "policy": save_normalization_policy(),
+            "context": normalization_context,
+            "policy_applicable": policy_applicable,
+            "evaluation": {
+                "same_position_differing_bytes": differing_same_position,
+                "classified_same_position_differing_bytes": classified_bytes,
+                "unclassified_same_position_differing_bytes": unclassified_bytes,
+                "known_float_drift_within_observed_tolerance": (
+                    town_comparison["known_float_drift_within_observed_tolerance"]
+                    if policy_applicable and town_comparison is not None
+                    else None
+                ),
+                "all_differences_explained": (
+                    unclassified_bytes == 0
+                    if unclassified_bytes is not None
+                    else False
+                ),
+            },
+        },
     }
