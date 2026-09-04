@@ -22,6 +22,14 @@
   boundaries without committing decompiler output.
 - Implemented size-prefixed compatibility reads, including zero-extension,
   oversized-tail skipping, and a controlled malformed-record probe.
+- Added strict parsers for bitmap fonts, DOS text screens, supplemental language
+  glyphs, cursor metadata/images, and context-help hotspots.
+- Added lossless font-atlas export with cumulative glyph geometry in its JSON
+  manifest.
+- Decoded layout-plan category framing, 127-byte records, ordered 3×3 unit/item
+  grids, and stable eight-byte item references.
+- Added compatible-record inspection for configuration and hall-of-fame files,
+  keeping their unassigned fields explicit.
 
 ## 0.2.0 — 2026-09-02
 

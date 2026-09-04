@@ -8,9 +8,11 @@ from pathlib import Path
 from typing import Any, Sequence
 
 from . import __version__
-from .containers import inspect_resource, inspect_set
+from .containers import inspect_set
 from .errors import InspectError
 from .executables import inspect_executable
+from .file_formats import inspect_auxiliary_file
+from .fonts import export_font
 from .images import export_indexed_images
 from .installation import inspect_installation
 from .maps import inspect_map, render_map
@@ -45,7 +47,23 @@ def _inspect_path(
     elif suffix == ".map":
         result = inspect_map(data)
     else:
-        result = inspect_resource(data)
+        cursor_image_data = None
+        if path.name.upper() == "CURSOR.RES":
+            sibling = next(
+                (
+                    candidate
+                    for candidate in path.parent.iterdir()
+                    if candidate.is_file() and candidate.name.upper() == "I_CURSOR.RES"
+                ),
+                None,
+            )
+            if sibling is not None:
+                cursor_image_data = sibling.read_bytes()
+        result = inspect_auxiliary_file(
+            data,
+            path.name,
+            cursor_image_data=cursor_image_data,
+        )
     result["input"] = str(path.resolve())
     return result
 
@@ -74,8 +92,10 @@ def _render_installation(result: dict[str, Any]) -> list[str]:
             [
                 "  deep inspection:",
                 f"    game sets: {len(deep['game_sets'])}",
+                f"    layout-plan files: {len(deep['layout_plans'])}",
                 f"    maps: {len(deep['maps'])}",
                 f"    resources: {len(deep['resources'])}",
+                f"    support files: {len(deep['support_files'])}",
                 f"    saves: {len(deep['saves'])}",
                 f"    errors: {len(deep['errors'])}",
             ]
@@ -172,6 +192,76 @@ def _render_map_render(result: dict[str, Any]) -> list[str]:
         f"  city markers: {result['city_markers']}",
         f"  output: {result['output']}",
     ]
+
+
+def _render_font_export(result: dict[str, Any]) -> list[str]:
+    return [
+        "Capitalism Plus font export",
+        f"  source: {result['source']}",
+        f"  glyphs: {result['glyph_count']}",
+        f"  range: {result['first_code']}..{result['last_code']}",
+        f"  atlas: {result['atlas']}",
+        f"  manifest: {result['manifest']}",
+    ]
+
+
+def _render_special_resource(result: dict[str, Any]) -> list[str]:
+    lines = [
+        "Capitalism Plus structured resource",
+        f"  input: {result['input']}",
+        f"  format: {result['format']}",
+        f"  bytes: {result['size']}",
+    ]
+    format_name = result["format"]
+    if format_name == "capitalism_plus_bitmap_font":
+        lines.extend(
+            [
+                f"  character range: {result['first_code']}..{result['last_code']}",
+                f"  glyphs: {result['glyph_count']}",
+                f"  bitmap: {result['used_width']}x{result['height']} "
+                f"({result['row_stride']} bytes per row)",
+            ]
+        )
+    elif format_name == "capitalism_plus_text_screens":
+        lines.append(f"  screens: {result['screen_count']} (80x25 text cells)")
+    elif format_name == "capitalism_plus_language_glyphs":
+        lines.append(f"  supplemental glyphs: {result['glyph_count']}")
+    elif format_name == "capitalism_plus_cursor_images":
+        lines.append(f"  cursor images: {result['image_count']}")
+    elif format_name == "capitalism_plus_cursor_table":
+        lines.append(f"  cursors: {result['cursor_count']}")
+        lines.append(
+            "  image references resolved: "
+            + ("yes" if result["image_cross_references_resolved"] else "no")
+        )
+    elif format_name == "capitalism_plus_context_help":
+        lines.append(f"  topics: {result['topic_count']}")
+        lines.extend(
+            f"  {topic['identifier']}: {topic['region_count']} regions"
+            for topic in result["topics"]
+        )
+    elif format_name == "capitalism_plus_layout_plans":
+        lines.extend(
+            [
+                f"  categories: {result['category_count']}",
+                f"  plans: {result['record_count']}",
+            ]
+        )
+        lines.extend(
+            f"  {category['identifier']}: {category['array_header']['record_count']} plans"
+            for category in result["categories"]
+        )
+    elif format_name == "capitalism_plus_configuration":
+        lines.append(f"  candidate text fields: {len(result['candidate_text_fields'])}")
+        lines.append(
+            f"  scenario references: {', '.join(result['scenario_references']) or '<none>'}"
+        )
+    elif format_name == "capitalism_plus_hall_of_fame":
+        lines.append(f"  leaderboard slots: {result['leaderboard']['slot_count']}")
+        lines.append(
+            f"  save filename: {result['save_filename_record']['filename'] or '<none>'}"
+        )
+    return lines
 
 
 def _render_executable(result: dict[str, Any]) -> list[str]:
@@ -307,12 +397,26 @@ def _render_text(result: dict[str, Any]) -> str:
         lines = _render_palette(result)
     elif format_name == "capitalism_plus_image_export":
         lines = _render_image_export(result)
+    elif format_name == "capitalism_plus_font_export":
+        lines = _render_font_export(result)
     elif format_name == "capitalism_plus_map_render":
         lines = _render_map_render(result)
     elif format_name == "capitalism_plus_executable":
         lines = _render_executable(result)
     elif format_name == "capitalism_plus_save_comparison":
         lines = _render_comparison(result)
+    elif format_name in {
+        "capitalism_plus_bitmap_font",
+        "capitalism_plus_text_screens",
+        "capitalism_plus_language_glyphs",
+        "capitalism_plus_cursor_images",
+        "capitalism_plus_cursor_table",
+        "capitalism_plus_context_help",
+        "capitalism_plus_layout_plans",
+        "capitalism_plus_configuration",
+        "capitalism_plus_hall_of_fame",
+    }:
+        lines = _render_special_resource(result)
     else:
         lines = _render_resource(result)
     return "\n".join(lines)
@@ -388,6 +492,15 @@ def _build_parser() -> argparse.ArgumentParser:
     export_parser.add_argument("--force", action="store_true", help="replace existing outputs")
     export_parser.add_argument("--json", action="store_true", help="emit stable JSON")
 
+    font_parser = subparsers.add_parser(
+        "export-font", help="export an original bitmap font to a lossless monochrome PNG atlas"
+    )
+    font_parser.add_argument("input", type=Path)
+    font_parser.add_argument("output_directory", type=Path)
+    font_parser.add_argument("--scale", type=int, default=4, help="integer scale 1..32")
+    font_parser.add_argument("--force", action="store_true", help="replace existing outputs")
+    font_parser.add_argument("--json", action="store_true", help="emit stable JSON")
+
     render_parser = subparsers.add_parser(
         "render-map", help="render the decoded 240x198 map overview to a palette PNG"
     )
@@ -452,6 +565,16 @@ def main(argv: Sequence[str] | None = None) -> int:
                 source_name=str(args.input.resolve()),
                 palette_name=str(args.palette.resolve()),
                 transparent_index=_parse_transparent_index(args.transparent_index),
+                scale=args.scale,
+                force=args.force,
+            )
+            require_clean_failed = False
+            as_json = args.json
+        elif args.command == "export-font":
+            result = export_font(
+                args.input.read_bytes(),
+                args.output_directory,
+                source_name=str(args.input.resolve()),
                 scale=args.scale,
                 force=args.force,
             )

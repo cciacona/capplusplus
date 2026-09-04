@@ -8,8 +8,9 @@ from pathlib import Path
 from typing import Any
 
 from . import SCHEMA_VERSION
-from .containers import inspect_resource, inspect_set
+from .containers import inspect_set
 from .errors import FormatError, InspectError
+from .file_formats import inspect_auxiliary_file
 from .known import CORE_FILE_SHA256, DOS_EXECUTABLE_SHA256, WINDOWS_EXECUTABLE_SHA256
 from .maps import inspect_map
 from .saves import inspect_save
@@ -128,7 +129,14 @@ def _canonical_files(source: _Source) -> tuple[str, dict[str, str]]:
 
 
 def _inspect_deep(source: _Source, files: dict[str, str]) -> dict[str, Any]:
-    result: dict[str, Any] = {"game_sets": [], "maps": [], "resources": [], "saves": []}
+    result: dict[str, Any] = {
+        "game_sets": [],
+        "layout_plans": [],
+        "maps": [],
+        "resources": [],
+        "support_files": [],
+        "saves": [],
+    }
     errors: list[dict[str, str]] = []
 
     for canonical in sorted(files):
@@ -150,6 +158,27 @@ def _inspect_deep(source: _Source, files: dict[str, str]) -> dict[str, Any]:
                         ],
                     }
                 )
+            elif canonical.startswith("gameset/") and canonical.endswith(
+                (".pla", ".plo", ".plp")
+            ):
+                info = inspect_auxiliary_file(source.read(actual), canonical)
+                result["layout_plans"].append(
+                    {
+                        "path": canonical,
+                        "format": info["format"],
+                        "size": info["size"],
+                        "sha256": info["sha256"],
+                        "category_count": info["category_count"],
+                        "record_count": info["record_count"],
+                        "categories": [
+                            {
+                                "identifier": category["identifier"],
+                                "record_count": category["array_header"]["record_count"],
+                            }
+                            for category in info["categories"]
+                        ],
+                    }
+                )
             elif canonical.startswith("maps/") and canonical.endswith(".map"):
                 info = inspect_map(source.read(actual))
                 result["maps"].append(
@@ -161,7 +190,14 @@ def _inspect_deep(source: _Source, files: dict[str, str]) -> dict[str, Any]:
                     }
                 )
             elif canonical.startswith("resource/"):
-                info = inspect_resource(source.read(actual))
+                cursor_image_data = None
+                if canonical == "resource/cursor.res" and "resource/i_cursor.res" in files:
+                    cursor_image_data = source.read(files["resource/i_cursor.res"])
+                info = inspect_auxiliary_file(
+                    source.read(actual),
+                    canonical,
+                    cursor_image_data=cursor_image_data,
+                )
                 summary = {
                     "path": canonical,
                     "format": info["format"],
@@ -175,7 +211,20 @@ def _inspect_deep(source: _Source, files: dict[str, str]) -> dict[str, Any]:
                     )
                 if "image_count" in info:
                     summary["image_count"] = info["image_count"]
+                for count_name in ("glyph_count", "screen_count", "cursor_count", "topic_count"):
+                    if count_name in info:
+                        summary[count_name] = info[count_name]
                 result["resources"].append(summary)
+            elif canonical in {"capital.cfg", "capital.hof"}:
+                info = inspect_auxiliary_file(source.read(actual), canonical)
+                result["support_files"].append(
+                    {
+                        "path": canonical,
+                        "format": info["format"],
+                        "size": info["size"],
+                        "sha256": info["sha256"],
+                    }
+                )
             elif canonical.endswith(".sav"):
                 info = inspect_save(source.read(actual))
                 result["saves"].append(
@@ -269,8 +318,14 @@ def inspect_installation(path: str | Path, *, deep: bool = False) -> dict[str, A
             },
             "counts": {
                 "game_set_files": sum(name.startswith("gameset/") for name in files),
+                "layout_plan_files": sum(
+                    name.startswith("gameset/")
+                    and name.endswith((".pla", ".plo", ".plp"))
+                    for name in files
+                ),
                 "map_files": sum(name.startswith("maps/") for name in files),
                 "resource_files": sum(name.startswith("resource/") for name in files),
+                "support_files": sum(name in {"capital.cfg", "capital.hof"} for name in files),
                 "save_files": sum(name.endswith(".sav") for name in files),
             },
         }

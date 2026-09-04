@@ -129,7 +129,23 @@ Repeated records with no global directory:
 | `0x08` | `u8[width * height]` | Indexed pixels |
 
 An indexed-image member in a container omits the outer `u32` and begins with the
-width and height. Palette interpretation is not implemented yet.
+width and height. Palette-aware indexed-PNG export is described above.
+
+## UI, layout-plan, and support formats
+
+The following filename-specific formats now have strict parsers and distinct
+schema names:
+
+- `TEXT.RES` 80×25 CP437/VGA text screens;
+- `LANGUAGE.RES` supplemental indexed glyphs;
+- `FNT_*.RES` one-bit bitmap fonts and cumulative glyph boundaries;
+- `CURSOR.RES` cursor metadata and `I_CURSOR.RES` cursor images;
+- `HELP.RES` named help topics and ordered hotspot rectangles;
+- `.PLA`, `.PLO`, and `.PLP` 3×3 layout plans;
+- `CAPITAL.CFG` and `CAPITAL.HOF` compatible-record support files.
+
+Their complete field layouts, unknown regions, validation rules, and executable
+provenance are in [UI, layout-plan, and support-file formats](ui-resources.md).
 
 ## Saves (`.SAV`)
 
