@@ -23,6 +23,10 @@ other proprietary game data. You must provide files from your own copy.
   palette-indexed overview with optional city markers.
 - Decode the original 256-color palette and export supported indexed images to
   lossless PNG with exact palette indices and optional transparency.
+- Decode original bitmap fonts, DOS text screens, supplemental language glyphs,
+  cursor metadata/images, and context-help rectangles.
+- Parse 3×3 layout plans plus compatible-record configuration and hall-of-fame
+  support files while keeping unknown fields explicit.
 - Identify named, offset-indexed, and sequential-image resource containers.
 - Parse version-100 `.SAV` metadata and the complete 24-section marker chain.
 - Decode the confirmed town array, town/item keys, selected market floats, and RNG state.
@@ -104,6 +108,14 @@ capplus-inspect export-images "RESOURCE\I_PERSON.RES" ".\people" --palette "RESO
 capplus-inspect render-map "MAPS\WORLD.MAP" ".\world.png" --palette "RESOURCE\PAL_STD.RES" --scale 4
 ```
 
+Inspect UI resources and export a font atlas:
+
+```powershell
+capplus-inspect inspect "RESOURCE\HELP.RES" --json
+capplus-inspect inspect "GAMESET\1STD.PLA" --json
+capplus-inspect export-font "RESOURCE\FNT_STD.RES" ".\font-std" --scale 4
+```
+
 Exit codes are `0` for success, `2` for an unreadable or invalid input, and `3`
 when `--require-clean` detects missing or changed core files.
 
@@ -121,6 +133,7 @@ PYTHONPATH=src python3 -m unittest discover -s tests -t . -v
 - [Observed binary formats](docs/formats.md)
 - [Executable survey](docs/executables.md)
 - [Original file-loader contracts](docs/loaders.md)
+- [UI, layout-plan, and support-file formats](docs/ui-resources.md)
 - [Validation results](docs/validation.md)
 - [Clean-room development policy](CLEAN_ROOM.md)
 - [Security policy](SECURITY.md)

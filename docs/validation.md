@@ -11,8 +11,10 @@ game directories and three mutually compatible version-100 saves.
 | Shared core files matched | 72 / 72 | 72 / 72 |
 | Executable recognized | `CAPPLUS.EXE` | `CAPWIN.EXE` |
 | Game sets parsed | 3 | 3 |
+| Layout-plan files parsed | 9 | 9 |
 | Maps parsed | 15 | 15 |
 | Resources inspected | 33 | 33 |
+| Config/HOF support files parsed | 2 | 2 |
 | Deep-inspection errors | 0 | 0 |
 
 The 72 shared game-set, map, and resource files are byte-identical between the
@@ -70,9 +72,26 @@ point rounding as normalization concerns.
 - The synthetic framed-record probe preserves exact records, zero-extends
   smaller records, skips oversized tails, and rejects declared truncation.
 
+## UI and support resources
+
+- All three fonts resolve to an exact 88-byte header, a monotonic cumulative
+  boundary table, and an MSB-first one-bit bitmap with no unexplained trailing
+  bytes. Their 286 total glyph slots export to valid indexed PNG atlases.
+- `TEXT.RES` resolves to one 80×25 CP437/VGA text screen with exact character
+  and attribute preservation.
+- All four `LANGUAGE.RES` glyphs, seven cursor images, eight cursor rows, and
+  fifteen help rectangles parse in their original order. Every nonblank cursor
+  image offset resolves against `I_CURSOR.RES`.
+- Each installation's nine plan files parse to ten ordered categories. The
+  `.PLA`/`.PLP` files contain 79, 111, and 126 records for the three game sets;
+  the three `.PLO` files contain zero records. Every record resolves nine grid
+  cells and nine stable item identifiers.
+- Both builds' `CAPITAL.CFG` and `CAPITAL.HOF` files pass compatible-record
+  framing checks. Their differing user state does not change the structure.
+
 ## Automated suite
 
-The development suite contains 39 tests covering DBF parsing, all three
+The development suite contains 55 tests covering DBF parsing, all three
 resource-container patterns, palettes, indexed PNG encoding, image export and
 overwrite protection, map structure/rendering, version-100 save framing, save
 comparison, installation-root discovery, CLI exit behavior, and malformed input rejection.
@@ -82,3 +101,6 @@ cross-build survey workflow. All fixtures are generated synthetically and
 contain no original game data. Loader tests additionally cover PE virtual
 addresses and IAT slots, LE page/object-relative references, cross-build report
 generation, compatible-record size handling, and malformed truncation.
+UI tests additionally cover font bit order and empty glyphs, text and language
+containers, cursor offset resolution, ordered help geometry, empty plan/help
+cases, malformed offsets, 3×3 plan records, and framed config/HOF data.
