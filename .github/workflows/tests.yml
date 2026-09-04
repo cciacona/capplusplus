@@ -35,14 +35,31 @@ jobs:
       - name: Run synthetic test suite
         run: PYTHONPATH=src python -m unittest discover -s tests -t . -v
 
+  format_gates:
+    name: Format gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Validate schema and provenance catalog
+        run: PYTHONPATH=src python -m capplus_inspect schema-catalog --json > /tmp/capplus-format-catalog.json
+      - name: Run deterministic synthetic parser fuzzing
+        run: PYTHONPATH=src python -m capplus_inspect fuzz --iterations 2048 --seed 0x4341502B2B --json > /tmp/capplus-fuzz-report.json
+
   ci:
     name: CI
     if: ${{ always() }}
-    needs: test
+    needs: [test, format_gates]
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
       - name: Require successful test matrix
         env:
           TEST_RESULT: ${{ needs.test.result }}
-        run: test "$TEST_RESULT" = success
+          FORMAT_GATES_RESULT: ${{ needs.format_gates.result }}
+        run: test "$TEST_RESULT" = success && test "$FORMAT_GATES_RESULT" = success

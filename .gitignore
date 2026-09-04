@@ -5,3 +5,4 @@ __pycache__/
 build/
 dist/
 *.json
+!src/capplus_inspect/schemas/*.json

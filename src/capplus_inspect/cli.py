@@ -8,15 +8,16 @@ from pathlib import Path
 from typing import Any, Sequence
 
 from . import __version__
-from .containers import inspect_set
 from .errors import InspectError
-from .executables import inspect_executable
-from .file_formats import inspect_auxiliary_file
+from .file_formats import inspect_file_bytes
 from .fonts import export_font
+from .fuzzing import MAX_FUZZ_ITERATIONS, run_synthetic_fuzz_campaign
 from .images import export_indexed_images
 from .installation import inspect_installation
-from .maps import inspect_map, render_map
-from .saves import compare_saves, inspect_save
+from .maps import render_map
+from .roundtrip import validate_roundtrip_bytes, validate_roundtrip_corpus
+from .schema_catalog import inspect_format_catalog
+from .saves import compare_saves
 from .util import json_ready
 
 
@@ -33,37 +34,26 @@ def _inspect_path(
     if path.is_dir() or (path.is_file() and zipfile.is_zipfile(path)):
         return inspect_installation(path, deep=deep)
     data = path.read_bytes()
-    suffix = path.suffix.lower()
-    if suffix == ".exe":
-        result = inspect_executable(
-            data,
-            include_strings=include_strings,
-            minimum_string_length=minimum_string_length,
+    cursor_image_data = None
+    if path.name.upper() == "CURSOR.RES":
+        sibling = next(
+            (
+                candidate
+                for candidate in path.parent.iterdir()
+                if candidate.is_file() and candidate.name.upper() == "I_CURSOR.RES"
+            ),
+            None,
         )
-    elif suffix == ".sav":
-        result = inspect_save(data)
-    elif suffix == ".set":
-        result = inspect_set(data, include_rows=rows)
-    elif suffix == ".map":
-        result = inspect_map(data)
-    else:
-        cursor_image_data = None
-        if path.name.upper() == "CURSOR.RES":
-            sibling = next(
-                (
-                    candidate
-                    for candidate in path.parent.iterdir()
-                    if candidate.is_file() and candidate.name.upper() == "I_CURSOR.RES"
-                ),
-                None,
-            )
-            if sibling is not None:
-                cursor_image_data = sibling.read_bytes()
-        result = inspect_auxiliary_file(
-            data,
-            path.name,
-            cursor_image_data=cursor_image_data,
-        )
+        if sibling is not None:
+            cursor_image_data = sibling.read_bytes()
+    result = inspect_file_bytes(
+        data,
+        path.name,
+        rows=rows,
+        include_strings=include_strings,
+        minimum_string_length=minimum_string_length,
+        cursor_image_data=cursor_image_data,
+    )
     result["input"] = str(path.resolve())
     return result
 
@@ -375,12 +365,80 @@ def _render_comparison(result: dict[str, Any]) -> list[str]:
     if town:
         lines.extend(
             [
-                f"  known transient pointer-byte differences: {town['transient_pointer_bytes_different']}",
+                "  known transient pointer-byte differences: "
+                f"{town['transient_pointer_bytes_different']}",
                 f"  changed known market floats: {town['changed_known_float_fields']}",
                 f"  maximum known float drift: {town['maximum_known_float_ulp_distance']} ULP",
             ]
         )
+    normalization = result["normalization"]
+    evaluation = normalization["evaluation"]
+    lines.extend(
+        [
+            f"  normalization policy: {normalization['policy']['id']} "
+            f"v{normalization['policy']['version']}",
+            f"  normalization applicable: {'yes' if normalization['policy_applicable'] else 'no'}",
+            "  classified same-position differences: "
+            + (
+                str(evaluation["classified_same_position_differing_bytes"])
+                if evaluation["classified_same_position_differing_bytes"] is not None
+                else "not evaluated"
+            ),
+            "  unclassified same-position differences: "
+            + (
+                str(evaluation["unclassified_same_position_differing_bytes"])
+                if evaluation["unclassified_same_position_differing_bytes"] is not None
+                else "not evaluated"
+            ),
+        ]
+    )
     return lines
+
+
+def _render_roundtrip(result: dict[str, Any]) -> list[str]:
+    if result["format"] == "capitalism_plus_roundtrip_corpus":
+        return [
+            "Capitalism Plus round-trip corpus validation",
+            f"  input: {result['input']}",
+            f"  files: {result['byte_identical_count']}/{result['file_count']} byte-identical",
+            f"  structural: {result['structural_count']}",
+            f"  opaque passthrough: {result['opaque_count']}",
+            f"  formats: {len(result['formats'])}",
+        ]
+    return [
+        "Capitalism Plus round-trip validation",
+        f"  input: {result.get('input', result['filename'])}",
+        f"  source format: {result['source_format']}",
+        f"  coverage: {result['coverage']}",
+        f"  regions: {result['region_count']}",
+        f"  byte-identical: {'yes' if result['byte_identical'] else 'no'}",
+    ]
+
+
+def _render_catalog(result: dict[str, Any]) -> list[str]:
+    validation = result["validation"]
+    return [
+        "Cap++ binary format catalog",
+        f"  catalog version: {result['catalog_version']}",
+        f"  formats: {validation['format_count']}",
+        f"  documented fields: {validation['field_count']}",
+        f"  inferred fields with provenance: {validation['inferred_field_count']}",
+        "  valid: yes",
+    ]
+
+
+def _render_fuzz(result: dict[str, Any]) -> list[str]:
+    return [
+        "Cap++ deterministic parser fuzz campaign",
+        f"  generator: {result['generator']}",
+        f"  seed: {result['seed_hex']}",
+        f"  cases: {result['case_count']}",
+        f"  iterations: {result['iterations']}",
+        f"  accepted mutations: {result['accepted']}",
+        f"  rejected mutations: {result['rejected']}",
+        f"  unexpected failures: {result['unexpected_failures']}",
+        f"  transcript SHA-256: {result['transcript_sha256']}",
+    ]
 
 
 def _render_text(result: dict[str, Any]) -> str:
@@ -405,6 +463,15 @@ def _render_text(result: dict[str, Any]) -> str:
         lines = _render_executable(result)
     elif format_name == "capitalism_plus_save_comparison":
         lines = _render_comparison(result)
+    elif format_name in {
+        "capitalism_plus_roundtrip_validation",
+        "capitalism_plus_roundtrip_corpus",
+    }:
+        lines = _render_roundtrip(result)
+    elif format_name == "capitalism_plus_binary_format_catalog":
+        lines = _render_catalog(result)
+    elif format_name == "capitalism_plus_fuzz_campaign":
+        lines = _render_fuzz(result)
     elif format_name in {
         "capitalism_plus_bitmap_font",
         "capitalism_plus_text_screens",
@@ -515,6 +582,38 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     render_parser.add_argument("--force", action="store_true", help="replace an existing output")
     render_parser.add_argument("--json", action="store_true", help="emit stable JSON")
+
+    roundtrip_parser = subparsers.add_parser(
+        "roundtrip",
+        help="prove byte-exact reconstruction of one non-save file or an installation corpus",
+    )
+    roundtrip_parser.add_argument("path", type=Path)
+    roundtrip_parser.add_argument("--json", action="store_true", help="emit stable JSON")
+
+    schema_parser = subparsers.add_parser(
+        "schema-catalog",
+        help="show the versioned machine-readable binary-format and provenance catalog",
+    )
+    schema_parser.add_argument("--json", action="store_true", help="emit the complete catalog")
+
+    fuzz_parser = subparsers.add_parser(
+        "fuzz",
+        help="run deterministic bounded mutations against synthetic parser fixtures",
+    )
+    fuzz_parser.add_argument(
+        "--iterations",
+        type=int,
+        default=512,
+        metavar="N",
+        help="total mutations to run (default: 512)",
+    )
+    fuzz_parser.add_argument(
+        "--seed",
+        default="0x4341502B2B",
+        metavar="N",
+        help="non-negative integer seed, decimal or 0x-prefixed",
+    )
+    fuzz_parser.add_argument("--json", action="store_true", help="emit stable JSON")
     return parser
 
 
@@ -527,6 +626,16 @@ def _parse_transparent_index(value: str) -> int | None:
         raise InspectError("--transparent-index must be 0..255 or 'none'") from error
     if not 0 <= result <= 255:
         raise InspectError("--transparent-index must be 0..255 or 'none'")
+    return result
+
+
+def _parse_seed(value: str) -> int:
+    try:
+        result = int(value, 0)
+    except ValueError as error:
+        raise InspectError("--seed must be a non-negative integer") from error
+    if result < 0:
+        raise InspectError("--seed must be a non-negative integer")
     return result
 
 
@@ -580,7 +689,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
             require_clean_failed = False
             as_json = args.json
-        else:
+        elif args.command == "render-map":
             result = render_map(
                 args.input.read_bytes(),
                 args.palette.read_bytes(),
@@ -591,6 +700,30 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
             result["input"] = str(args.input.resolve())
             result["palette"] = str(args.palette.resolve())
+            require_clean_failed = False
+            as_json = args.json
+        elif args.command == "roundtrip":
+            if args.path.is_dir() or (
+                args.path.is_file()
+                and (args.path.suffix.lower() == ".zip" or zipfile.is_zipfile(args.path))
+            ):
+                result = validate_roundtrip_corpus(args.path)
+            else:
+                result = validate_roundtrip_bytes(args.path.read_bytes(), args.path.name)
+                result["input"] = str(args.path.resolve())
+            require_clean_failed = False
+            as_json = args.json
+        elif args.command == "schema-catalog":
+            result = inspect_format_catalog()
+            require_clean_failed = False
+            as_json = args.json
+        else:
+            if not 1 <= args.iterations <= MAX_FUZZ_ITERATIONS:
+                parser.error(f"--iterations must be between 1 and {MAX_FUZZ_ITERATIONS}")
+            result = run_synthetic_fuzz_campaign(
+                iterations=args.iterations,
+                seed=_parse_seed(args.seed),
+            )
             require_clean_failed = False
             as_json = args.json
     except (InspectError, OSError) as error:

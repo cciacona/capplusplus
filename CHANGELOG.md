@@ -30,6 +30,16 @@
   grids, and stable eight-byte item references.
 - Added compatible-record inspection for configuration and hall-of-fame files,
   keeping their unassigned fields explicit.
+- Added a bundled, versioned machine-readable catalog covering 20 original
+  on-disk structures and enforcing provenance for inferred fields.
+- Added byte-preserving structural round-trip validation for individual files,
+  directories, and installation ZIPs, with opaque coverage reported separately.
+- Added an explicit versioned save-normalization policy that distinguishes
+  registered pointer/float drift from unclassified differences.
+- Added a deterministic bounded mutation fuzzer with 16 synthetic parser-family
+  fixtures and a fixed CI campaign.
+- Expanded the synthetic suite to 70 tests and added aggregate schema,
+  provenance, and fuzz gates to CI.
 
 ## 0.2.0 — 2026-09-02
 

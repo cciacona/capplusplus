@@ -8,7 +8,9 @@ from .images import export_indexed_images
 from .installation import inspect_installation
 from .maps import inspect_map, render_map
 from .palette import inspect_palette
-from .saves import compare_saves, inspect_save
+from .roundtrip import validate_roundtrip_bytes, validate_roundtrip_corpus
+from .schema_catalog import load_format_catalog
+from .saves import compare_saves, inspect_save, save_normalization_policy
 
 __all__ = [
     "compare_saves",
@@ -19,6 +21,10 @@ __all__ = [
     "inspect_resource",
     "inspect_save",
     "inspect_set",
+    "load_format_catalog",
     "render_map",
+    "save_normalization_policy",
+    "validate_roundtrip_bytes",
+    "validate_roundtrip_corpus",
     "SCHEMA_VERSION",
 ]

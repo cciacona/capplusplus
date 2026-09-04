@@ -23,9 +23,18 @@ On Windows, activate the environment from `.venv\Scripts` and use `py` or
    and overwrite protection; any future original-format writer requires a
    separate design and review.
 5. Mark interpretations as confirmed, inferred, or unknown.
-6. Preserve existing JSON keys. Additive fields are preferred; incompatible
+6. Add every supported format and field to the machine-readable catalog. Every
+   inferred field requires an observation method, confidence, and provenance note.
+7. Preserve existing JSON keys. Additive fields are preferred; incompatible
    changes require a `schema_version` increment.
-7. Run the full standard-library test suite.
+8. Run the full standard-library test suite, catalog gate, and deterministic
+   fuzz campaign.
+
+```bash
+PYTHONPATH=src python3 -m unittest discover -s tests -t . -v
+PYTHONPATH=src python3 -m capplus_inspect schema-catalog
+PYTHONPATH=src python3 -m capplus_inspect fuzz --iterations 2048 --seed 0x4341502B2B
+```
 
 ## Documentation scope
 
