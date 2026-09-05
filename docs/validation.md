@@ -5,7 +5,7 @@ game directories and three mutually compatible version-100 saves.
 
 ## Installations
 
-| Check | DOS directory ZIP | Windows directory ZIP |
+| Check | Extracted DOS directory | Extracted Windows directory |
 |---|---:|---:|
 | Files under detected root | 149 | 113 |
 | Shared core files matched | 72 / 72 | 72 / 72 |
@@ -14,12 +14,14 @@ game directories and three mutually compatible version-100 saves.
 | Layout-plan files parsed | 9 | 9 |
 | Maps parsed | 15 | 15 |
 | Resources inspected | 33 | 33 |
-| Config/HOF support files parsed | 2 | 2 |
+| Config/HOF/sound-settings files parsed | 3 | 3 |
+| Loose PCM WAVs parsed | 0 | 25 |
 | Deep-inspection errors | 0 | 0 |
 
 The 72 shared game-set, map, and resource files are byte-identical between the
 two supplied builds. Their expected SHA-256 values are embedded only as hashes;
-no source file bytes are included.
+no source file bytes are included. This audio pass rechecks the intact extracted
+files; the original installation ZIP validation is earlier evidence.
 
 ## Saves
 
@@ -91,7 +93,7 @@ point rounding as normalization concerns.
 
 ## Automated suite
 
-The development suite contains 97 tests covering DBF parsing, all three
+The development suite contains 121 tests covering DBF parsing, all three
 resource-container patterns, palettes, indexed PNG encoding, image export and
 overwrite protection, map structure/rendering, version-100 save framing, save
 comparison, installation-root discovery, CLI exit behavior, and malformed input rejection.
@@ -105,7 +107,14 @@ UI tests additionally cover font bit order and empty glyphs, text and language
 containers, cursor offset resolution, ordered help geometry, empty plan/help
 cases, malformed offsets, 3×3 plan records, and framed config/HOF data.
 
-Format-gate tests additionally cover the 20-format machine-readable catalog,
+Audio tests cover independent WAV decoding, sample preservation, the original
+terminal-padding variant, malformed PCM/IFF lengths, bounded XMIDI recursion,
+opaque event handling, stable bank order, export collisions, filename traversal,
+loose-file mismatches, unassigned settings, exact-executable profile rejection,
+and CUE geometry with unsupported and malformed layouts. All 24 audio tests use
+newly generated fixtures.
+
+Format-gate tests additionally cover the 26-format machine-readable catalog,
 mandatory provenance for all nine currently inferred field records, exhaustive
 region coverage, preservation-writer mutation, disabled save writing, directory
 corpus selection, save normalization limits, fuzz bounds, and deterministic
@@ -117,8 +126,8 @@ experiment provenance/checkpoint/tolerance constraints, staged payload checks,
 version consistency and safe source-archive extraction. The 27 new fixtures
 are synthetic and introduce no original payloads.
 
-The hardening pass also builds a wheel and source distribution in a tracked-only
-temporary copy, runs all 97 tests from the extracted source distribution,
+The package gate builds a wheel and source distribution in a tracked-only
+temporary copy, runs all 121 tests from the extracted source distribution,
 rebuilds an equal-content wheel, and installs it offline in a fresh environment
 outside the checkout. Local Linux checks pass for installed metadata, CLI
 version, both bundled schemas, catalog validation and a 32-iteration fuzz smoke
@@ -128,19 +137,37 @@ media; see [content coverage](content-coverage.md) for the precise limitation.
 
 ## Reconstruction and fuzz gates
 
-Each supplied DOS and Windows installation independently reconstructs all 75
-selected non-save files byte-for-byte. Each run contains 73 structurally
-segmented files and two explicitly opaque files (`JOB.RTI` and `JOB.RTX`) across
-18 represented source formats.
+The supplied DOS installation reconstructs 76 selected non-save files exactly:
+74 structurally segmented files and two opaque files across 22 source formats.
+Windows reconstructs 101 files: 99 structural and the same two opaque inputs
+across 23 formats. The opaque inputs remain `JOB.RTI` and `JOB.RTX`. Audio adds
+`CAPITAL.SND` to both selections and 25 loose WAVs to Windows; these totals do
+not claim coverage of the entire retail disc.
 
-The fixed 2,048-iteration synthetic fuzz campaign covers 16 generated inputs.
-With seed `0x4341502B2B`, it accepts 979 structurally valid mutations, rejects
-1,069 malformed mutations, reports no unexpected exception, and produces
+The fixed 2,048-iteration synthetic fuzz campaign covers 21 generated inputs.
+With seed `0x4341502B2B`, it accepts 792 structurally valid mutations, rejects
+1,256 malformed mutations, reports no unexpected exception, and produces
 transcript SHA-256
-`022ee92ec733c1c2545138fa5d8eb6abbe4fb25951b84450da466c2a2a8092fa`.
+`c8e3d89eab90c206545ca92a3d7fb78c1084e19a3a399dcbddc761f7ceacae83`.
 
 The matched DOS/Windows save comparison satisfies every structural precondition
 for normalization. It classifies 677 of the 1,035 same-position differing bytes
 inside registered pointer or tracked-float locations and leaves 358 differences
 explicitly unclassified. All 370 changed tracked floats remain within the
 observed one-to-four-ULP cross-build range.
+
+## Audio evidence
+
+- All 25 `SOUND.RES` members match the PCM data in their extensionless Windows
+  WAV counterparts, including all ten missing-terminal-padding variants.
+- Both 25-file export profiles decode with Python's independent `wave` reader
+  to the exact original samples: 11,000 Hz for DOS and 11,127 Hz for Windows.
+- All 24 `MUSIC.RES` members have one bounded XMID sequence; their unchanged
+  exports pass framing checks and byte-for-byte source comparisons.
+- Both sound-settings files have exactly nine words. The 29 bank, loose-effect
+  and settings inputs used in export validation retained their original hashes.
+- The exact-build survey reproduces Windows/DOS address mappings and PCM
+  equality. It does not execute either game or validate audible behavior.
+- CUE geometry is tested synthetically. The retail layout and prior OGG
+  comparison in [audio evidence](audio.md) are historical complete-disc results;
+  fresh BIN integrity and sample checks require a complete user-owned input.
