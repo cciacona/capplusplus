@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Added PCM bank inspection/export with separate DOS and Windows rate profiles,
+  extensionless WAV comparison, and nine-slot sound-settings framing.
+- Added bounded XMIDI/IFF inspection and unchanged member export; musical event
+  semantics and CD correspondence remain explicitly unresolved.
+- Added metadata-only mixed-mode CUE geometry and an exact-build audio survey,
+  documenting Windows CD selection, notification handling, and music RNG use.
+- Extended structural round trips to audio, the catalog to 26 formats, and
+  deterministic fuzzing to 21 fixtures; added 24 synthetic audio tests.
 - Added versioned original-content and feature-parity ledgers with separate
   framing, preservation, semantics and behavior states; unresolved retail
   inventory and manual-crosswalk work remain explicit.

@@ -876,13 +876,15 @@
       ],
       "reference_status": "needs_reference_check",
       "evidence": [
-        "ROADMAP.md"
+        "ROADMAP.md",
+        "docs/audio.md"
       ],
       "content_families": [
         "sound_bank",
         "music_index",
         "loose_sound_effects",
-        "replacement_music"
+        "replacement_music",
+        "sound_settings"
       ],
       "status": {
         "data": "not_started",

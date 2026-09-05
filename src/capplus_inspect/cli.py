@@ -8,6 +8,8 @@ from pathlib import Path
 from typing import Any, Sequence
 
 from . import __version__
+from .audio import compare_sound_bank, export_audio_bank
+from .cd_audio import inspect_cue
 from .errors import InspectError
 from .file_formats import inspect_file_bytes
 from .fonts import export_font
@@ -443,7 +445,31 @@ def _render_fuzz(result: dict[str, Any]) -> list[str]:
 
 def _render_text(result: dict[str, Any]) -> str:
     format_name = result.get("format")
-    if format_name == "capitalism_plus_installation":
+    if result.get("audio_family"):
+        lines = ["Capitalism Plus audio bank", f"  kind: {result['audio_family']}",
+                 f"  entries: {result['member_count']}", f"  bytes: {result['size']}"]
+    elif format_name == "capitalism_plus_audio_export":
+        lines = ["Capitalism Plus audio export", f"  kind: {result['kind']}",
+                 f"  entries written: {result['entry_count']}", f"  manifest: {result['manifest']}"]
+    elif format_name == "capitalism_plus_audio_comparison":
+        lines = ["Capitalism Plus audio comparison",
+                 f"  matched WAV samples/format: {result['matched_count']}/{result['entry_count']}",
+                 f"  extra files: {len(result['extra_files'])}"]
+    elif format_name == "capitalism_plus_cd_cue":
+        lines = ["Capitalism Plus CUE geometry", f"  audio tracks: {result['audio_track_count']}",
+                 f"  complete geometry: {result['geometry_complete']}", "  BIN payload validation: not performed"]
+    elif format_name == "capitalism_plus_pcm_wave":
+        lines = ["PCM WAVE", f"  channels: {result['channels']}",
+                 f"  sample rate: {result['sample_rate']} Hz", f"  bits: {result['bits_per_sample']}",
+                 f"  frames: {result['frame_count']}",
+                 f"  missing terminal padding: {result['missing_terminal_padding']}"]
+    elif format_name == "capitalism_plus_xmidi":
+        lines = ["XMIDI framing", f"  sequences: {result['sequence_count']}",
+                 f"  chunks: {len(result['chunks'])}", "  event playback: not decoded"]
+    elif format_name == "capitalism_plus_sound_settings":
+        lines = ["Capitalism Plus sound settings", "  slots: 9 little-endian words",
+                 "  meanings: unassigned"]
+    elif format_name == "capitalism_plus_installation":
         lines = _render_installation(result)
     elif format_name == "capitalism_plus_save":
         lines = _render_save(result)
@@ -568,6 +594,25 @@ def _build_parser() -> argparse.ArgumentParser:
     font_parser.add_argument("--force", action="store_true", help="replace existing outputs")
     font_parser.add_argument("--json", action="store_true", help="emit stable JSON")
 
+    audio_parser = subparsers.add_parser("export-audio", help="export PCM WAV effects or unchanged XMIDI members")
+    audio_parser.add_argument("input", type=Path)
+    audio_parser.add_argument("output_directory", type=Path)
+    audio_parser.add_argument("--kind", choices=["sound", "music"], required=True)
+    audio_parser.add_argument("--sound-profile", choices=["dos", "windows"], default="windows",
+                              help="WAV rate: DOS requested 11000 Hz or Windows header 11127 Hz (default)")
+    audio_parser.add_argument("--force", action="store_true")
+    audio_parser.add_argument("--json", action="store_true")
+
+    comparison_parser = subparsers.add_parser("compare-audio", help="compare a sound bank with extensionless Windows WAVs")
+    comparison_parser.add_argument("bank", type=Path)
+    comparison_parser.add_argument("sounds_directory", type=Path)
+    comparison_parser.add_argument("--json", action="store_true")
+
+    cue_parser = subparsers.add_parser("inspect-cue", help="inspect single-BIN mixed-mode CUE geometry without opening its FILE path")
+    cue_parser.add_argument("input", type=Path)
+    cue_parser.add_argument("--bin-size", type=int, help="optional BIN byte length; size checks do not validate audio")
+    cue_parser.add_argument("--json", action="store_true")
+
     render_parser = subparsers.add_parser(
         "render-map", help="render the decoded 240x198 map overview to a palette PNG"
     )
@@ -679,6 +724,20 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
             require_clean_failed = False
             as_json = args.json
+        elif args.command == "export-audio":
+            result = export_audio_bank(args.input.read_bytes(), args.output_directory,
+                                       kind=args.kind, source_name=str(args.input.resolve()),
+                                       sound_profile=args.sound_profile, force=args.force)
+            require_clean_failed = False
+            as_json = args.json
+        elif args.command == "compare-audio":
+            result = compare_sound_bank(args.bank.read_bytes(), args.sounds_directory)
+            require_clean_failed = not result["all_matched"]
+            as_json = args.json
+        elif args.command == "inspect-cue":
+            result = inspect_cue(args.input.read_text(encoding="utf-8-sig"), bin_size=args.bin_size)
+            require_clean_failed = False
+            as_json = args.json
         elif args.command == "export-font":
             result = export_font(
                 args.input.read_bytes(),
@@ -726,7 +785,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
             require_clean_failed = False
             as_json = args.json
-    except (InspectError, OSError) as error:
+    except (InspectError, OSError, UnicodeError) as error:
         print(f"capplus-inspect: {error}", file=sys.stderr)
         return 2
 

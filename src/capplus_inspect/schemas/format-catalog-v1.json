@@ -5,6 +5,72 @@
   "report_schema_version": 1,
   "formats": [
     {
+      "id": "capitalism_plus_sound_bank",
+      "description": "Named directory of headerless mono unsigned eight-bit PCM effects.",
+      "file_patterns": ["SOUND.RES"],
+      "parser": "capplus_inspect.audio.inspect_sound_bank",
+      "roundtrip": {"mode": "exact_structural", "scope": "Directory and every PCM payload are preserved; rate is external playback metadata."},
+      "fields": [
+        {"path": "members[]", "offset": "named directory offsets", "size": "next offset minus current offset", "binary_type": "u8 PCM", "status": "confirmed", "observation_methods": ["static_file_comparison", "executable_analysis"], "confidence": "high", "notes": "All 25 samples match the Windows WAV data chunks exactly. DOS requests 11000 Hz; Windows headers declare 11127 Hz. See docs/audio.md."},
+        {"path": "members[].name", "offset": "2 + index*13", "size": 9, "binary_type": "ASCII identifier", "status": "confirmed", "observation_methods": ["structural_validation", "static_file_comparison"], "confidence": "high", "notes": "Case-unique identifiers map to extensionless Windows Sounds files; numeric IDs are one-based directory order."}
+      ]
+    },
+    {
+      "id": "capitalism_plus_music_bank",
+      "description": "Named directory of complete XDIR/CAT XMIDI members.",
+      "file_patterns": ["MUSIC.RES"],
+      "parser": "capplus_inspect.audio.inspect_music_bank",
+      "roundtrip": {"mode": "exact_structural", "scope": "Outer directory, IFF headers/padding and opaque musical-event bytes are preserved."},
+      "fields": [
+        {"path": "members[].xmidi", "offset": "named member offset", "size": "named member size", "binary_type": "IFF XDIR/CAT XMID", "status": "confirmed", "observation_methods": ["structural_validation"], "confidence": "high", "notes": "24 entries each contain one XMID sequence. No mapping from these entries to the eight CD selections is established."}
+      ]
+    },
+    {
+      "id": "capitalism_plus_pcm_wave",
+      "description": "PCM RIFF/WAVE, including extensionless original Windows effects.",
+      "file_patterns": ["Sounds/*", "*.WAV"],
+      "parser": "capplus_inspect.audio.inspect_wave",
+      "roundtrip": {"mode": "exact_structural", "scope": "RIFF header, all chunks, unknown metadata and original padding are retained exactly."},
+      "fields": [
+        {"path": "riff_size", "offset": 4, "size": 4, "binary_type": "u32le", "status": "confirmed", "observation_methods": ["public_documentation", "structural_validation"], "confidence": "high", "notes": "Size plus eight must equal the input. Microsoft RIFF documentation is linked in docs/audio.md."},
+        {"path": "fmt", "offset": "fmt chunk payload", "size": "16 or bounded extension", "binary_type": "PCM WAVEFORMAT", "status": "confirmed", "observation_methods": ["static_file_comparison", "public_documentation"], "confidence": "high", "notes": "Channels, rate, bit depth, byte rate and block alignment are checked together."},
+        {"path": "data", "offset": "data chunk payload", "size": "chunk size", "binary_type": "PCM frames", "status": "confirmed", "observation_methods": ["static_file_comparison"], "confidence": "high", "notes": "Ten original files omit final odd-data padding; this precise terminal variant is reported explicitly. Generated WAVs use standard padding."}
+      ]
+    },
+    {
+      "id": "capitalism_plus_xmidi",
+      "description": "IFF XDIR sequence count and CAT XMID sequence framing.",
+      "file_patterns": ["*.XMI", "MUSIC.RES members"],
+      "parser": "capplus_inspect.audio.inspect_xmidi",
+      "roundtrip": {"mode": "exact_structural", "scope": "Every bounded IFF header, payload, group type and alignment byte is retained."},
+      "fields": [
+        {"path": "chunk.size", "offset": "chunk start + 4", "size": 4, "binary_type": "u32be", "status": "confirmed", "observation_methods": ["structural_validation"], "confidence": "high", "notes": "Lengths are relative to payload starts, bounded by the parent, and exclude even-byte alignment padding."},
+        {"path": "XDIR.INFO", "offset": "INFO payload", "size": 2, "binary_type": "u16le sequence count", "status": "confirmed", "observation_methods": ["structural_validation"], "confidence": "high", "notes": "Must equal the number of FORM XMID children; all original members contain one."},
+        {"path": "TIMB", "offset": "TIMB payload", "size": "2 + count*2", "binary_type": "u16le count and two-byte entries", "status": "confirmed", "observation_methods": ["structural_validation"], "confidence": "high", "notes": "Every observed TIMB length matches its count exactly. Instrument interpretation is deferred."},
+        {"path": "EVNT", "offset": "EVNT payload", "size": "chunk size", "binary_type": "opaque musical events", "status": "unknown", "observation_methods": ["structural_validation"], "confidence": "high", "notes": "Event timing, notes, controllers and XMIDI loops are preserved without semantic decoding or MIDI conversion."}
+      ]
+    },
+    {
+      "id": "capitalism_plus_sound_settings",
+      "description": "Nine unframed words persisted by the original audio-settings routines.",
+      "file_patterns": ["CAPITAL.SND"],
+      "parser": "capplus_inspect.audio.inspect_sound_settings",
+      "roundtrip": {"mode": "exact_structural", "scope": "All nine words remain separate preservation regions."},
+      "fields": [
+        {"path": "slots[]", "offset": "2*index", "size": 2, "binary_type": "u16le", "status": "confirmed", "observation_methods": ["executable_analysis", "cross_build_comparison"], "confidence": "high", "notes": "Windows writer 0x0041E1B0 and reader 0x0041E2E0 agree with both 18-byte files; slot meanings remain unassigned."}
+      ]
+    },
+    {
+      "id": "capitalism_plus_cd_cue",
+      "description": "Single-BIN MODE1/2352 plus AUDIO CUE metadata; no payload validation.",
+      "file_patterns": ["*.CUE"],
+      "parser": "capplus_inspect.cd_audio.inspect_cue",
+      "roundtrip": {"mode": "inspect_only", "scope": "Geometry only; no CUE writer, BIN decoder, audio extraction or payload-authenticity claim."},
+      "fields": [
+        {"path": "INDEX", "offset": "text line", "size": "variable", "binary_type": "minutes:seconds:frames at 75 frames per second", "status": "confirmed", "observation_methods": ["structural_validation", "static_file_comparison"], "confidence": "high", "notes": "Historical original CUE layout is documented in docs/audio.md. A complete BIN must be supplied again for fresh payload verification."}
+      ]
+    },
+    {
       "id": "dbase",
       "description": "dBASE-compatible table stream used directly and inside game sets.",
       "file_patterns": ["embedded SET member", "CURSOR.RES", "*.DBF"],

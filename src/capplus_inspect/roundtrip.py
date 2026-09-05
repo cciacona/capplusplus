@@ -157,6 +157,32 @@ def _dbf_document(data: bytes, source_format: str = "dbase") -> RoundTripDocumen
 def _resource_document(data: bytes, filename: str) -> RoundTripDocument:
     result = inspect_auxiliary_file(data, filename)
     source_format = result["format"]
+    audio_family = result.get("audio_family")
+    if audio_family or source_format in {"capitalism_plus_pcm_wave", "capitalism_plus_xmidi", "capitalism_plus_sound_settings"}:
+        boundaries = {0, len(data)}
+
+        def chunk_boundaries(chunks: list[dict[str, Any]], base: int = 0) -> None:
+            for chunk in chunks:
+                start, end = base + chunk["data_offset"], base + chunk["data_offset"] + chunk["size"]
+                boundaries.update((base + chunk["offset"], start, end, end + chunk["padding_size"]))
+                if "group_type" in chunk:
+                    boundaries.add(start + 4)
+
+        if audio_family:
+            source_format = "capitalism_plus_" + audio_family
+            for member in result["members"]:
+                boundaries.update((member["offset"], member["offset"] + member["size"]))
+                if audio_family == "music_bank":
+                    chunk_boundaries(member["audio"]["xmidi"]["chunks"], member["offset"])
+        elif source_format in {"capitalism_plus_pcm_wave", "capitalism_plus_xmidi"}:
+            if source_format == "capitalism_plus_pcm_wave":
+                boundaries.add(12)
+            chunk_boundaries(result["chunks"])
+        else:
+            boundaries.update(range(0, 19, 2))
+        ordered = sorted(boundaries)
+        return _document(data, source_format, (_region(data, f"audio_part[{i}]", start, end)
+                         for i, (start, end) in enumerate(zip(ordered, ordered[1:]))))
     if source_format == "capitalism_plus_palette":
         inspect_palette(data)
         return _document(
@@ -340,7 +366,7 @@ def build_roundtrip_document(data: bytes, filename: str) -> RoundTripDocument:
                 _region(data, f"city[{city['index']}]", start, start + CITY_RECORD_SIZE)
             )
         return _document(data, "capitalism_plus_map", regions)
-    return _resource_document(data, basename)
+    return _resource_document(data, normalized)
 
 
 def validate_roundtrip_bytes(data: bytes, filename: str) -> dict[str, Any]:
@@ -384,9 +410,10 @@ def _corpus_paths(files: dict[str, str]) -> list[str]:
     paths = set(CORE_FILE_SHA256) & set(files)
     paths.update(
         name
-        for name in ("capplus.exe", "capwin.exe", "capital.cfg", "capital.hof")
+        for name in ("capplus.exe", "capwin.exe", "capital.cfg", "capital.hof", "capital.snd")
         if name in files
     )
+    paths.update(name for name in files if name.startswith("sounds/"))
     return sorted(paths)
 
 
