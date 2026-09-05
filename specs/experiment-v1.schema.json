@@ -1,0 +1,294 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Cap++ experiment v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "format",
+    "id",
+    "kind",
+    "description",
+    "profile",
+    "provenance",
+    "participants",
+    "duration_days",
+    "actions",
+    "observations",
+    "comparisons",
+    "private_artifacts"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "format": {
+      "const": "capplusplus_experiment"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "kind": {
+      "enum": [
+        "synthetic",
+        "original_observation"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "profile": {
+      "enum": [
+        "classic",
+        "synthetic"
+      ]
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method",
+        "references",
+        "confidence"
+      ],
+      "properties": {
+        "method": {
+          "enum": [
+            "synthetic_fixture",
+            "controlled_game_experiment",
+            "executable_analysis",
+            "cross_build_comparison"
+          ]
+        },
+        "references": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        },
+        "confidence": {
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        }
+      }
+    },
+    "participants": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "platform",
+          "executable_sha256",
+          "initial_save_sha256",
+          "scenario_id",
+          "initial_date",
+          "initial_rng"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "platform": {
+            "type": "string",
+            "minLength": 1
+          },
+          "executable_sha256": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "initial_save_sha256": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "scenario_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "initial_date": {
+            "type": "string",
+            "minLength": 1
+          },
+          "initial_rng": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4294967295
+          }
+        }
+      }
+    },
+    "duration_days": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "day_offset",
+          "sequence",
+          "command",
+          "parameters"
+        ],
+        "properties": {
+          "day_offset": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "sequence": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "command": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "parameters": {
+            "type": "object",
+            "additionalProperties": {
+              "type": [
+                "number",
+                "boolean",
+                "null"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "observations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "participant",
+          "day_offset",
+          "save_sha256",
+          "rng_state",
+          "values"
+        ],
+        "properties": {
+          "participant": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "day_offset": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "save_sha256": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "rng_state": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4294967295
+          },
+          "values": {
+            "type": "object",
+            "additionalProperties": {
+              "type": [
+                "number",
+                "boolean",
+                "null"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "comparisons": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "field",
+          "kind",
+          "max_error",
+          "preconditions",
+          "provenance"
+        ],
+        "properties": {
+          "field": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "enum": [
+              "exact",
+              "ulp",
+              "absolute",
+              "relative"
+            ]
+          },
+          "max_error": {
+            "type": "number",
+            "minimum": 0
+          },
+          "preconditions": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          },
+          "provenance": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          }
+        }
+      }
+    },
+    "private_artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required",
+        "notes"
+      ],
+      "properties": {
+        "required": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

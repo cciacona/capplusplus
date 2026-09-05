@@ -1,0 +1,323 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Cap++ content-coverage v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "format",
+    "scope",
+    "sources",
+    "retail_reconciliation",
+    "non_file_content",
+    "families"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "format": {
+      "const": "capplusplus_content_coverage"
+    },
+    "scope": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sources": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "expected_files",
+          "inventory_status",
+          "identity"
+        ],
+        "properties": {
+          "expected_files": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "inventory_status": {
+            "enum": [
+              "enumerated",
+              "partial"
+            ]
+          },
+          "identity": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    },
+    "retail_reconciliation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "expected_files",
+        "enumerated_sources",
+        "unclassified_files",
+        "status",
+        "notes"
+      ],
+      "properties": {
+        "expected_files": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "enumerated_sources": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        },
+        "unclassified_files": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "status": {
+          "enum": [
+            "incomplete",
+            "enumerated"
+          ]
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "non_file_content": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "requirement",
+          "observed_tracks",
+          "coverage",
+          "issues",
+          "evidence",
+          "notes"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "requirement": {
+            "enum": [
+              "classic",
+              "optional",
+              "reference_only",
+              "legacy_ignored",
+              "unclassified"
+            ]
+          },
+          "observed_tracks": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "coverage": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "framing",
+              "preservation",
+              "semantics",
+              "behavior"
+            ],
+            "properties": {
+              "framing": {
+                "enum": [
+                  "complete",
+                  "partial",
+                  "unknown",
+                  "not_applicable"
+                ]
+              },
+              "preservation": {
+                "enum": [
+                  "exact",
+                  "opaque",
+                  "untested",
+                  "not_applicable"
+                ]
+              },
+              "semantics": {
+                "enum": [
+                  "complete",
+                  "partial",
+                  "unknown",
+                  "not_applicable"
+                ]
+              },
+              "behavior": {
+                "enum": [
+                  "validated",
+                  "partial",
+                  "unverified",
+                  "not_applicable"
+                ]
+              }
+            }
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "evidence": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          },
+          "notes": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "families": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "patterns",
+          "observed_counts",
+          "requirement",
+          "coverage",
+          "issues",
+          "evidence",
+          "notes"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "patterns": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          },
+          "exclude": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "extensionless": {
+            "type": "boolean"
+          },
+          "observed_counts": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "requirement": {
+            "enum": [
+              "classic",
+              "optional",
+              "reference_only",
+              "legacy_ignored",
+              "unclassified"
+            ]
+          },
+          "coverage": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "framing",
+              "preservation",
+              "semantics",
+              "behavior"
+            ],
+            "properties": {
+              "framing": {
+                "enum": [
+                  "complete",
+                  "partial",
+                  "unknown",
+                  "not_applicable"
+                ]
+              },
+              "preservation": {
+                "enum": [
+                  "exact",
+                  "opaque",
+                  "untested",
+                  "not_applicable"
+                ]
+              },
+              "semantics": {
+                "enum": [
+                  "complete",
+                  "partial",
+                  "unknown",
+                  "not_applicable"
+                ]
+              },
+              "behavior": {
+                "enum": [
+                  "validated",
+                  "partial",
+                  "unverified",
+                  "not_applicable"
+                ]
+              }
+            }
+          },
+          "issues": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "evidence": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          },
+          "notes": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

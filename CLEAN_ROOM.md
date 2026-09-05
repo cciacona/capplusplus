@@ -19,6 +19,12 @@ Small non-expressive facts needed for interoperability—such as magic values,
 field offsets, dimensions, serialization order, and hashes—may be documented.
 Tests should build synthetic fixtures in memory.
 
+Run `python scripts/project_gates.py boundary` on the reviewed index before
+publishing. It checks paths, hashes, sizes and common binary signatures, but
+cannot establish provenance or detect every copied/encoded payload. Passing it
+does not replace human content review. Keep private data and generated reports
+in the ignored directories described in `docs/project-gates.md`.
+
 ## Observation records
 
 Every new format or behavior claim should state how it was learned:

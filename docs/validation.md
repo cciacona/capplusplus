@@ -91,7 +91,7 @@ point rounding as normalization concerns.
 
 ## Automated suite
 
-The development suite contains 70 tests covering DBF parsing, all three
+The development suite contains 97 tests covering DBF parsing, all three
 resource-container patterns, palettes, indexed PNG encoding, image export and
 overwrite protection, map structure/rendering, version-100 save framing, save
 comparison, installation-root discovery, CLI exit behavior, and malformed input rejection.
@@ -110,6 +110,21 @@ mandatory provenance for all nine currently inferred field records, exhaustive
 region coverage, preservation-writer mutation, disabled save writing, directory
 corpus selection, save normalization limits, fuzz bounds, and deterministic
 fuzz transcript reproduction.
+
+Repository-gate tests additionally cover ledger reconciliation, unsupported and
+extensionless families, incomplete inventories, false completion states,
+experiment provenance/checkpoint/tolerance constraints, staged payload checks,
+version consistency and safe source-archive extraction. The 27 new fixtures
+are synthetic and introduce no original payloads.
+
+The hardening pass also builds a wheel and source distribution in a tracked-only
+temporary copy, runs all 97 tests from the extracted source distribution,
+rebuilds an equal-content wheel, and installs it offline in a fresh environment
+outside the checkout. Local Linux checks pass for installed metadata, CLI
+version, both bundled schemas, catalog validation and a 32-iteration fuzz smoke
+test. Cross-platform results are recorded by the Windows/macOS/Linux CI jobs.
+The inventory recount is directory-only evidence from currently truncated local
+media; see [content coverage](content-coverage.md) for the precise limitation.
 
 ## Reconstruction and fuzz gates
 

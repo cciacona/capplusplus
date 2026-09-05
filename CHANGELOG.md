@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Added versioned original-content and feature-parity ledgers with separate
+  framing, preservation, semantics and behavior states; unresolved retail
+  inventory and manual-crosswalk work remain explicit.
+- Added a sanitized experiment-vector specification, synthetic example and
+  consistency gates without claiming a native replay runner.
+- Added Git-index content-boundary checks and replaced blanket JSON ignoring
+  with scoped private/generated output directories.
+- Added Windows/macOS test coverage, clean wheel/sdist rebuild and offline
+  installation checks, and source/metadata/CLI/tag version validation.
+- Corrected the setuptools build minimum for SPDX/license-file metadata and
+  retained native-architecture decisions as explicit pre-0.4 work.
 - Refocused the README on evergreen project information and moved development
   history to this changelog.
 - Hardened CI with scoped triggers, concurrency cancellation, SHA-pinned

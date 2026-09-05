@@ -1,0 +1,878 @@
+{
+  "schema_version": 1,
+  "format": "capplusplus_content_coverage",
+  "scope": "Known original file families, not a claim that every retail file or field is decoded.",
+  "sources": {
+    "shared_core": {
+      "expected_files": 72,
+      "inventory_status": "enumerated",
+      "identity": "The 72 hashes in src/capplus_inspect/known.py; shared by analyzed DOS and Windows builds."
+    },
+    "gam_image": {
+      "expected_files": 1001,
+      "inventory_status": "enumerated",
+      "sha256": "93f0e53c7cf62abe5bd1f3369b07254a6a73a0cbe5739058acbcd3ff66bea7ab",
+      "identity": "2048-byte-sector ISO-9660 CapPlus.gam. The SHA-256 is from the prior complete 279,402,496-byte image verification. This pass recounted directory entries from a truncated 36,738,560-byte local copy (SHA-256 c360f14629ad6ca5f1b00e9fa2127b68cdcd29ba80362d16dcdf3f1322052e0a); it did not reverify the full image or payloads."
+    }
+  },
+  "retail_reconciliation": {
+    "expected_files": 1604,
+    "enumerated_sources": [
+      "shared_core",
+      "gam_image"
+    ],
+    "unclassified_files": 531,
+    "status": "incomplete",
+    "notes": "Prior verified disc comparison established both disjoint path sets on the retail CD. The remaining 531 files (603 additions minus 72 shared core files) need an explicit fresh inventory; setup, drivers, manuals and demos must not be blanket-classified as irrelevant. CDDA tracks are not filesystem files."
+  },
+  "non_file_content": [
+    {
+      "id": "cdda_music",
+      "requirement": "classic",
+      "observed_tracks": 8,
+      "coverage": {
+        "framing": "partial",
+        "preservation": "untested",
+        "semantics": "partial",
+        "behavior": "unverified"
+      },
+      "issues": [
+        5
+      ],
+      "evidence": [
+        "docs/content-coverage.md"
+      ],
+      "notes": "Retail tracks 2-9; exact playback mapping and loop behavior pending issue #5."
+    }
+  ],
+  "families": [
+    {
+      "id": "game_sets",
+      "patterns": [
+        "gameset/*.set"
+      ],
+      "observed_counts": {
+        "shared_core": 3
+      },
+      "requirement": "classic",
+      "coverage": {
+        "framing": "complete",
+        "preservation": "exact",
+        "semantics": "partial",
+        "behavior": "unverified"
+      },
+      "issues": [
+        7
+      ],
+      "evidence": [
+        "docs/formats.md"
+      ],
+      "notes": "Embedded DBF structure is decoded; economic interpretation and all cross-table references are not complete."
+    },
+    {
+      "id": "game_set_images",
+      "patterns": [
+        "gameset/*.ii",
+        "gameset/*.ii2",
+        "gameset/*.dfi",
+        "gameset/*.fi",
+        "gameset/*.ip",
+        "gameset/*.pic"
+      ],
+      "observed_counts": {
+        "shared_core": 12
+      },
+      "requirement": "classic",
+      "coverage": {
+        "framing": "complete",
+        "preservation": "exact",
+        "semantics": "partial",
+        "behavior": "unverified"
+      },
+      "issues": [
+        6,
+        7
+      ],
+      "evidence": [
+        "docs/validation.md"
+      ],
+      "notes": "Image records export; presentation grouping and placement still need evidence."
+    },
+    {
+      "id": "layout_plans",
+      "patterns": [
+        "gameset/*.pla",
+        "gameset/*.plo",
+        "gameset/*.plp"
+      ],
+      "observed_counts": {
+        "shared_core": 9
+      },
+      "requirement": "classic",
+      "coverage": {
+        "framing": "complete",
+        "preservation": "exact",
+        "semantics": "partial",
+        "behavior": "unverified"
+      },
+      "issues": [
+        7
+      ],
+      "evidence": [
+        "docs/ui-resources.md"
+      ],
+      "notes": "Ordered categories and 3x3 cells are framed; some IDs and pointer handling remain inferred."
+    },
+    {
+      "id": "maps",
+      "patterns": [
+        "maps/*.map"
+      ],
+      "observed_counts": {
+        "shared_core": 15
+      },
+      "requirement": "classic",
+      "coverage": {
+        "framing": "complete",
+        "preservation": "exact",
+        "semantics": "partial",
+        "behavior": "unverified"
+      },
+      "issues": [
+        9
+      ],
+      "evidence": [
+        "docs/formats.md"
+      ],
+      "notes": "Overview byte and cell geometry are decoded; seven cell bytes and footer remain unknown."
+    },
+    {
+      "id": "fonts",
+      "patterns": [
+        "resource/fnt_*.res"
+      ],
+      "observed_counts": {
+        "shared_core": 3
+      },
+      "requirement": "classic",
+      "coverage": {
+        "framing": "complete",
+        "preservation": "exact",
+        "semantics": "partial",
+        "behavior": "unverified"
+      },
+      "issues": [
+        6
+      ],
+      "evidence": [
+        "docs/ui-resources.md"
+      ],
+      "notes": "Glyph bitmaps and boundaries decode; complete in-game layout behavior is not certified."
+    },
+    {
+      "id": "cursor_table",
+      "patterns": [
+        "resource/cursor.res"
+      ],
+      "observed_counts": {
+        "shared_core": 1
+      },
+      "requirement": "classic",
+      "coverage": {
+        "framing": "complete",
+        "preservation": "exact",
+        "semantics": "partial",
+        "behavior": "unverified"
+      },
+      "issues": [
+        6
+      ],
+      "evidence": [
+        "docs/ui-resources.md"
+      ],
+      "notes": "Image references resolve; all pointer/interaction behavior is not certified."
+    },
+    {
+      "id": "cursor_images",
+      "patterns": [
+        "resource/i_cursor.res"
+      ],
+      "observed_counts": {
+        "shared_core": 1
+      },
+      "requirement": "classic",
+      "coverage": {
+        "framing": "complete",
+        "preservation": "exact",
+        "semantics": "partial",
+        "behavior": "unverified"
+      },
+      "issues": [
+        6
+      ],
+      "evidence": [
+        "docs/ui-resources.md"
+      ],
+      "notes": "Seven indexed image records; full presentation parity is unverified."
+    },
+    {
+      "id": "help",
+      "patterns": [
+        "resource/help.res"
+      ],
+      "observed_counts": {
+        "shared_core": 1
+      },
+      "requirement": "classic",
+      "coverage": {
+        "framing": "complete",
+        "preservation": "exact",
+        "semantics": "partial",
+        "behavior": "unverified"
+      },
+      "issues": [
+        6
+      ],
+      "evidence": [
+        "docs/ui-resources.md"
+      ],
+      "notes": "Ordered text and rectangles decode; engine interactions remain unimplemented."
+    },
+    {
+      "id": "text_screens",
+      "patterns": [
+        "resource/text.res"
+      ],
+      "observed_counts": {
+        "shared_core": 1
+      },
+      "requirement": "classic",
+      "coverage": {
+        "framing": "complete",
+        "preservation": "exact",
+        "semantics": "partial",
+        "behavior": "unverified"
+      },
+      "issues": [
+        6
+      ],
+      "evidence": [
+        "docs/ui-resources.md"
+      ],
+      "notes": "DOS character/attribute pairs decode; native rendering parity is unverified."
+    },
+    {
+      "id": "language_glyphs",
+      "patterns": [
+        "resource/language.res"
+      ],
+      "observed_counts": {
+        "shared_core": 1
+      },
+      "requirement": "classic",
+      "coverage": {
+        "framing": "complete",
+        "preservation": "exact",
+        "semantics": "partial",
+        "behavior": "unverified"
+      },
+      "issues": [
+        6
+      ],
+      "evidence": [
+        "docs/ui-resources.md"
+      ],
+      "notes": "Glyph order is preserved, but semantic character assignments are unknown."
+    },
+    {
+      "id": "palettes",
+      "patterns": [
+        "resource/pal_std.res",
+        "resource/ifcolor.res"
+      ],
+      "observed_counts": {
+        "shared_core": 2
+      },
+      "requirement": "classic",
+      "coverage": {
+        "framing": "complete",
+        "preservation": "exact",
+        "semantics": "partial",
+        "behavior": "unverified"
+      },
+      "issues": [
+        6
+      ],
+      "evidence": [
+        "docs/formats.md"
+      ],
+      "notes": "RGB data and observed transparency decode; every palette-selection rule is not confirmed."
+    },
+    {
+      "id": "resource_images",
+      "patterns": [
+        "resource/i_*.res"
+      ],
+      "exclude": [
+        "resource/i_cursor.res"
+      ],
+      "observed_counts": {
+        "shared_core": 17
+      },
+      "requirement": "classic",
+      "coverage": {
+        "framing": "complete",
+        "preservation": "exact",
+        "semantics": "partial",
+        "behavior": "unverified"
+      },
+      "issues": [
+        6
+      ],
+      "evidence": [
+        "docs/validation.md"
+      ],
+      "notes": "Representative sprites export; complete animation and hotspot catalog remains open."
+    },
+    {
+      "id": "terrain_table",
+      "patterns": [
+        "resource/terrain.res"
+      ],
+      "observed_counts": {
+        "shared_core": 1
+      },
+      "requirement": "classic",
+      "coverage": {
+        "framing": "complete",
+        "preservation": "exact",
+        "semantics": "partial",
+        "behavior": "unverified"
+      },
+      "issues": [
+        6,
+        9
+      ],
+      "evidence": [
+        "docs/formats.md"
+      ],
+      "notes": "Container framing is supported; terrain-to-cell semantics need controlled probes."
+    },
+    {
+      "id": "sound_bank",
+      "patterns": [
+        "resource/sound.res"
+      ],
+      "observed_counts": {
+        "shared_core": 1
+      },
+      "requirement": "classic",
+      "coverage": {
+        "framing": "complete",
+        "preservation": "exact",
+        "semantics": "unknown",
+        "behavior": "unverified"
+      },
+      "issues": [
+        5
+      ],
+      "evidence": [
+        "docs/content-coverage.md"
+      ],
+      "notes": "Generic named-container reader only; audio entry contracts remain open."
+    },
+    {
+      "id": "music_index",
+      "patterns": [
+        "resource/music.res"
+      ],
+      "observed_counts": {
+        "shared_core": 1
+      },
+      "requirement": "classic",
+      "coverage": {
+        "framing": "complete",
+        "preservation": "exact",
+        "semantics": "unknown",
+        "behavior": "unverified"
+      },
+      "issues": [
+        5
+      ],
+      "evidence": [
+        "docs/content-coverage.md"
+      ],
+      "notes": "Generic named-container reader only; logical tracks and looping remain open."
+    },
+    {
+      "id": "job_pictures",
+      "patterns": [
+        "resource/job.rtp"
+      ],
+      "observed_counts": {
+        "shared_core": 1
+      },
+      "requirement": "classic",
+      "coverage": {
+        "framing": "complete",
+        "preservation": "exact",
+        "semantics": "partial",
+        "behavior": "unverified"
+      },
+      "issues": [
+        7
+      ],
+      "evidence": [
+        "docs/formats.md"
+      ],
+      "notes": "Named-container framing is not a complete job-guide specification."
+    },
+    {
+      "id": "job_index",
+      "patterns": [
+        "resource/job.rti"
+      ],
+      "observed_counts": {
+        "shared_core": 1
+      },
+      "requirement": "classic",
+      "coverage": {
+        "framing": "unknown",
+        "preservation": "opaque",
+        "semantics": "unknown",
+        "behavior": "unverified"
+      },
+      "issues": [
+        7
+      ],
+      "evidence": [
+        "docs/format-gates.md"
+      ],
+      "notes": "Opaque passthrough only."
+    },
+    {
+      "id": "job_text",
+      "patterns": [
+        "resource/job.rtx"
+      ],
+      "observed_counts": {
+        "shared_core": 1
+      },
+      "requirement": "classic",
+      "coverage": {
+        "framing": "unknown",
+        "preservation": "opaque",
+        "semantics": "unknown",
+        "behavior": "unverified"
+      },
+      "issues": [
+        7
+      ],
+      "evidence": [
+        "docs/format-gates.md"
+      ],
+      "notes": "Opaque passthrough only."
+    },
+    {
+      "id": "scenario_scn",
+      "patterns": [
+        "scenario/*.scn"
+      ],
+      "observed_counts": {
+        "gam_image": 20
+      },
+      "requirement": "classic",
+      "coverage": {
+        "framing": "unknown",
+        "preservation": "untested",
+        "semantics": "unknown",
+        "behavior": "unverified"
+      },
+      "issues": [
+        7
+      ],
+      "evidence": [
+        "docs/content-coverage.md"
+      ],
+      "notes": "Family presence confirmed by ISO directory inventory; suffix does not establish semantics."
+    },
+    {
+      "id": "scenario_scp",
+      "patterns": [
+        "scenario/*.scp"
+      ],
+      "observed_counts": {
+        "gam_image": 21
+      },
+      "requirement": "classic",
+      "coverage": {
+        "framing": "unknown",
+        "preservation": "untested",
+        "semantics": "unknown",
+        "behavior": "unverified"
+      },
+      "issues": [
+        7
+      ],
+      "evidence": [
+        "docs/content-coverage.md"
+      ],
+      "notes": "Family presence confirmed by ISO directory inventory; suffix does not establish semantics."
+    },
+    {
+      "id": "scenario_scs",
+      "patterns": [
+        "scenario/*.scs"
+      ],
+      "observed_counts": {
+        "gam_image": 20
+      },
+      "requirement": "classic",
+      "coverage": {
+        "framing": "unknown",
+        "preservation": "untested",
+        "semantics": "unknown",
+        "behavior": "unverified"
+      },
+      "issues": [
+        7
+      ],
+      "evidence": [
+        "docs/content-coverage.md"
+      ],
+      "notes": "Family presence confirmed by ISO directory inventory; suffix does not establish semantics."
+    },
+    {
+      "id": "scenario_sct",
+      "patterns": [
+        "scenario/*.sct"
+      ],
+      "observed_counts": {
+        "gam_image": 20
+      },
+      "requirement": "classic",
+      "coverage": {
+        "framing": "unknown",
+        "preservation": "untested",
+        "semantics": "unknown",
+        "behavior": "unverified"
+      },
+      "issues": [
+        7
+      ],
+      "evidence": [
+        "docs/content-coverage.md"
+      ],
+      "notes": "Family presence confirmed by ISO directory inventory; suffix does not establish semantics."
+    },
+    {
+      "id": "scenario_extensionless",
+      "patterns": [
+        "scenario/*"
+      ],
+      "extensionless": true,
+      "observed_counts": {
+        "gam_image": 20
+      },
+      "requirement": "classic",
+      "coverage": {
+        "framing": "unknown",
+        "preservation": "untested",
+        "semantics": "unknown",
+        "behavior": "unverified"
+      },
+      "issues": [
+        7
+      ],
+      "evidence": [
+        "docs/content-coverage.md"
+      ],
+      "notes": "Extensionless scenario payload family must be identified by path/content, not suffix."
+    },
+    {
+      "id": "tutorial_tut",
+      "patterns": [
+        "tutorial/*.tut"
+      ],
+      "observed_counts": {
+        "gam_image": 8
+      },
+      "requirement": "classic",
+      "coverage": {
+        "framing": "unknown",
+        "preservation": "untested",
+        "semantics": "unknown",
+        "behavior": "unverified"
+      },
+      "issues": [
+        7
+      ],
+      "evidence": [
+        "docs/content-coverage.md"
+      ],
+      "notes": "Tutorial support family is inventoried but not decoded."
+    },
+    {
+      "id": "tutorial_hin",
+      "patterns": [
+        "tutorial/*.hin"
+      ],
+      "observed_counts": {
+        "gam_image": 8
+      },
+      "requirement": "classic",
+      "coverage": {
+        "framing": "unknown",
+        "preservation": "untested",
+        "semantics": "unknown",
+        "behavior": "unverified"
+      },
+      "issues": [
+        7
+      ],
+      "evidence": [
+        "docs/content-coverage.md"
+      ],
+      "notes": "Tutorial support family is inventoried but not decoded."
+    },
+    {
+      "id": "tutorial_sam",
+      "patterns": [
+        "tutorial/*.sam"
+      ],
+      "observed_counts": {
+        "gam_image": 8
+      },
+      "requirement": "classic",
+      "coverage": {
+        "framing": "unknown",
+        "preservation": "untested",
+        "semantics": "unknown",
+        "behavior": "unverified"
+      },
+      "issues": [
+        7
+      ],
+      "evidence": [
+        "docs/content-coverage.md"
+      ],
+      "notes": "Tutorial support family is inventoried but not decoded."
+    },
+    {
+      "id": "tutorial_sph",
+      "patterns": [
+        "tutorial/*.sph"
+      ],
+      "observed_counts": {
+        "gam_image": 8
+      },
+      "requirement": "classic",
+      "coverage": {
+        "framing": "unknown",
+        "preservation": "untested",
+        "semantics": "unknown",
+        "behavior": "unverified"
+      },
+      "issues": [
+        7
+      ],
+      "evidence": [
+        "docs/content-coverage.md"
+      ],
+      "notes": "Tutorial support family is inventoried but not decoded."
+    },
+    {
+      "id": "tutorial_extensionless",
+      "patterns": [
+        "tutorial/*"
+      ],
+      "extensionless": true,
+      "observed_counts": {
+        "gam_image": 792
+      },
+      "requirement": "classic",
+      "coverage": {
+        "framing": "unknown",
+        "preservation": "untested",
+        "semantics": "unknown",
+        "behavior": "unverified"
+      },
+      "issues": [
+        7
+      ],
+      "evidence": [
+        "docs/content-coverage.md"
+      ],
+      "notes": "Nested extensionless tutorial files are required coverage, not ignorable unknowns."
+    },
+    {
+      "id": "loose_sound_effects",
+      "patterns": [
+        "sounds/*"
+      ],
+      "observed_counts": {
+        "gam_image": 25
+      },
+      "requirement": "classic",
+      "coverage": {
+        "framing": "unknown",
+        "preservation": "untested",
+        "semantics": "unknown",
+        "behavior": "unverified"
+      },
+      "issues": [
+        5
+      ],
+      "evidence": [
+        "docs/content-coverage.md"
+      ],
+      "notes": "Original effects may have extensionless names; Windows loose effects share this source category."
+    },
+    {
+      "id": "legacy_vesa",
+      "patterns": [
+        "vesa/*"
+      ],
+      "observed_counts": {
+        "gam_image": 50
+      },
+      "requirement": "legacy_ignored",
+      "coverage": {
+        "framing": "not_applicable",
+        "preservation": "not_applicable",
+        "semantics": "not_applicable",
+        "behavior": "not_applicable"
+      },
+      "issues": [],
+      "evidence": [
+        "docs/content-coverage.md"
+      ],
+      "notes": "Obsolete VESA programs/docs are inventory-only, not required by a modern renderer."
+    },
+    {
+      "id": "dos_reference",
+      "patterns": [
+        "capplus.exe"
+      ],
+      "observed_counts": {
+        "gam_image": 1
+      },
+      "requirement": "reference_only",
+      "coverage": {
+        "framing": "complete",
+        "preservation": "exact",
+        "semantics": "partial",
+        "behavior": "not_applicable"
+      },
+      "issues": [],
+      "evidence": [
+        "docs/executables.md"
+      ],
+      "notes": "Original executable is a private analysis input and is never distributed or required to execute Cap++."
+    },
+    {
+      "id": "windows_reference",
+      "patterns": [
+        "capwin.exe"
+      ],
+      "observed_counts": {},
+      "requirement": "reference_only",
+      "coverage": {
+        "framing": "complete",
+        "preservation": "exact",
+        "semantics": "partial",
+        "behavior": "not_applicable"
+      },
+      "issues": [],
+      "evidence": [
+        "docs/executables.md"
+      ],
+      "notes": "Private analysis input; retail occurrence requires a renewed full-disc inventory."
+    },
+    {
+      "id": "configuration",
+      "patterns": [
+        "capital.cfg"
+      ],
+      "observed_counts": {},
+      "requirement": "classic",
+      "coverage": {
+        "framing": "complete",
+        "preservation": "exact",
+        "semantics": "unknown",
+        "behavior": "unverified"
+      },
+      "issues": [
+        7
+      ],
+      "evidence": [
+        "docs/ui-resources.md"
+      ],
+      "notes": "737-byte object framing is supported; user-setting meanings remain unassigned."
+    },
+    {
+      "id": "hall_of_fame",
+      "patterns": [
+        "capital.hof"
+      ],
+      "observed_counts": {},
+      "requirement": "classic",
+      "coverage": {
+        "framing": "complete",
+        "preservation": "exact",
+        "semantics": "partial",
+        "behavior": "unverified"
+      },
+      "issues": [
+        7
+      ],
+      "evidence": [
+        "docs/ui-resources.md"
+      ],
+      "notes": "Two compatible records; leaderboard field semantics need experiments."
+    },
+    {
+      "id": "saves",
+      "patterns": [
+        "*.sav"
+      ],
+      "observed_counts": {},
+      "requirement": "classic",
+      "coverage": {
+        "framing": "complete",
+        "preservation": "untested",
+        "semantics": "partial",
+        "behavior": "partial"
+      },
+      "issues": [
+        8
+      ],
+      "evidence": [
+        "docs/formats.md"
+      ],
+      "notes": "Original cross-loading is user-confirmed. No Cap++ semantic import/export parity or original-save writer is claimed."
+    },
+    {
+      "id": "replacement_music",
+      "patterns": [
+        "music/*.ogg",
+        "music/*.flac"
+      ],
+      "observed_counts": {},
+      "requirement": "optional",
+      "coverage": {
+        "framing": "unknown",
+        "preservation": "untested",
+        "semantics": "unknown",
+        "behavior": "unverified"
+      },
+      "issues": [
+        5
+      ],
+      "evidence": [
+        "docs/content-coverage.md"
+      ],
+      "notes": "User-supplied replacement tracks are optional source variants; no decoder is added by this ledger."
+    }
+  ]
+}
