@@ -1,0 +1,1195 @@
+{
+  "schema_version": 1,
+  "format": "capplusplus_feature_parity",
+  "baseline": "ROADMAP.md; this is a candidate feature ledger, not an independently completed manual crosswalk.",
+  "manual_crosswalk_status": "pending",
+  "dimensions": [
+    "data",
+    "simulation",
+    "ui",
+    "persistence",
+    "ai",
+    "multiplayer"
+  ],
+  "features": [
+    {
+      "id": "setup",
+      "title": "Setup and game modes",
+      "target": "0.5",
+      "requirements": [
+        "Instructional, normal, scenario and load modes",
+        "Game sets, industry selection, competitors, capital and difficulty",
+        "Goals, winning, losing and scores"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "game_sets",
+        "configuration"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "calendar",
+      "title": "Calendar and simulation control",
+      "target": "0.5",
+      "requirements": [
+        "Calendar boundaries",
+        "Pause and all speed levels",
+        "Fixed command ordering and RNG call ordering"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "saves"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "world_views",
+      "title": "World maps and navigation",
+      "target": "0.4",
+      "requirements": [
+        "Regional and detailed maps",
+        "Panning, selection, map modes, filters and display modes"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "maps",
+        "resource_images",
+        "terrain_table"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "town_markets",
+      "title": "Towns and local competition",
+      "target": "0.5",
+      "requirements": [
+        "Population and consumer markets",
+        "Local competitors",
+        "Imports and external supply"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "game_sets",
+        "maps",
+        "saves"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "construction",
+      "title": "Firm construction",
+      "target": "0.5",
+      "requirements": [
+        "Build/demolish, site rules and naming",
+        "Nine-slot layout and selection"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "game_sets",
+        "resource_images",
+        "layout_plans"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "unit_links",
+      "title": "Functional-unit links",
+      "target": "0.5",
+      "requirements": [
+        "Input/output links",
+        "Internal sale",
+        "Supplier selection and auto purchase"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "layout_plans",
+        "game_sets"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "stores",
+      "title": "Department stores",
+      "target": "0.5",
+      "requirements": [
+        "Purchasing, inventory and sales units",
+        "Store summaries and control panels"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "game_sets",
+        "layout_plans"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "factories",
+      "title": "Factories",
+      "target": "0.5",
+      "requirements": [
+        "Multi-input recipes",
+        "Manufacturing, capacity and utilization",
+        "Costs, bottlenecks and inventory"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "game_sets",
+        "layout_plans"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "farms",
+      "title": "Farms",
+      "target": "0.6",
+      "requirements": [
+        "Crop seasons, soil and site effects",
+        "Livestock raising and processing",
+        "Yield, spoilage and quality"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "game_sets",
+        "game_set_images"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "extraction",
+      "title": "Raw-material extraction",
+      "target": "0.6",
+      "requirements": [
+        "Mines, oil wells and logging camps",
+        "Discovery, reserves, extraction and depletion"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "game_sets",
+        "maps"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "research",
+      "title": "Research and development",
+      "target": "0.6",
+      "requirements": [
+        "R&D centers and units",
+        "Technology, new products and quality effects"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "game_sets"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "labor",
+      "title": "Labor and equipment",
+      "target": "0.6",
+      "requirements": [
+        "Wages, staffing and procurement",
+        "Training, experience and unit levels"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "game_sets"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "private_label",
+      "title": "Private labeling",
+      "target": "0.6",
+      "requirements": [
+        "Functional units, ownership and product branding"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "game_sets"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "demand",
+      "title": "Demand and pricing",
+      "target": "0.6",
+      "requirements": [
+        "Necessity and consumer concerns",
+        "Price, quality, brand and overall ratings",
+        "Demand quantities and market share"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "game_sets",
+        "saves"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "branding",
+      "title": "Brand strategies",
+      "target": "0.6",
+      "requirements": [
+        "Corporate, range and unique branding",
+        "Awareness, loyalty and decay"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "game_sets",
+        "saves"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "media",
+      "title": "Advertising and media",
+      "target": "0.6",
+      "requirements": [
+        "Advertising links, reach, frequency and costs",
+        "Television stations and newspapers"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "game_sets"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "accounting",
+      "title": "Accounting and financial reports",
+      "target": "0.7",
+      "requirements": [
+        "Revenue, expense, cash flow and valuation",
+        "Balance sheet and income statement",
+        "Score, wealth, dominance and career"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "saves"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "credit",
+      "title": "Loans and bankruptcy",
+      "target": "0.7",
+      "requirements": [
+        "Loans, repayment and interest",
+        "Cash shortage and rescue behavior",
+        "Bankruptcy decisions"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "saves"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "stocks",
+      "title": "Stock market",
+      "target": "0.7",
+      "requirements": [
+        "Trading, shareholders and restrictions",
+        "Issue, buyback and dividends",
+        "Stock prices and investors"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "saves"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "takeovers",
+      "title": "Corporate transactions",
+      "target": "0.7",
+      "requirements": [
+        "Tender offers",
+        "Takeovers",
+        "Mergers"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "saves"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "personnel",
+      "title": "Presidents and delegation",
+      "target": "0.7",
+      "requirements": [
+        "Hiring, salary, raises and attitudes",
+        "Resignation and layoff",
+        "Expertise, personality, policies and assigned firms"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "game_sets",
+        "saves"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "competitor_ai",
+      "title": "Competing corporations",
+      "target": "0.7",
+      "requirements": [
+        "Industry and site choices",
+        "Layouts, pricing, brands, R&D and finance",
+        "Expansion and takeover behavior"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "saves"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "president_ai",
+      "title": "Delegated-firm AI",
+      "target": "0.7",
+      "requirements": [
+        "Original president policies",
+        "Shortages, pricing, staffing and investment responses"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "saves"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "tutorials",
+      "title": "Instructional games",
+      "target": "0.8",
+      "requirements": [
+        "Every shipped tutorial",
+        "Hints, sequences, transitions and completion"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "tutorial_tut",
+        "tutorial_hin",
+        "tutorial_sam",
+        "tutorial_sph",
+        "tutorial_extensionless"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "scenarios",
+      "title": "Scenarios and goals",
+      "target": "0.8",
+      "requirements": [
+        "Every shipped scenario",
+        "Objectives, starting conditions and completion"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "scenario_scn",
+        "scenario_scp",
+        "scenario_scs",
+        "scenario_sct",
+        "scenario_extensionless"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "map_editor",
+      "title": "Map editor",
+      "target": "0.8",
+      "requirements": [
+        "Terrain and cities",
+        "Firms, resources, conditions and objectives",
+        "Products, competitors, validation and persistence"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "maps",
+        "game_sets"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "plan_library",
+      "title": "Layout-plan library",
+      "target": "0.8",
+      "requirements": [
+        "Create, name, inspect, apply and delete",
+        "Original plan compatibility"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "layout_plans"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "guides",
+      "title": "Guides and reference browsers",
+      "target": "0.8",
+      "requirements": [
+        "Manufacturer, farmer and manager guides",
+        "Navigation, searching and cross-links"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "job_index",
+        "job_text",
+        "job_pictures"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "news",
+      "title": "Newspaper and events",
+      "target": "0.8",
+      "requirements": [
+        "Newspaper, news log and event tracker",
+        "Display options and event hooks"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "saves"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "reports",
+      "title": "Reports and graphs",
+      "target": "0.8",
+      "requirements": [
+        "Product, firm, corporate, person, financial and goal reports",
+        "Browsers, filters, searches, graphs and editable controls"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "saves",
+        "fonts"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "presentation",
+      "title": "Classic presentation",
+      "target": "0.4",
+      "requirements": [
+        "Sprites, palettes, fonts and numerical formatting",
+        "Geometry, cursors and animation timing",
+        "Windows, spinners, browsers and shortcuts"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "resource_images",
+        "palettes",
+        "fonts",
+        "cursor_images",
+        "cursor_table",
+        "help",
+        "language_glyphs"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "audio",
+      "title": "Audio and music",
+      "target": "0.4",
+      "requirements": [
+        "Sound triggers and controls",
+        "Original music mapping, order and loops",
+        "User-owned original and replacement audio"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "sound_bank",
+        "music_index",
+        "loose_sound_effects",
+        "replacement_music"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "save_import",
+      "title": "Original save import",
+      "target": "0.8",
+      "requirements": [
+        "Version-100 saves from both original builds",
+        "Persistent ownership, arrays and unknown-field handling"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "saves"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "save_export",
+      "title": "Original save export",
+      "target": "0.9",
+      "requirements": [
+        "Byte-safe export where supported",
+        "Explicit errors for unknown unwriteable structures"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "saves"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "native_saves",
+      "title": "Native persistence",
+      "target": "0.5",
+      "requirements": [
+        "Transactional save/load",
+        "Ruleset/profile identity and version migration",
+        "Deterministic reload and replay"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "saves"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "support_state",
+      "title": "Configuration and hall of fame",
+      "target": "0.8",
+      "requirements": [
+        "Configuration migration",
+        "Hall of fame",
+        "Safe per-user file locations"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "configuration",
+        "hall_of_fame"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "multiplayer",
+      "title": "Multiplayer parity",
+      "target": "0.9",
+      "requirements": [
+        "Reference player count, turn/session model and auto mode require verification",
+        "Host/join and equivalent gameplay over modern transport",
+        "Pause/speed authority and synchronization"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "saves"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "net_resilience",
+      "title": "Network resilience",
+      "target": "0.9",
+      "requirements": [
+        "Checksums, desync diagnosis and reconnect",
+        "Cross-platform determinism",
+        "Fault and long-duration testing"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "saves"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "modern_platform",
+      "title": "Modern application operation",
+      "target": "0.4",
+      "requirements": [
+        "Windows, Linux and macOS packages",
+        "HiDPI, scaling, aspect correction and display modes",
+        "Remappable input and audio configuration"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "configuration"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "install_discovery",
+      "title": "User-owned content discovery",
+      "target": "0.4",
+      "requirements": [
+        "DOS/Windows installation discovery",
+        "Case-insensitive source lookup and build identification",
+        "All required content roots including scenarios and tutorials"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "game_sets",
+        "maps",
+        "scenario_sct",
+        "tutorial_tut"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "classic_profile",
+      "title": "Classic compatibility profile",
+      "target": "1.0",
+      "requirements": [
+        "Locked rules, content and limits",
+        "Field-specific numeric tolerances",
+        "No silent Extended feature activation"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [
+        "game_sets"
+      ],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "extended_boundary",
+      "title": "Future extension boundary",
+      "target": "1.0",
+      "requirements": [
+        "Separate ruleset/content identifiers",
+        "Save-safe package hashes and limits",
+        "No new gameplay required before Classic parity"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    },
+    {
+      "id": "release_quality",
+      "title": "1.0 acceptance",
+      "target": "1.0",
+      "requirements": [
+        "Every feature and shipped content has an acceptance test",
+        "Ten-year cross-platform deterministic runs",
+        "Clean-machine install without command line",
+        "No proprietary assets in distribution"
+      ],
+      "reference_status": "needs_reference_check",
+      "evidence": [
+        "ROADMAP.md"
+      ],
+      "content_families": [],
+      "status": {
+        "data": "not_started",
+        "simulation": "not_started",
+        "ui": "not_started",
+        "persistence": "not_started",
+        "ai": "not_started",
+        "multiplayer": "not_started"
+      },
+      "tests": [],
+      "notes": "Inspector progress does not count as native-engine parity. Add exact manual/experiment references before marking validated; split this row when independently testable subfeatures diverge."
+    }
+  ]
+}

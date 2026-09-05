@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Cap++ feature-parity v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "format",
+    "baseline",
+    "manual_crosswalk_status",
+    "dimensions",
+    "features"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "format": {
+      "const": "capplusplus_feature_parity"
+    },
+    "baseline": {
+      "type": "string",
+      "minLength": 1
+    },
+    "manual_crosswalk_status": {
+      "enum": [
+        "pending",
+        "complete"
+      ]
+    },
+    "dimensions": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "data",
+          "simulation",
+          "ui",
+          "persistence",
+          "ai",
+          "multiplayer"
+        ]
+      }
+    },
+    "features": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title",
+          "target",
+          "requirements",
+          "reference_status",
+          "evidence",
+          "content_families",
+          "status",
+          "tests",
+          "notes"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "target": {
+            "type": "string",
+            "minLength": 1
+          },
+          "requirements": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          },
+          "reference_status": {
+            "enum": [
+              "needs_reference_check",
+              "documented",
+              "experiment_confirmed"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          },
+          "content_families": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "status": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "data",
+              "simulation",
+              "ui",
+              "persistence",
+              "ai",
+              "multiplayer"
+            ],
+            "properties": {
+              "data": {
+                "enum": [
+                  "not_started",
+                  "specified",
+                  "implemented",
+                  "validated",
+                  "not_applicable"
+                ]
+              },
+              "simulation": {
+                "enum": [
+                  "not_started",
+                  "specified",
+                  "implemented",
+                  "validated",
+                  "not_applicable"
+                ]
+              },
+              "ui": {
+                "enum": [
+                  "not_started",
+                  "specified",
+                  "implemented",
+                  "validated",
+                  "not_applicable"
+                ]
+              },
+              "persistence": {
+                "enum": [
+                  "not_started",
+                  "specified",
+                  "implemented",
+                  "validated",
+                  "not_applicable"
+                ]
+              },
+              "ai": {
+                "enum": [
+                  "not_started",
+                  "specified",
+                  "implemented",
+                  "validated",
+                  "not_applicable"
+                ]
+              },
+              "multiplayer": {
+                "enum": [
+                  "not_started",
+                  "specified",
+                  "implemented",
+                  "validated",
+                  "not_applicable"
+                ]
+              }
+            }
+          },
+          "tests": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "notes": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

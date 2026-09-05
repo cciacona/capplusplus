@@ -29,12 +29,23 @@ On Windows, activate the environment from `.venv\Scripts` and use `py` or
    changes require a `schema_version` increment.
 8. Run the full standard-library test suite, catalog gate, and deterministic
    fuzz campaign.
+9. Update the content/parity ledgers when scope or evidence changes. Use the
+   versioned experiment schema for sanitized original observations.
+10. Review and stage only intended source files, then run repository and package
+    gates. Stage new specs/fixtures explicitly; the boundary gate reads the index
+    and the package check includes only tracked paths.
 
 ```bash
 PYTHONPATH=src python3 -m unittest discover -s tests -t . -v
 PYTHONPATH=src python3 -m capplus_inspect schema-catalog
 PYTHONPATH=src python3 -m capplus_inspect fuzz --iterations 2048 --seed 0x4341502B2B
+python3 scripts/project_gates.py all
+python3 scripts/package_check.py
 ```
+
+The package check needs the declared setuptools build backend already installed;
+it performs its build/install checks offline. See [project gates](docs/project-gates.md)
+for limits and [experiment records](docs/experiments.md) for observation contracts.
 
 ## Documentation scope
 

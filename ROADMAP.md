@@ -54,18 +54,23 @@ experiments. The DOS and Windows originals already differ by 1–4 ULPs in sever
 market fields, so one deterministic canonical result is preferable to emulating
 platform-dependent drift unless that drift changes a gameplay decision.
 
-## Architecture fixed before gameplay work
+## Architecture to settle before gameplay work
 
 The engine should keep compatibility and future expansion separate:
 
 | Component | Responsibility |
 |---|---|
 | `capplus-inspect` | Fast-evolving Python format research, exporters, differential analysis, and experiment reports. |
-| `libopencap-data` | Audited C++ readers/writers for original and open formats; no gameplay logic. |
-| `opencap-sim` | Headless deterministic clock, economy, firms, people, finance, stock market, goals, and AI. |
-| `opencap-client` | SDL3 renderer, UI, input, audio, music, maps, reports, and editors. |
-| `opencap-net` | Command serialization, lobby, deterministic session control, checksums, reconnect, and spectator/replay foundations. |
-| `opencap-test` | Black-box original-game probes, simulation snapshots, replay tests, and parity reports. |
+| `capplus_data` | Audited C++ readers/writers for original and open formats; no gameplay logic. |
+| `capplus_sim` | Headless deterministic clock, economy, firms, people, finance, stock market, goals, and AI. |
+| `capplus_client` | SDL3 renderer, UI, input, audio, music, maps, reports, and editors. |
+| `capplus_net` | Command serialization, lobby, deterministic session control, checksums, reconnect, and spectator/replay foundations. |
+| `capplus_test` | Black-box original-game probes, simulation snapshots, replay tests, and parity reports. |
+
+These are proposed component names, not existing native targets. The
+[pre-engine decision list](docs/architecture.md) tracks the unsettled contracts.
+The [feature ledger](docs/parity.md) tracks independent parity dimensions;
+its manual crosswalk is still pending and must be completed before certification.
 
 The simulation must run headlessly and must not read wall-clock time, rendering
 state, or nondeterministic platform APIs. Player and AI actions enter it as
@@ -106,14 +111,25 @@ correctly from both identical asset sets.
   palette rule.
 - Decode the sound bank, music index, Windows extracted sounds, and CD/OGG track mapping.
 - Specify `.SET`, `.II`, `.II2`, `.DFI`, `.FI`, `.IP`, `.PIC`, `.PLA`, `.PLO`,
-  `.PLP`, `.RTI`, `.RTP`, `.RTX`, `.MAP`, `.SCT`, `.SAV`, `.CFG`, and `.HOF`.
+  `.PLP`, `.RTI`, `.RTP`, `.RTX`, `.MAP`, `.SCN`, `.SCP`, `.SCS`, `.SCT`,
+  `.TUT`, `.HIN`, `.SAM`, `.SPH`, `.SAV`, `.CFG`, and `.HOF`, including
+  extensionless scenario/tutorial/sound families.
 - Assign semantic names to all 24 save sections and every persistent structure.
 - Add bounds tests, malformed-input tests, corpus validation, and parser fuzzing.
 - Publish versioned schemas and a provenance note for every inferred field.
+- Reconcile the [content inventory](docs/content-coverage.md), including every
+  retail file, and justify legacy-only exclusions explicitly. Track framing,
+  byte preservation, semantics and behavior separately.
+- Use versioned [experiment records](docs/experiments.md) for behavioral claims;
+  a synthetic example or opaque round trip is not original-game validation.
 
 Exit gate: a round-trip reader/writer can reconstruct every supported non-save
 file byte-for-byte; save normalization can explain every changed byte in a
 controlled no-op load/save test.
+
+Passing structural preservation gates alone does not satisfy the semantic and
+inventory requirements above. The remaining retail classification gap and
+unexplained save differences must stay visible until resolved.
 
 ### 0.4 — Native engine shell
 

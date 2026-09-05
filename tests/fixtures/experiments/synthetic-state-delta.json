@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "format": "capplusplus_experiment",
+  "id": "synthetic_state_delta",
+  "kind": "synthetic",
+  "description": "Schema-only example with arbitrary values. Not an observation of the original RNG or a parity claim.",
+  "profile": "synthetic",
+  "provenance": {
+    "method": "synthetic_fixture",
+    "references": [
+      "docs/experiments.md"
+    ],
+    "confidence": "high"
+  },
+  "participants": [
+    {
+      "id": "reference",
+      "platform": "synthetic",
+      "executable_sha256": null,
+      "initial_save_sha256": null,
+      "scenario_id": "SYNTHETIC",
+      "initial_date": "2000-01-01",
+      "initial_rng": 1
+    }
+  ],
+  "duration_days": 1,
+  "actions": [
+    {
+      "day_offset": 0,
+      "sequence": 0,
+      "command": "set_test_value",
+      "parameters": {
+        "value": 3
+      }
+    }
+  ],
+  "observations": [
+    {
+      "participant": "reference",
+      "day_offset": 0,
+      "save_sha256": null,
+      "rng_state": 1,
+      "values": {
+        "test.value": 3
+      }
+    },
+    {
+      "participant": "reference",
+      "day_offset": 1,
+      "save_sha256": null,
+      "rng_state": 2,
+      "values": {
+        "test.value": 4
+      }
+    }
+  ],
+  "comparisons": [
+    {
+      "field": "test.value",
+      "kind": "exact",
+      "max_error": 0,
+      "preconditions": [
+        "Same synthetic initial state and action sequence."
+      ],
+      "provenance": [
+        "Arbitrary integers exercise the vector schema; no original formula is asserted."
+      ]
+    }
+  ],
+  "private_artifacts": {
+    "required": false,
+    "notes": "All values are generated for schema validation. This record is not a replay runner."
+  }
+}
