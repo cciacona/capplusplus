@@ -169,6 +169,14 @@ def catalog_graphics_files(files: Mapping[str, bytes]) -> dict[str, Any]:
     palettes = []
     opaque_members = []
     cursor_images = {}
+    entry_count = 0
+
+    def claim_entry() -> None:
+        nonlocal entry_count
+        if entry_count >= MAX_ENTRIES:
+            raise FormatError("graphics catalog has too many entries")
+        entry_count += 1
+
     for path, raw in sorted(selected.items()):
         kind = _source_kind(path)
         source = {"path": path, "size": len(raw), "sha256": sha256_bytes(raw), "kind": kind}
@@ -183,6 +191,7 @@ def catalog_graphics_files(files: Mapping[str, bytes]) -> dict[str, Any]:
             decoded = decode_font(raw)
             source["format"] = "capitalism_plus_bitmap_font"
             for glyph in decoded["glyphs"]:
+                claim_entry()
                 identifier = f"{path}#glyph:{glyph['code']:03d}"
                 members.append(identifier)
                 entries.append({"id": identifier, "kind": "bitmap_glyph", "source": path,
@@ -195,11 +204,12 @@ def catalog_graphics_files(files: Mapping[str, bytes]) -> dict[str, Any]:
                                 "presentation": {"encoding": "one_bit_mask", "foreground": None,
                                                  "background": None, "runtime_colors": "unverified"}})
         else:
-            _check_sequential_budget(raw, len(entries))
+            _check_sequential_budget(raw, entry_count)
             source_format, images = decode_indexed_images(raw)
             source["format"] = source_format
             decoded_indexes = set()
             for image in images:
+                claim_entry()
                 index = image["index"]
                 decoded_indexes.add(index)
                 identifier = f"{path}#image:{index:06d}"
@@ -225,6 +235,7 @@ def catalog_graphics_files(files: Mapping[str, bytes]) -> dict[str, Any]:
             if directory is not None:
                 for member in directory:
                     if member["index"] not in decoded_indexes:
+                        claim_entry()
                         start = member["offset"]
                         opaque_members.append({"source": path, **member,
                                                "sha256": sha256_bytes(raw[start:start + member["size"]]),
@@ -234,13 +245,12 @@ def catalog_graphics_files(files: Mapping[str, bytes]) -> dict[str, Any]:
         groups.append({"id": f"{path}#storage", "source": path, "kind": "storage_order",
                        "members": members, "order_evidence": "directory, stream or glyph-code order",
                        "animation": {"status": "unverified", "frame_durations": None, "loop": None}})
-        if len(entries) > MAX_ENTRIES:
-            raise FormatError("graphics catalog has too many entries")
 
     cursor_bindings = []
     if CURSOR_PATH in selected:
         decoded_cursors = inspect_cursor_table(selected[CURSOR_PATH], image_data=selected.get(CURSOR_IMAGE_PATH))
         for cursor in decoded_cursors["cursors"]:
+            claim_entry()
             image_index = cursor.get("image", {}).get("index")
             image_id = cursor_images.get(image_index)
             resolution = "resolved" if image_id is not None else (

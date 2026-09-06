@@ -194,7 +194,9 @@ codes. PNG checks independently inspect PLTE and decompressed IDAT chunks to
 verify that the Windows profile changes colors without changing indexed pixels.
 
 Inputs are bounded to 20,000 paths, 16 MiB per graphics source, 1 MiB per font,
-256 MiB of selected source data and 100,000 entries. ZIP and directory sizes are
+256 MiB of selected source data and 100,000 combined image, glyph, opaque-member
+and cursor-binding records across all sources. The record budget is checked
+before each catalog append. ZIP and directory sizes are
 checked before reads. Sequential record counts are bounded before allocating
 decoded image records. No exporter or decoder dependency is added.
 

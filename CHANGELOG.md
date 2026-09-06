@@ -8,7 +8,7 @@
   without treating unverified frame timing or palette choices as known behavior.
 - Recovered the shared six-bit palette load conversion and the Windows upload
   expansion; added an optional Windows palette profile for image/map PNG exports.
-- Added 17 synthetic graphics tests covering catalog equivalence, malformed
+- Added 19 synthetic graphics tests covering catalog equivalence, malformed
   inputs, resource limits, cursor references and palette/pixel preservation.
 - Fixed direct CLI inspection and reconstruction of damaged extensionless sound
   effects by retaining parent-path context through parser dispatch.

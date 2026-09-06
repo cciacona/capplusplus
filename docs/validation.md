@@ -93,7 +93,7 @@ point rounding as normalization concerns.
 
 ## Automated suite
 
-The development suite contains 139 tests covering DBF parsing, all three
+The development suite contains 141 tests covering DBF parsing, all three
 resource-container patterns, palettes, indexed PNG encoding, image export and
 overwrite protection, map structure/rendering, version-100 save framing, save
 comparison, installation-root discovery, CLI exit behavior, and malformed input rejection.
@@ -112,7 +112,7 @@ terminal-padding variant, malformed PCM/IFF lengths, bounded XMIDI recursion,
 opaque event handling, stable bank order, export collisions, filename traversal,
 loose-file mismatches, unassigned settings, exact-executable profile rejection,
 and CUE geometry with unsupported and malformed layouts. All 25 audio tests use
-newly generated fixtures. Seventeen graphics tests add stable source/record IDs,
+newly generated fixtures. Nineteen graphics tests add stable source/record IDs,
 font bit geometry, cursor-zero/blank/dangling handling, payload-free output,
 directory/ZIP equivalence, source-family isolation, collisions, budgets,
 comparison/CLI behavior and optional palette conversion without pixel changes.
@@ -130,7 +130,7 @@ version consistency and safe source-archive extraction. The 27 new fixtures
 are synthetic and introduce no original payloads.
 
 The package gate builds a wheel and source distribution in a tracked-only
-temporary copy, runs all 139 tests from the extracted source distribution,
+temporary copy, runs all 141 tests from the extracted source distribution,
 rebuilds an equal-content wheel, and installs it offline in a fresh environment
 outside the checkout. Local Linux checks pass for installed metadata, CLI
 version, both bundled schemas, catalog validation and a 32-iteration fuzz smoke

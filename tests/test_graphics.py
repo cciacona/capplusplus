@@ -148,6 +148,30 @@ class GraphicsCatalogTests(unittest.TestCase):
                 catalog_graphics_files({"RESOURCE/I_TEST.RES": raw})
             decoder.assert_not_called()
 
+    def test_entry_budget_includes_opaque_members_across_sources(self):
+        raw = make_offset_container([bitmap(1, 1), b"", b""])
+        files = {"RESOURCE/I_A.RES": raw, "RESOURCE/I_B.RES": raw}
+        with patch("capplus_inspect.graphics.MAX_ENTRIES", 6):
+            report = catalog_graphics_files(files)
+            self.assertEqual(report["counts"]["entries"], 2)
+            self.assertEqual(report["counts"]["opaque_members"], 4)
+        with patch("capplus_inspect.graphics.MAX_ENTRIES", 5), self.assertRaises(FormatError):
+            catalog_graphics_files(files)
+        # Opaque records from an earlier file also consume the stream preflight budget.
+        payload = bitmap(1, 1)
+        files["RESOURCE/I_B.RES"] = (struct.pack("<I", len(payload)) + payload) * 3
+        with patch("capplus_inspect.graphics.MAX_ENTRIES", 5), self.assertRaises(FormatError):
+            catalog_graphics_files(files)
+
+    def test_entry_budget_includes_glyphs_and_cursor_bindings(self):
+        files = fixtures()
+        report = catalog_graphics_files(files)
+        total = sum(report["counts"][key] for key in ("entries", "opaque_members", "cursor_bindings"))
+        with patch("capplus_inspect.graphics.MAX_ENTRIES", total):
+            self.assertEqual(catalog_graphics_files(files), report)
+        with patch("capplus_inspect.graphics.MAX_ENTRIES", total - 1), self.assertRaises(FormatError):
+            catalog_graphics_files(files)
+
     def test_zip_and_directory_catalogs_match_without_mutating_inputs(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
