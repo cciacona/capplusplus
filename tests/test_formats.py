@@ -19,7 +19,7 @@ from capplus_inspect.maps import (
 )
 from capplus_inspect.util import float32_ulp_distance, jdn_to_iso
 
-from .helpers import make_dbf, make_named_container, make_palette
+from .helpers import make_dbf, make_map, make_named_container, make_palette
 
 
 class DbfTests(unittest.TestCase):
@@ -69,22 +69,23 @@ class ContainerTests(unittest.TestCase):
 
 class MapTests(unittest.TestCase):
     def test_city_tail(self) -> None:
-        map_data = bytearray(MAP_CORE_SIZE)
+        map_data = bytearray(make_map())
         internal_name = b"MAPS\\TEST.MAP\0"
         map_data[: len(internal_name)] = internal_name
         map_data[22:31] = b"Test Map\0"
         for index in range(MAP_WIDTH * MAP_HEIGHT):
-            map_data[MAP_HEADER_SIZE + index * 8 + 3] = index & 0xFF
+            map_data[MAP_HEADER_SIZE + index * 8] = index & 0xFF
         city = bytearray(29)
         struct.pack_into("<HHI", city, 0, 17, 23, 1_250_000)
         city[8:15] = b"Teston\0"
+        struct.pack_into("<i", map_data, MAP_HEADER_SIZE + MAP_GRID_SIZE + 12, 1)
         result = inspect_map(bytes(map_data) + city)
         self.assertEqual(result["city_count"], 1)
         self.assertEqual(result["display_name"], "Test Map")
         self.assertEqual(result["grid"]["width"], 240)
         self.assertEqual(result["grid"]["height"], 198)
         self.assertEqual(result["grid"]["size"], MAP_GRID_SIZE)
-        self.assertEqual(result["grid"]["overview_palette_index_offset"], 3)
+        self.assertEqual(result["grid"]["overview_palette_index_offset"], 0)
         self.assertEqual(result["cities"][0]["name"], "Teston")
         self.assertEqual(result["cities"][0]["population"], 1_250_000)
 
@@ -93,11 +94,12 @@ class MapTests(unittest.TestCase):
             inspect_map(bytes(MAP_CORE_SIZE + 1))
 
     def test_renders_scaled_overview_with_city_marker(self) -> None:
-        map_data = bytearray(MAP_CORE_SIZE)
+        map_data = bytearray(make_map())
         map_data[22:31] = b"Test Map\0"
         city = bytearray(29)
         struct.pack_into("<HHI", city, 0, 2, 3, 1000)
         city[8:13] = b"City\0"
+        struct.pack_into("<i", map_data, MAP_HEADER_SIZE + MAP_GRID_SIZE + 12, 1)
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / "map.png"
             result = render_map(bytes(map_data + city), make_palette(), output, scale=2)

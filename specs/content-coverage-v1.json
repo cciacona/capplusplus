@@ -146,7 +146,7 @@
       "evidence": [
         "docs/formats.md"
       ],
-      "notes": "Overview byte and cell geometry are decoded; seven cell bytes and footer remain unknown."
+      "notes": "Executable-confirmed 55-byte header, optional blocks, signed heights and counted 29-byte city-array header; five cell bytes remain opaque and runtime shading remains unverified. See docs/maps.md."
     },
     {
       "id": "fonts",

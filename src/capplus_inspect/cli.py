@@ -141,14 +141,15 @@ def _render_set(result: dict[str, Any]) -> list[str]:
 
 
 def _render_map(result: dict[str, Any]) -> list[str]:
+    grid = result["grid"]
     lines = [
         "Capitalism Plus map",
         f"  input: {result['input']}",
         f"  bytes: {result['size']}",
         f"  name: {result['display_name']}",
-        f"  grid: {result['grid']['width']}x{result['grid']['height']} "
-        f"({result['grid']['cell_size']}-byte cells)",
+        f"  grid: {grid['width']}x{grid['height']} ({grid['cell_size']}-byte cells)" if grid else "  grid: absent",
         f"  cities: {result['city_count']}",
+        f"  settings block: {'present' if result['has_settings'] else 'absent'}",
     ]
     lines.extend(
         f"  {city['name']:<21} x={city['x']:<3} y={city['y']:<3} population={city['population']}"
@@ -180,7 +181,7 @@ def _render_image_export(result: dict[str, Any]) -> list[str]:
 
 def _render_map_render(result: dict[str, Any]) -> list[str]:
     return [
-        "Capitalism Plus map render",
+        "Capitalism Plus map source preview (not runtime shading)",
         f"  map: {result['display_name']}",
         f"  dimensions: {result['width']}x{result['height']}",
         f"  city markers: {result['city_markers']}",
@@ -633,7 +634,7 @@ def _build_parser() -> argparse.ArgumentParser:
     cue_parser.add_argument("--json", action="store_true")
 
     render_parser = subparsers.add_parser(
-        "render-map", help="render the decoded 240x198 map overview to a palette PNG"
+        "render-map", help="preview the 240x198 source-height low bytes as a palette PNG (not runtime shading)"
     )
     render_parser.add_argument("input", type=Path)
     render_parser.add_argument("output", type=Path)

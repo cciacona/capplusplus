@@ -93,7 +93,7 @@ point rounding as normalization concerns.
 
 ## Automated suite
 
-The development suite contains 141 tests covering DBF parsing, all three
+The development suite contains 154 tests covering DBF parsing, all three
 resource-container patterns, palettes, indexed PNG encoding, image export and
 overwrite protection, map structure/rendering, version-100 save framing, save
 comparison, installation-root discovery, CLI exit behavior, and malformed input rejection.
@@ -116,9 +116,12 @@ newly generated fixtures. Nineteen graphics tests add stable source/record IDs,
 font bit geometry, cursor-zero/blank/dangling handling, payload-free output,
 directory/ZIP equivalence, source-family isolation, collisions, budgets,
 comparison/CLI behavior and optional palette conversion without pixel changes.
+Thirteen map-contract tests cover corrected offsets, all four block-presence
+combinations, counted cities, signed height conversion, bounds, opaque-byte and
+pointer preservation, source-preview equivalence and settings-only CLI behavior.
 
 Format-gate tests additionally cover the 26-format machine-readable catalog,
-mandatory provenance for all nine currently inferred field records, exhaustive
+mandatory provenance for all currently inferred field records, exhaustive
 region coverage, preservation-writer mutation, disabled save writing, directory
 corpus selection, save normalization limits, fuzz bounds, and deterministic
 fuzz transcript reproduction.
@@ -130,7 +133,7 @@ version consistency and safe source-archive extraction. The 27 new fixtures
 are synthetic and introduce no original payloads.
 
 The package gate builds a wheel and source distribution in a tracked-only
-temporary copy, runs all 141 tests from the extracted source distribution,
+temporary copy, runs all 154 tests from the extracted source distribution,
 rebuilds an equal-content wheel, and installs it offline in a fresh environment
 outside the checkout. Local Linux checks pass for installed metadata, CLI
 version, both bundled schemas, catalog validation and a 32-iteration fuzz smoke
@@ -194,3 +197,20 @@ observed one-to-four-ULP cross-build range.
   sprite pixels match their source records exactly.
 - Animation semantics, palette cycling, per-call palette/transparency choices
   and original runtime presentation remain unverified; see [graphics](graphics.md).
+
+## Corrected MAP contracts
+
+- Both executables read/write a 55-byte map header, a conditional 380,160-byte
+  terrain grid, a 29-byte dynamic-array header and its counted city records,
+  plus an independently conditional unframed 737-byte configuration record.
+- All 15 maps in each extracted installation validate and reconstruct exactly
+  (30 checks). Their bytes and parsed results are identical across builds.
+- All 102 city records match their declared counts; all coordinates are valid.
+- The source-height low-byte preview matches the old exporter byte-for-byte
+  for every map. This preserves preview output, not an original-runtime claim.
+- Negative signed heights are present: 86 cells in Europe, 4 in South East Asia
+  and 97 in World contain `-1`. Stored cell bytes 2 through 7 are zero throughout
+  the supplied map corpus; nonzero opaque values are tested synthetically.
+- Terrain/settings variants and the initial height conversion are supported by
+  both executables and synthetic tests. The shipped corpus contains terrain-only
+  files; no new map-editor or runtime rendering experiment is claimed.

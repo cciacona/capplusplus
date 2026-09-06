@@ -353,11 +353,12 @@ def build_roundtrip_document(data: bytes, filename: str) -> RoundTripDocument:
     if suffix == ".map":
         info = inspect_map(data)
         grid_end = MAP_HEADER_SIZE + MAP_GRID_SIZE
-        regions = [
-            _region(data, "header", 0, MAP_HEADER_SIZE),
-            _region(data, "cell_grid", MAP_HEADER_SIZE, grid_end),
-            _region(data, "footer", grid_end, MAP_CORE_SIZE),
-        ]
+        regions = [_region(data, "header", 0, MAP_HEADER_SIZE)]
+        if info["has_terrain"]:
+            regions.extend((
+                _region(data, "cell_grid", MAP_HEADER_SIZE, grid_end),
+                _region(data, "city_array_header", grid_end, MAP_CORE_SIZE),
+            ))
         if MAP_CORE_SIZE - grid_end != MAP_FOOTER_SIZE:
             raise AssertionError("map region constants disagree")
         for city in info["cities"]:
@@ -365,6 +366,9 @@ def build_roundtrip_document(data: bytes, filename: str) -> RoundTripDocument:
             regions.append(
                 _region(data, f"city[{city['index']}]", start, start + CITY_RECORD_SIZE)
             )
+        if info["settings"]:
+            settings = info["settings"]
+            regions.append(_region(data, "settings", settings["offset"], settings["offset"] + settings["size"]))
         return _document(data, "capitalism_plus_map", regions)
     return _resource_document(data, normalized)
 
