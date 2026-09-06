@@ -231,6 +231,25 @@ class AudioExportTests(unittest.TestCase):
                 # Export filenames carry numeric prefixes; the comparison expects original extensionless names.
                 self.assertEqual(main(["compare-audio", str(bank), str(root / "out"), "--json"]), 3)
 
+    def test_cli_preserves_sounds_parent_for_extensionless_effect_validation(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "SoUnDs" / "EFFECT"
+            path.parent.mkdir()
+            for payload, expected in ((b"broken WAV header", 2),
+                                      (encode_pcm_wave(b"\x80", 11127), 0)):
+                path.write_bytes(payload)
+                for command in ("inspect", "roundtrip"):
+                    for flags in ([], ["--json"]):
+                        with self.subTest(command=command, flags=flags, expected=expected):
+                            output, errors = io.StringIO(), io.StringIO()
+                            with contextlib.redirect_stdout(output), contextlib.redirect_stderr(errors):
+                                self.assertEqual(main([command, str(path), *flags]), expected)
+                            if expected == 2:
+                                self.assertIn("expected RIFF/WAVE", errors.getvalue())
+                                self.assertEqual(output.getvalue(), "")
+                            elif flags and command == "roundtrip":
+                                self.assertEqual(json.loads(output.getvalue())["filename"], "EFFECT")
+
 
 class CueTests(unittest.TestCase):
     CUE = 'FILE "disc.bin" BINARY\n TRACK 01 MODE1/2352\n INDEX 01 00:00:00\n TRACK 02 AUDIO\n INDEX 01 00:02:00\n TRACK 03 AUDIO\n INDEX 01 00:03:00\n'

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fixed direct CLI inspection and reconstruction of damaged extensionless sound
+  effects by retaining parent-path context through parser dispatch.
 - Added PCM bank inspection/export with separate DOS and Windows rate profiles,
   extensionless WAV comparison, and nine-slot sound-settings framing.
 - Added bounded XMIDI/IFF inspection and unchanged member export; musical event

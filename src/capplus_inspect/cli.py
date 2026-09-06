@@ -50,7 +50,7 @@ def _inspect_path(
             cursor_image_data = sibling.read_bytes()
     result = inspect_file_bytes(
         data,
-        path.name,
+        str(path),
         rows=rows,
         include_strings=include_strings,
         minimum_string_length=minimum_string_length,
@@ -768,7 +768,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             ):
                 result = validate_roundtrip_corpus(args.path)
             else:
-                result = validate_roundtrip_bytes(args.path.read_bytes(), args.path.name)
+                result = validate_roundtrip_bytes(args.path.read_bytes(), str(args.path))
+                result["filename"] = args.path.name
                 result["input"] = str(args.path.resolve())
             require_clean_failed = False
             as_json = args.json
