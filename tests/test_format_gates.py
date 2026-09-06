@@ -154,7 +154,7 @@ class FuzzHarnessTests(unittest.TestCase):
         self.assertEqual(left["accepted"] + left["rejected"], 128)
         self.assertEqual(
             left["transcript_sha256"],
-            "7eb6b9de09aa2eb9dc0a4cd8d16b1758aaa5f66249fe176d742cdd2d0c0dd18b",
+            "19e62090312d34d0fb464481a12192893562463fe28debf98537f97c1f476ff3",
         )
 
     def test_campaign_bounds_are_enforced(self) -> None:

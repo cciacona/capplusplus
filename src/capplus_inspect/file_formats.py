@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from .audio import inspect_known_audio
 from .containers import inspect_resource, inspect_set
 from .executables import inspect_executable
 from .maps import inspect_map
@@ -17,6 +18,9 @@ def inspect_auxiliary_file(
     *,
     cursor_image_data: bytes | None = None,
 ) -> dict[str, Any]:
+    audio = inspect_known_audio(data, filename)
+    if audio is not None:
+        return audio
     support = inspect_known_support_file(data, filename)
     if support is not None:
         return support
@@ -61,6 +65,6 @@ def inspect_file_bytes(
         return inspect_map(data)
     return inspect_auxiliary_file(
         data,
-        basename,
+        normalized,
         cursor_image_data=cursor_image_data,
     )

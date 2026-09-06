@@ -40,9 +40,10 @@
         5
       ],
       "evidence": [
+        "docs/audio.md",
         "docs/content-coverage.md"
       ],
-      "notes": "Retail tracks 2-9; exact playback mapping and loop behavior pending issue #5."
+      "notes": "Historical retail tracks 2-9 and bounded CUE geometry; Windows logical selections 1-8 map to tracks 2-9. Fresh BIN verification, runtime behavior and DOS selector reachability remain pending."
     }
   ],
   "families": [
@@ -370,16 +371,16 @@
       "coverage": {
         "framing": "complete",
         "preservation": "exact",
-        "semantics": "unknown",
+        "semantics": "complete",
         "behavior": "unverified"
       },
       "issues": [
         5
       ],
       "evidence": [
-        "docs/content-coverage.md"
+        "docs/audio.md"
       ],
-      "notes": "Generic named-container reader only; audio entry contracts remain open."
+      "notes": "All 25 members are mono unsigned eight-bit PCM; DOS requested rate 11000 Hz and Windows declared rate 11127 Hz are separate profiles. Effect triggers and runtime playback remain unverified."
     },
     {
       "id": "music_index",
@@ -393,16 +394,16 @@
       "coverage": {
         "framing": "complete",
         "preservation": "exact",
-        "semantics": "unknown",
+        "semantics": "partial",
         "behavior": "unverified"
       },
       "issues": [
         5
       ],
       "evidence": [
-        "docs/content-coverage.md"
+        "docs/audio.md"
       ],
-      "notes": "Generic named-container reader only; logical tracks and looping remain open."
+      "notes": "All 24 members have bounded XDIR/CAT XMID sequences and exact reconstruction. EVNT payloads remain opaque; correspondence with CD tracks is not established."
     },
     {
       "id": "job_pictures",
@@ -715,18 +716,18 @@
       },
       "requirement": "classic",
       "coverage": {
-        "framing": "unknown",
-        "preservation": "untested",
-        "semantics": "unknown",
+        "framing": "complete",
+        "preservation": "exact",
+        "semantics": "complete",
         "behavior": "unverified"
       },
       "issues": [
         5
       ],
       "evidence": [
-        "docs/content-coverage.md"
+        "docs/audio.md"
       ],
-      "notes": "Original effects may have extensionless names; Windows loose effects share this source category."
+      "notes": "All 25 extensionless Windows PCM WAV payloads match SOUND.RES members; ten omit only terminal data padding. Runtime trigger/loop behavior remains unverified."
     },
     {
       "id": "legacy_vesa",
@@ -788,6 +789,27 @@
         "docs/executables.md"
       ],
       "notes": "Private analysis input; retail occurrence requires a renewed full-disc inventory."
+    },
+    {
+      "id": "sound_settings",
+      "patterns": [
+        "capital.snd"
+      ],
+      "observed_counts": {},
+      "requirement": "classic",
+      "coverage": {
+        "framing": "complete",
+        "preservation": "exact",
+        "semantics": "unknown",
+        "behavior": "unverified"
+      },
+      "issues": [
+        5
+      ],
+      "evidence": [
+        "docs/audio.md"
+      ],
+      "notes": "Nine unframed little-endian u16 slots; reader/writer framing is confirmed, slot meanings and accepted values remain unassigned."
     },
     {
       "id": "configuration",
@@ -870,9 +892,9 @@
         5
       ],
       "evidence": [
-        "docs/content-coverage.md"
+        "docs/audio.md"
       ],
-      "notes": "User-supplied replacement tracks are optional source variants; no decoder is added by this ledger."
+      "notes": "Future music/track02 through track09 OGG/FLAC naming convention follows Windows CD selection mapping. No replacement decoder or playback behavior is implemented."
     }
   ]
 }

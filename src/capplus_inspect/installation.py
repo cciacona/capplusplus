@@ -135,6 +135,7 @@ def _inspect_deep(source: _Source, files: dict[str, str]) -> dict[str, Any]:
         "maps": [],
         "resources": [],
         "support_files": [],
+        "loose_audio": [],
         "saves": [],
     }
     errors: list[dict[str, str]] = []
@@ -209,13 +210,15 @@ def _inspect_deep(source: _Source, files: dict[str, str]) -> dict[str, Any]:
                     summary["member_kinds"] = dict(
                         sorted(Counter(member["kind"] for member in info["members"]).items())
                     )
+                if "audio_family" in info:
+                    summary["audio_family"] = info["audio_family"]
                 if "image_count" in info:
                     summary["image_count"] = info["image_count"]
                 for count_name in ("glyph_count", "screen_count", "cursor_count", "topic_count"):
                     if count_name in info:
                         summary[count_name] = info[count_name]
                 result["resources"].append(summary)
-            elif canonical in {"capital.cfg", "capital.hof"}:
+            elif canonical in {"capital.cfg", "capital.hof", "capital.snd"}:
                 info = inspect_auxiliary_file(source.read(actual), canonical)
                 result["support_files"].append(
                     {
@@ -225,6 +228,11 @@ def _inspect_deep(source: _Source, files: dict[str, str]) -> dict[str, Any]:
                         "sha256": info["sha256"],
                     }
                 )
+            elif canonical.startswith("sounds/"):
+                info = inspect_auxiliary_file(source.read(actual), canonical)
+                result["loose_audio"].append({key: info[key] for key in
+                                             ("format", "size", "sha256", "sample_rate", "frame_count")
+                                             if key in info} | {"path": canonical})
             elif canonical.endswith(".sav"):
                 info = inspect_save(source.read(actual))
                 result["saves"].append(
@@ -325,7 +333,8 @@ def inspect_installation(path: str | Path, *, deep: bool = False) -> dict[str, A
                 ),
                 "map_files": sum(name.startswith("maps/") for name in files),
                 "resource_files": sum(name.startswith("resource/") for name in files),
-                "support_files": sum(name in {"capital.cfg", "capital.hof"} for name in files),
+                "support_files": sum(name in {"capital.cfg", "capital.hof", "capital.snd"} for name in files),
+                "loose_audio_files": sum(name.startswith("sounds/") for name in files),
                 "save_files": sum(name.endswith(".sav") for name in files),
             },
         }

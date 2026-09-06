@@ -13,7 +13,7 @@ everything the original game needs. Counts are evidence, not progress percentage
 | `CapPlus.gam` data image | 1,001 | Directory recount only from a truncated local copy; historical complete-image identity in the ledger. |
 | Retail CD filesystem | 1,604 | Earlier verified disc comparison; not freshly re-enumerated in this hardening pass. |
 | Retail files not yet classified here | 531 | 1,604 minus the two disjoint inventories above. This is an open gap. |
-| Retail CD audio | 8 tracks | Separate from filesystem counts; playback semantics remain under issue #5. |
+| Retail CD audio | 8 tracks | Separate from filesystem counts; static Windows selection mapping is documented in [audio evidence](audio.md), with runtime validation still under issue #5. |
 
 The `CapPlus.gam` inventory comprises:
 
@@ -52,11 +52,17 @@ Each family records four independent dimensions:
 | Semantics | Whether field meanings, references and usage are decoded. |
 | Behavior | Whether original-game use has been experimentally validated. |
 
-Copying an opaque block exactly is not semantic decoding. The existing 75/75
-installation reconstruction result excludes most disc content and includes
+Copying an opaque block exactly is not semantic decoding. The installation
+reconstruction results in [format gates](format-gates.md) exclude most disc content and include
 opaque `JOB.RTI`/`JOB.RTX`; it is not a 0.3 completion claim. Similarly, the map
 overview does not decode all eight cell bytes or the footer. The ledger preserves
 these distinctions and links families to follow-up issues.
+
+Audio framing now includes bank PCM, bounded XMIDI, extensionless Windows WAVs
+and `CAPITAL.SND`. All 25 WAV sample payloads match the bank. XMIDI events and
+sound-setting meanings remain unknown, and no native audio behavior is marked
+validated. Adding the settings family does not change the 72-file shared core,
+1,001-file image inventory, or unresolved retail count.
 
 ## Recounting an inventory
 

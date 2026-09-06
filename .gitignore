@@ -53,5 +53,8 @@ dist/
 *.[gG][zZ]
 *.[xX][zZ]
 *.[pP][dD][fF]
+*.[xX][mM][iI]
+*.[mM][iI][dD]
+*.[mM][iI][dD][iI]
 
 # Versioned specifications and synthetic JSON fixtures remain trackable.

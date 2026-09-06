@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from . import SCHEMA_VERSION
+from .audio import encode_pcm_wave
 from .errors import InspectError
 from .file_formats import inspect_file_bytes
 from .roundtrip import validate_roundtrip_bytes
@@ -137,6 +138,10 @@ def synthetic_fuzz_cases() -> tuple[FuzzCase, ...]:
     sequential_image = struct.pack("<I", len(direct_image)) + direct_image
     text_screen = bytes((32, 0x07)) * (80 * 25)
     cursor_dbf = _cursor_dbf()
+    def iff(tag: bytes, payload: bytes) -> bytes:
+        return tag + struct.pack(">I", len(payload)) + payload + (b"\0" if len(payload) & 1 else b"")
+    sequence = iff(b"FORM", b"XMID" + iff(b"TIMB", b"\0\0") + iff(b"EVNT", b"\xff\x2f\0"))
+    xmidi = iff(b"FORM", b"XDIR" + iff(b"INFO", b"\x01\0")) + iff(b"CAT ", b"XMID" + sequence)
     return (
         FuzzCase("TEST.SET", _named_container([("TABLE", _dbf())])),
         FuzzCase("TEST.MAP", bytes(380_244)),
@@ -160,6 +165,11 @@ def synthetic_fuzz_cases() -> tuple[FuzzCase, ...]:
         FuzzCase("GENERIC.RES", _named_container([("IMAGE", direct_image)])),
         FuzzCase("TEST.SAV", _minimal_save()),
         FuzzCase("TEST.EXE", b"MZ" + bytes(62)),
+        FuzzCase("SOUND.RES", _named_container([("TEST", bytes((0, 128, 255)))])),
+        FuzzCase("MUSIC.RES", _named_container([("TEST", xmidi)])),
+        FuzzCase("TEST.XMI", xmidi),
+        FuzzCase("TEST.WAV", encode_pcm_wave(bytes((0, 128, 255)), 11127)),
+        FuzzCase("CAPITAL.SND", struct.pack("<9H", *range(9))),
     )
 
 

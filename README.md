@@ -28,6 +28,8 @@ other proprietary game data. You must provide files from your own copy.
 - Parse 3×3 layout plans plus compatible-record configuration and hall-of-fame
   support files while keeping unknown fields explicit.
 - Identify named, offset-indexed, and sequential-image resource containers.
+- Inspect and export PCM sound banks and bounded XMIDI members, compare Windows
+  effects, and inspect sound settings and single-BIN mixed-mode CUE geometry.
 - Parse version-100 `.SAV` metadata and the complete 24-section marker chain.
 - Decode the confirmed town array, town/item keys, selected market floats, and RNG state.
 - Compare two saves section-by-section and measure cross-build float drift in ULPs.
@@ -130,7 +132,8 @@ capplus-inspect fuzz --iterations 2048 --seed 0x4341502B2B
 ```
 
 Exit codes are `0` for success, `2` for an unreadable or invalid input, and `3`
-when `--require-clean` detects missing or changed core files.
+when `--require-clean` detects missing or changed core files or `compare-audio`
+finds a missing, extra, malformed, or differing effect.
 
 ## Tests
 
@@ -147,6 +150,7 @@ PYTHONPATH=src python3 -m unittest discover -s tests -t . -v
 - [Executable survey](docs/executables.md)
 - [Original file-loader contracts](docs/loaders.md)
 - [UI, layout-plan, and support-file formats](docs/ui-resources.md)
+- [Audio formats and playback evidence](docs/audio.md)
 - [Format completeness and safety gates](docs/format-gates.md)
 - [Original-content coverage](docs/content-coverage.md)
 - [Feature-parity ledger](docs/parity.md)

@@ -26,7 +26,7 @@ FORBIDDEN_SUFFIXES = set(
     ".exe .dll .sav .bin .cue .iso .gam .res .set .map .pla .plo .plp "
     ".ii .ii2 .dfi .fi .ip .pic .rti .rtp .rtx .sct .scn .scp .scs "
     ".tut .hin .sam .sph .cfg .hof .snd .ogg .flac .wav .voc .mp3 "
-    ".com .sys .zip .7z .whl .gz .xz .pdf".split()
+    ".com .sys .zip .7z .whl .gz .xz .pdf .xmi .mid .midi".split()
 )
 DIMENSIONS = {"data", "simulation", "ui", "persistence", "ai", "multiplayer"}
 

@@ -55,6 +55,12 @@ REQUIRED_FORMAT_IDS = {
     "capitalism_plus_layout_plans",
     "capitalism_plus_configuration",
     "capitalism_plus_hall_of_fame",
+    "capitalism_plus_sound_bank",
+    "capitalism_plus_music_bank",
+    "capitalism_plus_pcm_wave",
+    "capitalism_plus_xmidi",
+    "capitalism_plus_sound_settings",
+    "capitalism_plus_cd_cue",
 }
 
 

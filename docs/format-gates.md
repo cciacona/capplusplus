@@ -17,7 +17,7 @@ capplus-inspect schema-catalog
 capplus-inspect schema-catalog --json > format-catalog.json
 ```
 
-Catalog version 1 covers 20 recognized on-disk structures and 54 field records.
+Catalog version 1 covers 26 recognized on-disk structures and 66 field records.
 Every field has a confidence level, one or more observation methods, and a
 provenance note. The dependency-free validator rejects duplicate or missing
 formats, invalid status/method values, and inferred fields without provenance.
@@ -47,7 +47,8 @@ capplus-inspect roundtrip "Capitalism Plus DOS" --json > dos-roundtrip.json
 ```
 
 Directory and valid ZIP inputs select every known core asset plus the recognized
-game executable, `CAPITAL.CFG`, and `CAPITAL.HOF`. The report contains sizes,
+game executable, `CAPITAL.CFG`, `CAPITAL.HOF`, `CAPITAL.SND`, and loose `Sounds/`
+effects. The report contains sizes,
 hashes, format identifiers, coverage levels, and result counts—not original
 payload bytes.
 
@@ -68,11 +69,11 @@ Both supplied installations pass independently:
 
 | Gate | DOS | Windows |
 |---|---:|---:|
-| Supported non-save files | 75 | 75 |
-| Structurally segmented | 73 | 73 |
+| Supported non-save files | 76 | 101 |
+| Structurally segmented | 74 | 99 |
 | Opaque passthrough | 2 | 2 |
-| Byte-identical reconstruction | 75 / 75 | 75 / 75 |
-| Source formats represented | 18 | 18 |
+| Byte-identical reconstruction | 76 / 76 | 101 / 101 |
+| Source formats represented | 22 | 23 |
 
 The opaque inputs are `RESOURCE/JOB.RTI` and `RESOURCE/JOB.RTX`. Naming them in
 the report prevents byte preservation from being mistaken for format decoding.
@@ -100,8 +101,9 @@ work must account for those bytes before the roadmap's no-op save gate can pass.
 
 ## Reproducible parser fuzzing
 
-The fuzzer uses 16 generated, redistributable fixtures that exercise every
-parser family. It derives each bounded bit flip, truncation, span replacement,
+The binary fuzzer uses 21 generated, redistributable fixtures, including PCM,
+XMIDI and sound settings. CUE text geometry has separate synthetic malformed
+input tests. The fuzzer derives each bounded bit flip, truncation, span replacement,
 deletion, insertion, maximum-length word, or duplication from SHA-256 of the
 numeric seed, filename, and iteration. The same command therefore produces the
 same transcript on every supported Python version.
@@ -117,16 +119,17 @@ growth fails the campaign with a reproducible case, seed, iteration, and
 mutation name.
 
 The standard 2,048-iteration campaign currently produces transcript SHA-256
-`022ee92ec733c1c2545138fa5d8eb6abbe4fb25951b84450da466c2a2a8092fa`,
-with 979 accepted and 1,069 rejected mutations and zero unexpected failures.
+`c8e3d89eab90c206545ca92a3d7fb78c1084e19a3a399dcbddc761f7ceacae83`,
+with 792 accepted and 1,256 rejected mutations and zero unexpected failures.
 
 ## Continuous integration
 
 Pull requests and pushes to `main` run:
 
-1. all synthetic unit tests on Python 3.10 through 3.14;
-2. the catalog/provenance validator on Python 3.12;
-3. the fixed 2,048-iteration fuzz campaign on Python 3.12;
-4. one aggregate required `CI` check that fails if either job fails.
+1. synthetic unit tests on Linux Python 3.10 through 3.14 and Windows/macOS 3.12;
+2. the catalog/provenance validator and fixed 2,048-iteration fuzz campaign;
+3. repository ledgers, publication boundaries and version consistency;
+4. wheel/sdist rebuild and offline installed-package checks on all three OSes;
+5. one aggregate required `CI` check that fails if any prerequisite job fails.
 
 No CI job downloads or requires original game data.

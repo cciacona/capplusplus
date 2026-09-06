@@ -29,7 +29,7 @@ class SpecificationTests(unittest.TestCase):
         result = ledger_gate()
         self.assertEqual(result["enumerated_sources"], {"shared_core": 72, "gam_image": 1001})
         self.assertEqual(result["retail_unclassified_files"], 531)
-        self.assertEqual(result["families"], 36)
+        self.assertEqual(result["families"], 37)
         self.assertEqual(result["features"], 43)
         self.assertEqual(result["manual_crosswalk"], "pending")
 
@@ -184,7 +184,8 @@ class RepositoryBoundaryTests(unittest.TestCase):
         self.assertEqual(boundary_reasons("tests/test.py", b"# newly written test\n", set()), [])
 
     def test_private_paths_and_original_extensions_rejected(self):
-        for path in ("analysis/result.json", "nested/private-corpus/example.txt", "data.SaV", "fake.RES", "disc.CUE"):
+        for path in ("analysis/result.json", "nested/private-corpus/example.txt", "data.SaV", "fake.RES", "disc.CUE",
+                     "music.XMI", "music.MID", "music.MIDI"):
             with self.subTest(path=path):
                 self.assertTrue(boundary_reasons(path, b"synthetic", set()))
 
