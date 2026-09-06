@@ -93,7 +93,7 @@ point rounding as normalization concerns.
 
 ## Automated suite
 
-The development suite contains 122 tests covering DBF parsing, all three
+The development suite contains 139 tests covering DBF parsing, all three
 resource-container patterns, palettes, indexed PNG encoding, image export and
 overwrite protection, map structure/rendering, version-100 save framing, save
 comparison, installation-root discovery, CLI exit behavior, and malformed input rejection.
@@ -112,7 +112,10 @@ terminal-padding variant, malformed PCM/IFF lengths, bounded XMIDI recursion,
 opaque event handling, stable bank order, export collisions, filename traversal,
 loose-file mismatches, unassigned settings, exact-executable profile rejection,
 and CUE geometry with unsupported and malformed layouts. All 25 audio tests use
-newly generated fixtures.
+newly generated fixtures. Seventeen graphics tests add stable source/record IDs,
+font bit geometry, cursor-zero/blank/dangling handling, payload-free output,
+directory/ZIP equivalence, source-family isolation, collisions, budgets,
+comparison/CLI behavior and optional palette conversion without pixel changes.
 
 Format-gate tests additionally cover the 26-format machine-readable catalog,
 mandatory provenance for all nine currently inferred field records, exhaustive
@@ -127,7 +130,7 @@ version consistency and safe source-archive extraction. The 27 new fixtures
 are synthetic and introduce no original payloads.
 
 The package gate builds a wheel and source distribution in a tracked-only
-temporary copy, runs all 122 tests from the extracted source distribution,
+temporary copy, runs all 139 tests from the extracted source distribution,
 rebuilds an equal-content wheel, and installs it offline in a fresh environment
 outside the checkout. Local Linux checks pass for installed metadata, CLI
 version, both bundled schemas, catalog validation and a 32-iteration fuzz smoke
@@ -171,3 +174,23 @@ observed one-to-four-ULP cross-build range.
 - CUE geometry is tested synthetically. The retail layout and prior OGG
   comparison in [audio evidence](audio.md) are historical complete-disc results;
   fresh BIN integrity and sample checks require a complete user-owned input.
+
+## Graphics catalog and palette conversion
+
+- Both supplied installations generate exactly equal catalogs: 37 source files,
+  1,161 indexed images, 286 glyph slots, 34 storage groups and two palettes.
+- Seven cursor image references resolve to catalog IDs; the eighth row retains
+  its explicit blank reference. Ten non-image scenario-interface members retain
+  their names, spans and hashes without being presented as decoded images.
+- The catalog SHA-256 is
+  `7da5ff39258adc44e0b46dfd50c6db550d872f357a8e50ce63b5977a1ca4f824`.
+- Both executable loaders reduce RGB channels to six bits. The Windows upload
+  routine shifts them left by two, changing 37 of 256 standard-palette colors
+  and 98 of 256 interface-palette colors relative to source RGB.
+- Synthetic PNG validation verifies exact source-default palettes and Windows
+  conversion while retaining decompressed pixel indices and transparency.
+- Original-data export checks verify all 20 firm icons and one world map under
+  each profile: 40 sprite PNGs and two map PNGs have the expected palette bytes;
+  sprite pixels match their source records exactly.
+- Animation semantics, palette cycling, per-call palette/transparency choices
+  and original runtime presentation remain unverified; see [graphics](graphics.md).

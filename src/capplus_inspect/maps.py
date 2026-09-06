@@ -6,7 +6,7 @@ from typing import Any
 
 from . import SCHEMA_VERSION
 from .errors import FormatError
-from .palette import parse_palette
+from .palette import palette_for_profile
 from .png_writer import write_indexed_png
 from .util import c_string, sha256_bytes, u16, u32
 
@@ -132,12 +132,13 @@ def render_map(
     palette_data: bytes,
     output: Path,
     *,
+    palette_profile: str = "source",
     scale: int = 4,
     mark_cities: bool = True,
     force: bool = False,
 ) -> dict[str, Any]:
     info = inspect_map(data)
-    palette = parse_palette(palette_data)
+    palette = palette_for_profile(palette_data, palette_profile)
     grid = data[MAP_HEADER_SIZE : MAP_HEADER_SIZE + MAP_GRID_SIZE]
     pixels = grid[MAP_OVERVIEW_PALETTE_OFFSET::MAP_CELL_SIZE]
     if mark_cities:
@@ -157,6 +158,8 @@ def render_map(
         "format": "capitalism_plus_map_render",
         "map_sha256": info["sha256"],
         "palette_sha256": sha256_bytes(palette_data),
+        "palette_profile": palette_profile,
+        "output_palette_rgb_sha256": sha256_bytes(bytes(channel for color in palette for channel in color)),
         "display_name": info["display_name"],
         "width": MAP_WIDTH * scale,
         "height": MAP_HEIGHT * scale,

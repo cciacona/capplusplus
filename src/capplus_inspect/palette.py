@@ -11,6 +11,7 @@ PALETTE_HEADER_SIZE = 8
 PALETTE_COLOR_COUNT = 256
 PALETTE_DATA_SIZE = PALETTE_COLOR_COUNT * 3
 PALETTE_FILE_SIZE = PALETTE_HEADER_SIZE + PALETTE_DATA_SIZE
+PALETTE_PROFILES = ("source", "windows")
 
 
 def looks_like_palette(data: bytes | memoryview) -> bool:
@@ -24,6 +25,16 @@ def parse_palette(data: bytes) -> tuple[tuple[int, int, int], ...]:
         )
     raw = data[PALETTE_HEADER_SIZE:]
     return tuple(tuple(raw[offset : offset + 3]) for offset in range(0, len(raw), 3))
+
+
+def palette_for_profile(data: bytes, profile: str = "source") -> tuple[tuple[int, int, int], ...]:
+    """Keep source RGB or reproduce the audited Windows load/upload conversion."""
+    if profile not in PALETTE_PROFILES:
+        raise FormatError(f"unknown palette profile: {profile!r}")
+    colors = parse_palette(data)
+    if profile == "windows":
+        return tuple(tuple(channel & 0xFC for channel in color) for color in colors)
+    return colors
 
 
 def inspect_palette(data: bytes) -> dict[str, Any]:

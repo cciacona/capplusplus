@@ -61,6 +61,13 @@ Original uncompressed images store one palette index per pixel. Index 245 is the
 observed transparent background for the sprite resources; the exporter makes it
 transparent by default but can preserve it as opaque.
 
+Source RGB and original submitted colors differ. Both original loaders reduce
+channels to six bits; Windows expands them back by shifting left two bits, which
+clears the lowest two source bits. The optional `windows` palette profile
+reproduces that load/upload path; `source` remains the export default. Per-draw
+palette and transparency choices remain separate, partially decoded behavior.
+See the [graphics catalog and palette evidence](graphics.md#palette-loading).
+
 ## Maps (`.MAP`)
 
 The first 380,244 bytes have four confirmed regions:

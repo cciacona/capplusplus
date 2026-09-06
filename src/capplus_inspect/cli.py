@@ -13,10 +13,12 @@ from .cd_audio import inspect_cue
 from .errors import InspectError
 from .file_formats import inspect_file_bytes
 from .fonts import export_font
+from .graphics import catalog_graphics, compare_graphics
 from .fuzzing import MAX_FUZZ_ITERATIONS, run_synthetic_fuzz_campaign
 from .images import export_indexed_images
 from .installation import inspect_installation
 from .maps import render_map
+from .palette import PALETTE_PROFILES
 from .roundtrip import validate_roundtrip_bytes, validate_roundtrip_corpus
 from .schema_catalog import inspect_format_catalog
 from .saves import compare_saves
@@ -445,7 +447,22 @@ def _render_fuzz(result: dict[str, Any]) -> list[str]:
 
 def _render_text(result: dict[str, Any]) -> str:
     format_name = result.get("format")
-    if result.get("audio_family"):
+    if format_name == "capitalism_plus_graphics_catalog":
+        counts = result["counts"]
+        lines = ["Capitalism Plus graphics catalog",
+                 f"  indexed images: {counts['indexed_images']}",
+                 f"  glyph slots: {counts['glyph_slots']}",
+                 f"  source files: {counts['sources']}",
+                 f"  resolved cursor bindings: {counts['resolved_cursor_bindings']}/{counts['cursor_bindings']}",
+                 f"  complete reference sources: {result['coverage']['complete_reference_source_set']}",
+                 f"  catalog SHA-256: {result['catalog_sha256']}",
+                 "  animation and original presentation: not validated"]
+    elif format_name == "capitalism_plus_graphics_comparison":
+        lines = ["Capitalism Plus graphics comparison", f"  catalogs equal: {result['catalogs_equal']}",
+                 f"  changed source files: {len(result['changed_source_paths'])}",
+                 f"  changed entries: {len(result['changed_entry_ids'])}",
+                 f"  left/right reference sources complete: {result['left_reference_complete']}/{result['right_reference_complete']}"]
+    elif result.get("audio_family"):
         lines = ["Capitalism Plus audio bank", f"  kind: {result['audio_family']}",
                  f"  entries: {result['member_count']}", f"  bytes: {result['size']}"]
     elif format_name == "capitalism_plus_audio_export":
@@ -582,6 +599,8 @@ def _build_parser() -> argparse.ArgumentParser:
         help="transparent palette index (default: 245), or 'none' for opaque output",
     )
     export_parser.add_argument("--scale", type=int, default=1, help="integer scale 1..32")
+    export_parser.add_argument("--palette-profile", choices=PALETTE_PROFILES, default="source",
+                               help="preserve source RGB (default) or use Windows palette quantization")
     export_parser.add_argument("--force", action="store_true", help="replace existing outputs")
     export_parser.add_argument("--json", action="store_true", help="emit stable JSON")
 
@@ -622,11 +641,23 @@ def _build_parser() -> argparse.ArgumentParser:
         "--palette", type=Path, required=True, help="PAL_STD.RES or compatible palette"
     )
     render_parser.add_argument("--scale", type=int, default=4, help="integer scale 1..32")
+    render_parser.add_argument("--palette-profile", choices=PALETTE_PROFILES, default="source",
+                               help="preserve source RGB (default) or use Windows palette quantization")
     render_parser.add_argument(
         "--no-cities", action="store_true", help="do not overlay city position markers"
     )
     render_parser.add_argument("--force", action="store_true", help="replace an existing output")
     render_parser.add_argument("--json", action="store_true", help="emit stable JSON")
+
+    graphics_parser = subparsers.add_parser("catalog-graphics", help="catalog images, fonts, palettes and cursor bindings")
+    graphics_parser.add_argument("path", type=Path, help="installation directory or ZIP")
+    graphics_parser.add_argument("--json", action="store_true")
+    graphics_parser.add_argument("--require-reference", action="store_true",
+                                 help="exit 3 unless all known graphics source hashes match")
+    graphics_compare_parser = subparsers.add_parser("compare-graphics", help="compare deterministic installation graphics catalogs")
+    graphics_compare_parser.add_argument("left", type=Path)
+    graphics_compare_parser.add_argument("right", type=Path)
+    graphics_compare_parser.add_argument("--json", action="store_true")
 
     roundtrip_parser = subparsers.add_parser(
         "roundtrip",
@@ -718,11 +749,20 @@ def main(argv: Sequence[str] | None = None) -> int:
                 args.output_directory,
                 source_name=str(args.input.resolve()),
                 palette_name=str(args.palette.resolve()),
+                palette_profile=args.palette_profile,
                 transparent_index=_parse_transparent_index(args.transparent_index),
                 scale=args.scale,
                 force=args.force,
             )
             require_clean_failed = False
+            as_json = args.json
+        elif args.command == "catalog-graphics":
+            result = catalog_graphics(args.path)
+            require_clean_failed = args.require_reference and not result["coverage"]["complete_reference_source_set"]
+            as_json = args.json
+        elif args.command == "compare-graphics":
+            result = compare_graphics(args.left, args.right)
+            require_clean_failed = not result["catalogs_equal"]
             as_json = args.json
         elif args.command == "export-audio":
             result = export_audio_bank(args.input.read_bytes(), args.output_directory,
@@ -753,6 +793,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 args.input.read_bytes(),
                 args.palette.read_bytes(),
                 args.output,
+                palette_profile=args.palette_profile,
                 scale=args.scale,
                 mark_cities=not args.no_cities,
                 force=args.force,
