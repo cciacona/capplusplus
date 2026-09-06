@@ -25,6 +25,9 @@ other proprietary game data. You must provide files from your own copy.
   lossless PNG with exact palette indices and optional transparency.
 - Decode original bitmap fonts, DOS text screens, supplemental language glyphs,
   cursor metadata/images, and context-help rectangles.
+- Catalog indexed images and font glyphs with stable IDs, cursor bindings,
+  palette fingerprints and explicit presentation unknowns; compare catalogs
+  across installation directories or ZIPs.
 - Parse 3×3 layout plans plus compatible-record configuration and hall-of-fame
   support files while keeping unknown fields explicit.
 - Identify named, offset-indexed, and sequential-image resource containers.
@@ -123,6 +126,17 @@ capplus-inspect inspect "GAMESET\1STD.PLA" --json
 capplus-inspect export-font "RESOURCE\FNT_STD.RES" ".\font-std" --scale 4
 ```
 
+Catalog graphics and compare installation assets:
+
+```powershell
+capplus-inspect catalog-graphics "C:\Games\Capitalism Plus" --json
+capplus-inspect compare-graphics "Capitalism Plus DOS.zip" "Capitalism Plus WIN.zip"
+```
+
+Image and map exports accept `--palette-profile windows` to reproduce the
+original Windows palette conversion. The default `source` profile preserves
+the palette bytes' exact RGB values.
+
 Run the format completeness and parser-safety gates:
 
 ```powershell
@@ -133,7 +147,8 @@ capplus-inspect fuzz --iterations 2048 --seed 0x4341502B2B
 
 Exit codes are `0` for success, `2` for an unreadable or invalid input, and `3`
 when `--require-clean` detects missing or changed core files or `compare-audio`
-finds a missing, extra, malformed, or differing effect.
+finds a missing, extra, malformed, or differing effect. Graphics commands also
+return `3` for differing catalogs or an unmet `--require-reference` check.
 
 ## Tests
 
@@ -150,6 +165,7 @@ PYTHONPATH=src python3 -m unittest discover -s tests -t . -v
 - [Executable survey](docs/executables.md)
 - [Original file-loader contracts](docs/loaders.md)
 - [UI, layout-plan, and support-file formats](docs/ui-resources.md)
+- [Graphics catalog and palette profiles](docs/graphics.md)
 - [Audio formats and playback evidence](docs/audio.md)
 - [Format completeness and safety gates](docs/format-gates.md)
 - [Original-content coverage](docs/content-coverage.md)

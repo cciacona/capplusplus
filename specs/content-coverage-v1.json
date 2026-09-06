@@ -95,9 +95,10 @@
         7
       ],
       "evidence": [
-        "docs/validation.md"
+        "docs/validation.md",
+        "docs/graphics.md"
       ],
-      "notes": "Image records export; presentation grouping and placement still need evidence."
+      "notes": "Every decoded image has a stable source/record ID, geometry, hash and storage group. Animation timing and original placement remain unverified."
     },
     {
       "id": "layout_plans",
@@ -166,9 +167,10 @@
         6
       ],
       "evidence": [
-        "docs/ui-resources.md"
+        "docs/ui-resources.md",
+        "docs/graphics.md"
       ],
-      "notes": "Glyph bitmaps and boundaries decode; complete in-game layout behavior is not certified."
+      "notes": "All 286 glyph slots have stable code IDs and bit geometry, including empty slots. Runtime colors and complete in-game layout behavior remain unverified."
     },
     {
       "id": "cursor_table",
@@ -189,9 +191,10 @@
         6
       ],
       "evidence": [
-        "docs/ui-resources.md"
+        "docs/ui-resources.md",
+        "docs/graphics.md"
       ],
-      "notes": "Image references resolve; all pointer/interaction behavior is not certified."
+      "notes": "Seven image references and source hotspots resolve to catalog IDs; the EDIT row remains explicitly blank. Interaction/fallback behavior is not certified."
     },
     {
       "id": "cursor_images",
@@ -212,9 +215,10 @@
         6
       ],
       "evidence": [
-        "docs/ui-resources.md"
+        "docs/ui-resources.md",
+        "docs/graphics.md"
       ],
-      "notes": "Seven indexed image records; full presentation parity is unverified."
+      "notes": "Seven indexed images are linked to cursor rows using record-prefix offsets, including offset zero. Full runtime pointer behavior remains unverified."
     },
     {
       "id": "help",
@@ -305,9 +309,10 @@
         6
       ],
       "evidence": [
-        "docs/formats.md"
+        "docs/formats.md",
+        "docs/graphics.md"
       ],
-      "notes": "RGB data and observed transparency decode; every palette-selection rule is not confirmed."
+      "notes": "Both RGB palettes are cataloged. DOS/Windows loaders reduce channels to six bits; Windows upload expands by shifting left two. Per-call selection, cycling and display behavior remain unverified."
     },
     {
       "id": "resource_images",
@@ -331,9 +336,10 @@
         6
       ],
       "evidence": [
-        "docs/validation.md"
+        "docs/validation.md",
+        "docs/graphics.md"
       ],
-      "notes": "Representative sprites export; complete animation and hotspot catalog remains open."
+      "notes": "Every decoded image has a stable catalog entry and source-order group. Ten non-image scenario-interface members remain explicit; real animation and placement semantics are unfinished."
     },
     {
       "id": "terrain_table",

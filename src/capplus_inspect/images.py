@@ -8,7 +8,7 @@ from typing import Any
 from . import SCHEMA_VERSION
 from .containers import parse_named_index, parse_offset_index, parse_sequential_images
 from .errors import FormatError, InspectError
-from .palette import parse_palette
+from .palette import palette_for_profile
 from .png_writer import write_indexed_png, write_new_file
 from .util import sha256_bytes, u16
 
@@ -104,12 +104,13 @@ def export_indexed_images(
     *,
     source_name: str,
     palette_name: str,
+    palette_profile: str = "source",
     transparent_index: int | None = 245,
     scale: int = 1,
     force: bool = False,
 ) -> dict[str, Any]:
     source_format, images = decode_indexed_images(data)
-    palette = parse_palette(palette_data)
+    palette = palette_for_profile(palette_data, palette_profile)
     output_directory = output_directory.resolve()
     if output_directory.exists() and not output_directory.is_dir():
         raise InspectError(f"output is not a directory: {output_directory}")
@@ -159,6 +160,8 @@ def export_indexed_images(
         "source_sha256": sha256_bytes(data),
         "palette": palette_name,
         "palette_sha256": sha256_bytes(palette_data),
+        "palette_profile": palette_profile,
+        "output_palette_rgb_sha256": sha256_bytes(bytes(channel for color in palette for channel in color)),
         "transparent_index": transparent_index,
         "scale": scale,
         "image_count": len(public_images),

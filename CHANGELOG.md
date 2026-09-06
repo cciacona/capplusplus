@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Added deterministic graphics catalogs and cross-installation comparison for
+  decoded images, font glyphs, palettes, cursor bindings and opaque members.
+- Added stable source/record identifiers and explicit storage-order groups
+  without treating unverified frame timing or palette choices as known behavior.
+- Recovered the shared six-bit palette load conversion and the Windows upload
+  expansion; added an optional Windows palette profile for image/map PNG exports.
+- Added 19 synthetic graphics tests covering catalog equivalence, malformed
+  inputs, resource limits, cursor references and palette/pixel preservation.
 - Fixed direct CLI inspection and reconstruction of damaged extensionless sound
   effects by retaining parent-path context through parser dispatch.
 - Added PCM bank inspection/export with separate DOS and Windows rate profiles,
