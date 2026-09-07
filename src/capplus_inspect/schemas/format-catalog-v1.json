@@ -73,7 +73,7 @@
     {
       "id": "dbase",
       "description": "dBASE-compatible table stream used directly and inside game sets.",
-      "file_patterns": ["embedded SET member", "CURSOR.RES", "*.DBF"],
+      "file_patterns": ["embedded SET member", "CURSOR.RES", "TERRAIN.RES", "*.DBF"],
       "parser": "capplus_inspect.dbf.inspect_dbf",
       "roundtrip": {"mode": "exact_structural", "scope": "Header, field descriptors, records, terminator, and trailing bytes are preserved."},
       "fields": [
@@ -179,7 +179,7 @@
         {"path": "city_array_header.unknown_control_byte", "offset": 380239, "size": 1, "binary_type": "u8", "status": "unknown", "observation_methods": ["static_file_comparison"], "confidence": "high", "notes": "Preserved unrestricted; all supplied maps contain zero."},
         {"path": "city_array_header.transient_data_pointer", "offset": 380240, "size": 4, "binary_type": "u32le process pointer", "status": "confirmed", "observation_methods": ["executable_analysis", "cross_build_comparison"], "confidence": "high", "notes": "Both loaders replace this with a resized preexisting destination allocation. The inspector never dereferences it and preserves it in no-op round trips."},
         {"path": "cities[].coordinates", "offset": "380244 + city*29", "size": 4, "binary_type": "u16le x, u16le y", "status": "confirmed", "observation_methods": ["visual_validation", "structural_validation"], "confidence": "high", "notes": "Every coordinate lies in and aligns with the 240x198 map space."},
-        {"path": "cities[].population", "offset": "380248 + city*29", "size": 4, "binary_type": "u32le", "status": "inferred", "observation_methods": ["static_file_comparison"], "confidence": "low", "notes": "Values resemble city populations, but a controlled editor experiment has not confirmed the meaning."},
+        {"path": "cities[].unknown_04_u32", "offset": "380248 + city*29", "size": 4, "binary_type": "opaque u32le", "status": "unknown", "observation_methods": ["executable_analysis", "static_file_comparison"], "confidence": "high", "notes": "The city editor does not assign this dword and runtime town synchronization skips it. Values are preserved without a semantic claim; the JSON population key is only a compatibility alias."},
         {"path": "settings", "offset": "after enabled terrain/cities, otherwise 55", "size": 737, "binary_type": "optional unframed configuration record", "status": "unknown", "observation_methods": ["executable_analysis", "cross_build_comparison"], "confidence": "high", "notes": "Presence and 737-byte span are confirmed in both map loaders; fields remain undecoded. There is no leading size word as in CAPITAL.CFG."}
       ]
     },

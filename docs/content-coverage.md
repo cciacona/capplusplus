@@ -55,9 +55,11 @@ Each family records four independent dimensions:
 Copying an opaque block exactly is not semantic decoding. The installation
 reconstruction results in [format gates](format-gates.md) exclude most disc content and include
 opaque `JOB.RTI`/`JOB.RTX`; it is not a 0.3 completion claim. Similarly, map
-framing and signed heights do not decode the five remaining opaque cell bytes
-or reproduce runtime terrain shading. The ledger preserves
-these distinctions and links families to follow-up issues.
+framing and signed heights do not assign meanings to the five remaining opaque
+source-cell bytes. The working grid's shading, terrain IDs, shoreline patterns,
+climate, rainfall and soil fertility are now reconstructed independently; that
+does not establish stored-field meanings or complete rendering. The ledger
+preserves these distinctions and links families to follow-up issues.
 
 Audio framing now includes bank PCM, bounded XMIDI, extensionless Windows WAVs
 and `CAPITAL.SND`. All 25 WAV sample payloads match the bank. XMIDI events and

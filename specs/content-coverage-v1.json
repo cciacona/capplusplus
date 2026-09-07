@@ -138,7 +138,7 @@
         "framing": "complete",
         "preservation": "exact",
         "semantics": "partial",
-        "behavior": "unverified"
+        "behavior": "partial"
       },
       "issues": [
         9
@@ -148,7 +148,7 @@
         "docs/maps.md",
         "docs/terrain.md"
       ],
-      "notes": "Executable-confirmed header, optional blocks, signed heights and counted city-array header. Full-map and partial editor-rectangle shading are checked against isolated DOS/Windows functions; five cell bytes and city-record offset 4 remain opaque, and whole-game behavior is unverified. See docs/maps.md and docs/terrain.md."
+      "notes": "Executable-confirmed header, optional blocks, signed heights and counted city-array header. Full-map shading, partial editor rectangles and post-shading terrain IDs, shoreline transitions, climate, rainfall and soil fertility are checked against isolated DOS/Windows functions. Five source-cell bytes, two runtime-cell bytes and city-record offset 4 remain opaque; whole-game behavior is unverified. See docs/maps.md and docs/terrain.md."
     },
     {
       "id": "fonts",
@@ -356,16 +356,17 @@
         "framing": "complete",
         "preservation": "exact",
         "semantics": "partial",
-        "behavior": "unverified"
+        "behavior": "partial"
       },
       "issues": [
         6,
         9
       ],
       "evidence": [
-        "docs/formats.md"
+        "docs/formats.md",
+        "docs/terrain.md"
       ],
-      "notes": "Container framing is supported; terrain-to-cell semantics need controlled probes."
+      "notes": "The 49 corner-pattern rows, consecutive variant groups, base IDs, shoreline lookup and final variant selection are reconstructed and checked against isolated DOS/Windows functions. Image-pointer loading and whole-game rendering remain outside this validation."
     },
     {
       "id": "sound_bank",

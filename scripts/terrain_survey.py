@@ -20,7 +20,9 @@ from capplus_inspect.loader_analysis import _regions
 from capplus_inspect.maps import MAP_GRID_SIZE, MAP_HEADER_SIZE, inspect_map
 from capplus_inspect.png_writer import write_new_file
 from capplus_inspect.terrain import (
-    TERRAIN_FULL_BOUNDS, TERRAIN_MODEL_VERSION, shade_terrain_grid,
+    RUNTIME_TERRAIN_MODEL_VERSION, TERRAIN_FULL_BOUNDS, TERRAIN_MODEL_VERSION,
+    TerrainInitializationResult,
+    initialize_runtime_terrain, parse_terrain_resource, shade_terrain_grid,
     terrain_length_table, update_terrain_rectangle,
 )
 
@@ -29,6 +31,8 @@ REFERENCE_HASHES = {"dos": DOS_EXECUTABLE_SHA256, "windows": WINDOWS_EXECUTABLE_
 CONTROL_WORDS = (0x027F, 0x037F)
 MAX_MAP_FILES = 64
 MAX_MAP_BYTES = 1024 * 1024
+MAX_TERRAIN_RESOURCE_BYTES = 64 * 1024
+RUNTIME_SEEDS = (0, 1, 0x12345678, 0x47A28C03, 0x89ABCDEF, 0xFFFFFFFF)
 
 
 def read_bounded(path: Path, maximum: int) -> bytes:
@@ -77,9 +81,13 @@ class OriginalTerrainOracle:
         self.world = 0x700000 - self.base
         self.grid = 0x600000 - self.base
         self.allowed = (
-            ((0x43CAC0, 0x43D1EE), (0x487590, 0x4875B7), (0x423AB0, 0x423BA3))
+            ((0x43CAC0, 0x43D1EE), (0x487590, 0x4875B7), (0x423AB0, 0x423BA3),
+             (0x423CA0, 0x4240A9), (0x45CA60, 0x45CAE0),
+             (0x45D000, 0x45D040), (0x47C560, 0x47C5B0))
             if build == "windows" else
-            ((0x48384, 0x48B32), (0x964FC, 0x9651B), (0x47519, 0x47606), (0x47486, 0x4748C))
+            ((0x48384, 0x48B32), (0x964FC, 0x9651B), (0x47519, 0x47606),
+             (0x47486, 0x4748C), (0x47765, 0x47C45), (0x7F6E6, 0x7F778),
+             (0x7FD77, 0x7FDBB), (0x907A3, 0x90817))
         )
         # Windows event/message polling has no platform here. DOS stack checking
         # returns with its 4-byte argument removed; emulated stack space is fixed.
@@ -146,6 +154,40 @@ class OriginalTerrainOracle:
                                            r.UC_X86_REG_ECX: right})
         return bytes(self.uc.mem_read(0x600000, MAP_GRID_SIZE))
 
+    def runtime_terrain(self, grid: bytes, terrain_resource: bytes, seed: int) -> dict:
+        """Run the four post-shading functions with a normalized resource table."""
+        if len(grid) != MAP_GRID_SIZE or not 0 <= seed <= 0xFFFFFFFF:
+            raise InspectError("terrain oracle runtime input is invalid")
+        patterns = parse_terrain_resource(terrain_resource)
+        internal = b"".join(
+            bytes(pattern.corners)
+            + bytes((pattern.probability, pattern.additional_variants))
+            + bytes(4)
+            for pattern in patterns
+        )
+        records_physical = 0x500000
+        records_pointer = records_physical - self.base
+        land_resource = 0x4A5120 if self.build == "windows" else self.base + 0x1171D
+        misc = 0x4A4948 if self.build == "windows" else self.base + 0xF710
+        self.uc.mem_write(records_physical, internal)
+        self.uc.mem_write(land_resource, struct.pack("<hI", len(patterns), records_pointer))
+        self.uc.mem_write(misc + 0x79, struct.pack("<I", seed))
+        self.uc.mem_write(0x600000, grid)
+        self.uc.mem_write(0x700008, struct.pack("<I", self.grid))
+        r = self.registers
+        if self.build == "windows":
+            registers = {r.UC_X86_REG_ECX: self.world}
+            addresses = (0x423CA0, 0x423D20, 0x423F20, 0x423CE0)
+        else:
+            registers = {r.UC_X86_REG_EAX: self.world}
+            addresses = (0x4776C, 0x477F7, 0x47A4F, 0x477AF)
+        for address in addresses:
+            self._call(address, registers=registers)
+        final_seed, = struct.unpack("<I", self.uc.mem_read(misc + 0x79, 4))
+        center, = struct.unpack("<i", self.uc.mem_read(0x700010, 4))
+        return {"grid": bytes(self.uc.mem_read(0x600000, MAP_GRID_SIZE)),
+                "rng_state": final_seed, "climate_center_row": center}
+
 
 def synthetic_grids() -> Iterator[tuple[str, bytes]]:
     """Procedural redistributable probes; no reference asset bytes or save data."""
@@ -210,9 +252,41 @@ def compare_result(source: bytes, expected: bytes, actual: bytes) -> dict:
             "passed": not differences and preserved}
 
 
-def survey(executables: dict[str, bytes], maps: list[Path]) -> dict:
+def compare_runtime_result(
+    source: bytes, expected: dict, actual: TerrainInitializationResult
+) -> dict:
+    expected_grid = expected["grid"]
+    if any(len(data) != MAP_GRID_SIZE for data in (source, expected_grid, actual.grid)):
+        raise InspectError("terrain runtime comparison requires complete grids")
+    differences = [i for i, pair in enumerate(zip(expected_grid, actual.grid))
+                   if pair[0] != pair[1]]
+    bytes_2_4_preserved = all(
+        source[offset::8] == expected_grid[offset::8] == actual.grid[offset::8]
+        for offset in (2, 3, 4)
+    )
+    scalars_match = (
+        expected["rng_state"] == actual.rng_state
+        and expected["climate_center_row"] == actual.climate_center_row
+    )
+    return {
+        "source_working_grid_sha256": hashlib.sha256(source).hexdigest(),
+        "original_runtime_grid_sha256": hashlib.sha256(expected_grid).hexdigest(),
+        "model_runtime_grid_sha256": hashlib.sha256(actual.grid).hexdigest(),
+        "differing_bytes": len(differences),
+        "first_differing_offset": differences[0] if differences else None,
+        "bytes_2_4_preserved": bytes_2_4_preserved,
+        "original_rng_state": expected["rng_state"],
+        "model_rng_state": actual.rng_state,
+        "climate_center_row": actual.climate_center_row,
+        "random_calls": actual.random_calls,
+        "passed": not differences and bytes_2_4_preserved and scalars_match,
+    }
+
+
+def survey(executables: dict[str, bytes], maps: list[Path], terrain_resource: bytes) -> dict:
     if set(executables) != set(REFERENCE_HASHES) or len(maps) > MAX_MAP_FILES:
         raise InspectError("terrain survey requires both builds and at most 64 maps")
+    patterns = parse_terrain_resource(terrain_resource)
     map_grids = []
     seen = set()
     for path in maps:
@@ -224,7 +298,7 @@ def survey(executables: dict[str, bytes], maps: list[Path]) -> dict:
         if not info["has_terrain"]:
             raise InspectError("terrain survey map has no terrain block")
         map_grids.append((path.name, raw[MAP_HEADER_SIZE:MAP_HEADER_SIZE + MAP_GRID_SIZE]))
-    results, tables = [], []
+    results, tables, runtime_results = [], [], []
     for build, executable in sorted(executables.items()):
         for control_word in CONTROL_WORDS:
             oracle = OriginalTerrainOracle(executable, build, control_word=control_word)
@@ -246,21 +320,49 @@ def survey(executables: dict[str, bytes], maps: list[Path]) -> dict:
                 results.append({"build": build, "control_word": hex(control_word),
                                 "kind": "partial_rectangle", "name": name,
                                 "bounds": list(bounds), **compare_result(prepared, expected, actual)})
+        runtime_oracle = OriginalTerrainOracle(executable, build)
+        synthetic = list(synthetic_grids())
+        runtime_cases = [
+            ("synthetic", name, shade_terrain_grid(grid, profile=build), RUNTIME_SEEDS[index])
+            for index, (name, grid) in enumerate(synthetic)
+        ]
+        runtime_cases.extend(
+            ("user_map", name, shade_terrain_grid(grid, profile=build), 0x47A28C03)
+            for name, grid in map_grids
+        )
+        for kind, name, working, seed in runtime_cases:
+            expected = runtime_oracle.runtime_terrain(working, terrain_resource, seed)
+            actual = initialize_runtime_terrain(
+                working, terrain_resource, seed, profile=build
+            )
+            runtime_results.append({
+                "build": build, "kind": kind, "name": name, "initial_rng_state": seed,
+                **compare_runtime_result(working, expected, actual),
+            })
     return {"schema_version": 1, "format": "capitalism_plus_terrain_function_survey",
             "terrain_model_version": TERRAIN_MODEL_VERSION, "emulator": "unicorn 2.1.4",
             "method": "isolated_original_function_emulation", "whole_game_validation": False,
             "executable_sha256": {build: hashlib.sha256(data).hexdigest() for build, data in executables.items()},
             "stubs": {"windows": "message/event polling returns without platform work",
                       "dos": "Watcom stack-availability check returns with argument cleanup"},
-            "windows_fdiv_workaround": False, "tables": tables, "grids": results,
-            "passed": all(record["passed"] for record in tables + results)}
+            "windows_fdiv_workaround": False,
+            "runtime_terrain_model_version": RUNTIME_TERRAIN_MODEL_VERSION,
+            "terrain_resource_sha256": hashlib.sha256(terrain_resource).hexdigest(),
+            "terrain_pattern_count": len(patterns), "tables": tables, "grids": results,
+            "runtime_grids": runtime_results,
+            "passed": all(record["passed"] for record in tables + results + runtime_results)}
 
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dos-exe", type=Path, required=True)
     parser.add_argument("--windows-exe", type=Path, required=True)
-    parser.add_argument("--maps", type=Path, help="optional directory of MAP files; six synthetic probes always run")
+    parser.add_argument("--terrain-resource", type=Path, required=True,
+                        help="user-owned RESOURCE/TERRAIN.RES")
+    parser.add_argument(
+        "--maps", type=Path,
+        help="optional directory of MAP files; six synthetic probes always run",
+    )
     parser.add_argument("--output", type=Path, required=True, help="new sanitized JSON report; never overwritten")
     args = parser.parse_args(argv)
     try:
@@ -279,9 +381,12 @@ def main(argv=None) -> int:
                 raise InspectError("terrain survey maps directory contains no MAP files")
         result = survey({"dos": read_bounded(args.dos_exe, 1024 * 1024),
                          "windows": read_bounded(args.windows_exe, 1024 * 1024)},
-                        sorted(paths, key=lambda p: p.name.casefold()))
+                        sorted(paths, key=lambda p: p.name.casefold()),
+                        read_bounded(args.terrain_resource, MAX_TERRAIN_RESOURCE_BYTES))
         write_new_file(args.output, (json.dumps(result, indent=2, sort_keys=True) + "\n").encode("utf-8"))
-        print(f"Terrain function checks: {len(result['tables'])} tables, {len(result['grids'])} grids; passed={result['passed']}")
+        print(f"Terrain function checks: {len(result['tables'])} tables, "
+              f"{len(result['grids'])} shade grids, "
+              f"{len(result['runtime_grids'])} runtime grids; passed={result['passed']}")
         return 0 if result["passed"] else 3
     except (InspectError, OSError) as error:
         parser.exit(2, f"error: {error}\n")

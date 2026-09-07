@@ -63,6 +63,24 @@ remain undecoded. No speculative parsing of strings inside it affects framing.
 | 6 | `u8` | Unknown; bounded to this byte, retained without masking |
 | 7 | `u8` | Unknown; bounded to this byte, retained without masking |
 
+Those are `.MAP` source fields. After height conversion and shading, the
+runtime initializer repurposes the working copy as follows; it does not write
+these meanings back to the source grid:
+
+| Working-cell offset | Runtime meaning/status |
+|---:|---|
+| 0–1 | `TERRAIN.RES` tile ID beginning at `0x2000`; classification, shoreline transitions and variant selection confirmed |
+| 2 | Unknown; preserved by every recovered initialization pass |
+| 3 | Unknown; preserved by every recovered initialization pass |
+| 4 | Derived shade; preserved after the shading pass |
+| 5 | Climate index 0–4; confirmed generator and UI label |
+| 6 | Rainfall index 0–3; confirmed generator and UI label |
+| 7 | Soil fertility 0–100 on non-water cells; water retains its incoming byte; confirmed generator and UI label |
+
+The complete ordered initialization, `TERRAIN.RES` corner grammar, RNG
+consumption and DOS/Windows signed-byte difference are documented in
+[terrain](terrain.md#post-shading-runtime-initialization).
+
 The original loader reads into `World + 0x24`'s grid, copies the complete grid
 to `World + 0x08`'s working grid, and transforms the latter. It does not require
 stored bytes 2–7 to be zero. They are zero across the supplied files, but the
@@ -187,6 +205,10 @@ dumps are included in this repository.
 | Read array | `0x00476500` | `0x0008DECB` | Local allocation pointer replaces stored pointer; selection reset |
 | Initial terrain conversion | `0x00423AB0` | `0x00047519` | 240×198, eight-byte stride, signed heights and threshold formula |
 | Subsequent shading | `0x0043CB50` | `0x00048412` | Both bodies read neighbor heights and write byte 4; see terrain-function survey |
+| Runtime tile classification | `0x00423CA0` | `0x0004776C` | Converted heights become base land, hill or water IDs |
+| Shoreline transitions | `0x00423D20` | `0x000477F7` | Water neighbors select corner-pattern records from `TERRAIN.RES` |
+| Climate/rainfall/fertility | `0x00423F20` | `0x00047A4F` | RNG-driven working bytes 5–7; byte 7 is retained for water |
+| Runtime tile variants | `0x00423CE0` | `0x000477AF` | Consecutive equal-corner groups select a tile variant |
 | Add city | `0x00463520` | `0x00049D90` | Limit 12; validates terrain/proximity/name before appending |
 | Delete nearby city | `0x00463700` | `0x00049EEB` | Reverse scan; both axis differences must be below 15 |
 | Validate city placement | `0x00463A20` | `0x0004A1FB` | 7×7 source-height range, exact name and axis-aligned separation checks |
@@ -248,6 +270,6 @@ grid with a separately captured loaded working grid. Hold palette, camera and
 city markers fixed when taking screenshots. The offset-4 city value receives a
 separate vector only if an editor control actually addresses it.
 
-This experiment set is **planned, not performed**. Unknown cell bytes must stay
-unknown when an action does not isolate their role, and there is still no claim
+This experiment set is **planned, not performed**. Stored bytes 2, 3 and 5–7
+and runtime bytes 2–3 remain unknown, and there is still no claim
 of native map-editor or complete rendering parity.

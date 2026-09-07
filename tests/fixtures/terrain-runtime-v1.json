@@ -1,0 +1,128 @@
+{
+  "grids": [
+    {
+      "build": "dos",
+      "climate_center_row": 34,
+      "final_rng_state": 3452578417,
+      "initial_rng_state": 0,
+      "name": "flat_water",
+      "original_runtime_grid_sha256": "c939a33c26917bb3bb024205f3a27b6f5ebe5c76347cda42cbe5fc5653d86a46",
+      "random_calls": 99793,
+      "source_working_grid_sha256": "bcdbc249fdad0a299d2e07056fecd3888f63529cdf976341d9a623f5f2c47469"
+    },
+    {
+      "build": "dos",
+      "climate_center_row": 35,
+      "final_rng_state": 2403702726,
+      "initial_rng_state": 1,
+      "name": "flat_land",
+      "original_runtime_grid_sha256": "0e3d18673bbdfc4a5852dec9b089fa0b1526853bb955260fbc9e3ce797cd347a",
+      "random_calls": 147313,
+      "source_working_grid_sha256": "c6f2c7f65ed2b2b62597f31af25a5b0a3c622301fe073bcfe373e3090cd437b5"
+    },
+    {
+      "build": "dos",
+      "climate_center_row": 55,
+      "final_rng_state": 3000437289,
+      "initial_rng_state": 305419896,
+      "name": "flat_peak",
+      "original_runtime_grid_sha256": "f1cbf5b0444ef0fc7c9c9ebc7d0f581322a42531de7cd731377352a9d1b5fc7c",
+      "random_calls": 147313,
+      "source_working_grid_sha256": "78f18559e78783d12959a1725c6b4dbdb16546c65cf6aac4abd93335ef57907f"
+    },
+    {
+      "build": "dos",
+      "climate_center_row": 57,
+      "final_rng_state": 618453086,
+      "initial_rng_state": 1201835011,
+      "name": "ramp",
+      "original_runtime_grid_sha256": "6f3c0dc766aa8a182f9abf534e84457fb1421d74d8e1c9e88a0a81288a3706ec",
+      "random_calls": 110971,
+      "source_working_grid_sha256": "08cc09ee8730a69cd67dddc6de9536ec18da2a39ba988af4207a244759894c19"
+    },
+    {
+      "build": "dos",
+      "climate_center_row": 81,
+      "final_rng_state": 1049204157,
+      "initial_rng_state": 2309737967,
+      "name": "checker",
+      "original_runtime_grid_sha256": "a5de0fa17845792015ae578c78a8a8115cf032ab122768e2ad07b285e2ab357c",
+      "random_calls": 121010,
+      "source_working_grid_sha256": "9fdccf8756d2b6d9b1e47ab7430fba66003df1b8412810b3d35385f04626cec7"
+    },
+    {
+      "build": "dos",
+      "climate_center_row": 162,
+      "final_rng_state": 2233288750,
+      "initial_rng_state": 4294967295,
+      "name": "signed_limits",
+      "original_runtime_grid_sha256": "9734fe55b587a3b1eff961c9d0b7e19bb4fba43cbdcaf5ccb73ba62a44c027f0",
+      "random_calls": 118167,
+      "source_working_grid_sha256": "0d5e873a3d9410d3b8ce18ccb164859c1614d681f0d7b3473dbc48d034b6286e"
+    },
+    {
+      "build": "windows",
+      "climate_center_row": 34,
+      "final_rng_state": 3452578417,
+      "initial_rng_state": 0,
+      "name": "flat_water",
+      "original_runtime_grid_sha256": "c939a33c26917bb3bb024205f3a27b6f5ebe5c76347cda42cbe5fc5653d86a46",
+      "random_calls": 99793,
+      "source_working_grid_sha256": "bcdbc249fdad0a299d2e07056fecd3888f63529cdf976341d9a623f5f2c47469"
+    },
+    {
+      "build": "windows",
+      "climate_center_row": 35,
+      "final_rng_state": 2403702726,
+      "initial_rng_state": 1,
+      "name": "flat_land",
+      "original_runtime_grid_sha256": "c2c868157355cb51644ec4eed46a96fa2a508c2126800cda7d9cef37bebfe7fa",
+      "random_calls": 147313,
+      "source_working_grid_sha256": "c6f2c7f65ed2b2b62597f31af25a5b0a3c622301fe073bcfe373e3090cd437b5"
+    },
+    {
+      "build": "windows",
+      "climate_center_row": 55,
+      "final_rng_state": 3000437289,
+      "initial_rng_state": 305419896,
+      "name": "flat_peak",
+      "original_runtime_grid_sha256": "f1cbf5b0444ef0fc7c9c9ebc7d0f581322a42531de7cd731377352a9d1b5fc7c",
+      "random_calls": 147313,
+      "source_working_grid_sha256": "78f18559e78783d12959a1725c6b4dbdb16546c65cf6aac4abd93335ef57907f"
+    },
+    {
+      "build": "windows",
+      "climate_center_row": 57,
+      "final_rng_state": 618453086,
+      "initial_rng_state": 1201835011,
+      "name": "ramp",
+      "original_runtime_grid_sha256": "387387d28451894dc8d6dd22d3a28ded9703405ca8aea9d7e9c79445b5fc1dcd",
+      "random_calls": 110971,
+      "source_working_grid_sha256": "08cc09ee8730a69cd67dddc6de9536ec18da2a39ba988af4207a244759894c19"
+    },
+    {
+      "build": "windows",
+      "climate_center_row": 81,
+      "final_rng_state": 1049204157,
+      "initial_rng_state": 2309737967,
+      "name": "checker",
+      "original_runtime_grid_sha256": "a5de0fa17845792015ae578c78a8a8115cf032ab122768e2ad07b285e2ab357c",
+      "random_calls": 121010,
+      "source_working_grid_sha256": "9fdccf8756d2b6d9b1e47ab7430fba66003df1b8412810b3d35385f04626cec7"
+    },
+    {
+      "build": "windows",
+      "climate_center_row": 162,
+      "final_rng_state": 2233288750,
+      "initial_rng_state": 4294967295,
+      "name": "signed_limits",
+      "original_runtime_grid_sha256": "9734fe55b587a3b1eff961c9d0b7e19bb4fba43cbdcaf5ccb73ba62a44c027f0",
+      "random_calls": 118167,
+      "source_working_grid_sha256": "0d5e873a3d9410d3b8ce18ccb164859c1614d681f0d7b3473dbc48d034b6286e"
+    }
+  ],
+  "method": "isolated_original_function_emulation_with_synthetic_resource",
+  "schema_version": 1,
+  "runtime_terrain_model_version": 1,
+  "terrain_resource_sha256": "a75773f5b51672b7f5302dfc7fcbbeb20eaa6d831971ad0d2d3344a5e5487dd8"
+}

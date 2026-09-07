@@ -69,6 +69,27 @@ def make_palette() -> bytes:
     return struct.pack("<II", 776, 0x12345678) + colors
 
 
+def make_terrain_resource() -> bytes:
+    """Build a synthetic 49-row terrain grammar with the original base IDs."""
+    fields = [
+        ("NW_TYPE", "C", 1, 0), ("NE_TYPE", "C", 1, 0),
+        ("SW_TYPE", "C", 1, 0), ("SE_TYPE", "C", 1, 0),
+        ("PROBABILTY", "C", 1, 0), ("FILENAME", "C", 8, 0),
+        ("BITMAPPTR", "C", 4, 0),
+    ]
+    patterns = ["GGGG"] * 5
+    patterns.extend(
+        "".join("S" if mask & (1 << bit) else "G" for bit in range(4))
+        for mask in range(1, 15)
+    )
+    patterns.extend(["HHHH"] * 12)
+    patterns.extend(reversed(patterns[5:19]))
+    patterns.extend(["SSSS"] * 4)
+    rows = [list(corners) + [" ", f"SYN{index:04d}", ""]
+            for index, corners in enumerate(patterns)]
+    return make_dbf(fields, rows)
+
+
 def make_map(cities: tuple[bytes, ...] = (), *, terrain: bool = True, settings: bytes | None = None) -> bytes:
     header = bytearray(55)
     header[:14] = b"MAPS\\TEST.MAP\0"

@@ -46,6 +46,22 @@ and optionally decoded rows. DBF definitions are therefore immediately usable
 as product/economy input for a replacement engine without hard-coding the
 shipped data.
 
+## Terrain patterns (`TERRAIN.RES`)
+
+`TERRAIN.RES` is a direct dBASE stream with 49 rows. The specialized
+`parse_terrain_resource` layer requires the seven observed fields and converts
+the four one-byte corner codes, probability character and eight-byte filename
+into immutable pattern records. The final four-byte `BITMAPPTR` column is
+preserved by generic round trips but is not trusted as an on-disk process
+pointer.
+
+Consecutive rows with the same four corners form a variant group. Runtime tile
+ID `0x2000 + row_index` addresses the normalized table; the group-start record
+stores the number of additional variants. The post-shading world initializer
+uses these records for shoreline transitions and deterministic variant
+selection. See [terrain initialization](terrain.md#post-shading-runtime-initialization)
+for the exact lookup and RNG contracts.
+
 ## Palettes (`PAL_STD.RES`, `IFCOLOR.RES`)
 
 Both observed palette resources are 776 bytes:
@@ -84,7 +100,9 @@ terrain-bearing map, the city records still start at byte 380,244:
 
 The grid contains 47,520 row-major cells. Each starts with a signed 16-bit
 terrain-height value. Byte 4 holds a derived shade that the original terrain
-pipeline recomputes; bytes 2, 3, 5, 6 and 7 remain explicitly opaque. The old
+pipeline recomputes; stored bytes 2, 3, 5, 6 and 7 remain explicitly opaque.
+The runtime working copy later reuses bytes 5–7 as climate, rainfall and soil
+fertility without establishing meanings for their stored counterparts. The old
 52-byte-header/byte-3 interpretation accidentally selected the same source
 bytes as the correct 55-byte-header/byte-0 view. That view is a useful height
 preview, **not evidence of the original game's runtime palette or shading**.

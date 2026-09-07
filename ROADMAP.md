@@ -103,8 +103,9 @@ correctly from both identical asset sets.
 
 ### 0.3 — Complete original-data specification
 
-- Decode all eight map-cell bytes and the 32-byte map footer through controlled
-  map-editor experiments.
+- Finish the two unresolved runtime map-cell bytes, determine whether stored
+  bytes 2–3 and 5–7 have persistent meanings, and complete controlled map-editor
+  experiments for the corrected 29-byte city-array header.
 - Decode text, font, cursor, palette, terrain, help, language, layout-plan, and
   configuration resources.
 - Catalog every graphic and animation frame, hotspot, transparent color, and

@@ -1,20 +1,330 @@
 """Terrain height/shade reconstruction from the original DOS and Windows profiles."""
 from __future__ import annotations
 
+from dataclasses import dataclass
 from functools import lru_cache
 import struct
 
+from .dbf import inspect_dbf
 from .errors import FormatError
 from .maps import MAP_CELL_COUNT, MAP_GRID_SIZE, MAP_HEIGHT, MAP_WIDTH, _initial_terrain_state
 
 
 TERRAIN_PROFILES = ("dos", "windows")
 TERRAIN_MODEL_VERSION = 1
+RUNTIME_TERRAIN_MODEL_VERSION = 1
 TERRAIN_FULL_BOUNDS = (0, 0, MAP_WIDTH - 1, MAP_HEIGHT - 1)
+TERRAIN_TILE_BASE = 0x2000
+TERRAIN_LAND_BASE = 0x2000
+TERRAIN_HILL_BASE = 0x2013
+TERRAIN_WATER_BASE = 0x202D
+MAX_TERRAIN_PATTERNS = 0x6000
+_RNG_MULTIPLIER = 0x015A4E35
+
+
+@dataclass(frozen=True)
+class TerrainPattern:
+    """One normalized row from ``TERRAIN.RES``'s dBASE table."""
+
+    corners: tuple[int, int, int, int]
+    probability: int
+    filename: str
+    additional_variants: int
+
+
+@dataclass(frozen=True)
+class TerrainInitializationResult:
+    """Immutable output and RNG bookkeeping for a runtime initialization stage."""
+
+    grid: bytes
+    rng_state: int
+    climate_center_row: int
+    field_random_calls: int
+    variant_random_calls: int = 0
+
+    @property
+    def random_calls(self) -> int:
+        return self.field_random_calls + self.variant_random_calls
+
+
+def _validated_grid(grid: bytes | bytearray) -> None:
+    if not isinstance(grid, (bytes, bytearray)):
+        raise FormatError("terrain grid must be bytes or bytearray")
+    if len(grid) != MAP_GRID_SIZE:
+        raise FormatError(f"terrain grid must contain exactly {MAP_GRID_SIZE} bytes")
+
+
+def _validated_profile(profile: str) -> None:
+    if profile not in TERRAIN_PROFILES:
+        raise FormatError("terrain profile must be dos or windows")
+
+
+def _validated_rng_state(state: int) -> None:
+    if isinstance(state, bool) or not isinstance(state, int) or not 0 <= state <= 0xFFFFFFFF:
+        raise FormatError("terrain RNG state must be an unsigned 32-bit integer")
+
+
+def _random(state: int, maximum: int) -> tuple[int, int]:
+    state = (state * _RNG_MULTIPLIER + 1) & 0xFFFFFFFF
+    raw = (state >> 16) & 0x7FFF
+    return state, (raw * maximum) >> 15
+
+
+def _signed_byte(value: int) -> int:
+    return value - 256 if value & 0x80 else value
 
 
 def _trunc_div(numerator: int, denominator: int) -> int:
     return abs(numerator) // denominator * (-1 if numerator < 0 else 1)
+
+
+def parse_terrain_resource(data: bytes) -> tuple[TerrainPattern, ...]:
+    """Normalize the corner-pattern rows used by the runtime terrain routines."""
+    info = inspect_dbf(data, include_rows=0)
+    expected = (
+        ("NW_TYPE", "C", 1), ("NE_TYPE", "C", 1),
+        ("SW_TYPE", "C", 1), ("SE_TYPE", "C", 1),
+        ("PROBABILTY", "C", 1), ("FILENAME", "C", 8),
+        ("BITMAPPTR", "C", 4),
+    )
+    actual = tuple((field["name"], field["type"], field["length"])
+                   for field in info["fields"])
+    if actual != expected:
+        raise FormatError("TERRAIN.RES has an unsupported dBASE field layout")
+    count = info["record_count"]
+    if not 1 <= count <= MAX_TERRAIN_PATTERNS:
+        raise FormatError("TERRAIN.RES pattern count is outside the supported tile-ID range")
+
+    header_length, record_length = info["header_length"], info["record_length"]
+    raw_patterns: list[tuple[tuple[int, int, int, int], int, str]] = []
+    for index in range(count):
+        record = data[header_length + index * record_length:
+                      header_length + (index + 1) * record_length]
+        if record[:1] != b" ":
+            raise FormatError("TERRAIN.RES contains a deleted or invalid row")
+        corners = tuple(record[1:5])
+        probability = 5 if record[5] == 0x20 else (record[5] - 0x30) & 0xFF
+        filename = record[6:14].rstrip(b" \0").decode("cp1252", "replace")
+        raw_patterns.append((corners, probability, filename))
+
+    additional = [0] * count
+    group_start = 0
+    for index in range(1, count + 1):
+        if index == count or raw_patterns[index][0] != raw_patterns[group_start][0]:
+            additional[group_start] = (index - group_start - 1) & 0xFF
+            group_start = index
+    return tuple(
+        TerrainPattern(corners, probability, filename, additional[index])
+        for index, (corners, probability, filename) in enumerate(raw_patterns)
+    )
+
+
+def classify_terrain_tiles(grid: bytes | bytearray) -> bytes:
+    """Replace converted working heights with the three base terrain tile IDs."""
+    _validated_grid(grid)
+    output = bytearray(grid)
+    for index in range(MAP_CELL_COUNT):
+        offset = index * 8
+        height = struct.unpack_from("<h", output, offset)[0]
+        tile = TERRAIN_HILL_BASE if height >= 215 else (
+            TERRAIN_LAND_BASE if height > 0 else TERRAIN_WATER_BASE
+        )
+        struct.pack_into("<H", output, offset, tile)
+    return bytes(output)
+
+
+def _pattern_for(tile: int, patterns: tuple[TerrainPattern, ...]) -> TerrainPattern:
+    index = tile - TERRAIN_TILE_BASE
+    if not 0 <= index < len(patterns):
+        raise FormatError(f"terrain tile ID 0x{tile:04X} has no TERRAIN.RES record")
+    return patterns[index]
+
+
+_WATER_NEIGHBORS = (
+    (-1, 0, (False, True, False, True)),
+    (1, 0, (True, False, True, False)),
+    (0, -1, (False, False, True, True)),
+    (0, 1, (True, True, False, False)),
+    (-1, -1, (False, False, False, True)),
+    (1, -1, (False, False, True, False)),
+    (-1, 1, (False, True, False, False)),
+    (1, 1, (True, False, False, False)),
+)
+
+
+def apply_water_transitions(
+    grid: bytes | bytearray, patterns: tuple[TerrainPattern, ...]
+) -> bytes:
+    """Apply the original ordered shoreline-corner transition pass."""
+    _validated_grid(grid)
+    if not patterns:
+        raise FormatError("terrain pattern table must not be empty")
+    output = bytearray(grid)
+    for y in range(MAP_HEIGHT):
+        for x in range(MAP_WIDTH):
+            offset = (y * MAP_WIDTH + x) * 8
+            if struct.unpack_from("<H", output, offset)[0] != TERRAIN_WATER_BASE:
+                continue
+            for dx, dy, sea_corners in _WATER_NEIGHBORS:
+                nx, ny = x + dx, y + dy
+                if not (0 <= nx < MAP_WIDTH and 0 <= ny < MAP_HEIGHT):
+                    continue
+                neighbor_offset = (ny * MAP_WIDTH + nx) * 8
+                tile = struct.unpack_from("<H", output, neighbor_offset)[0]
+                if tile == TERRAIN_WATER_BASE:
+                    continue
+                current = _pattern_for(tile, patterns)
+                corners = tuple(
+                    ord("S") if sea else ord("G") if value == ord("H") else value
+                    for value, sea in zip(current.corners, sea_corners)
+                )
+                replacement = next(
+                    (TERRAIN_TILE_BASE + index for index, pattern in enumerate(patterns)
+                     if pattern.corners == corners),
+                    0,
+                )
+                if not replacement:
+                    raise FormatError(
+                        f"TERRAIN.RES has no shoreline pattern for cell ({nx}, {ny})"
+                    )
+                struct.pack_into("<H", output, neighbor_offset, replacement)
+    return bytes(output)
+
+
+def initialize_terrain_cell_fields(
+    grid: bytes | bytearray, rng_state: int, *, profile: str = "dos"
+) -> TerrainInitializationResult:
+    """Generate climate, rainfall and soil-fertility bytes on a private grid copy."""
+    _validated_grid(grid)
+    _validated_rng_state(rng_state)
+    _validated_profile(profile)
+    output = bytearray(grid)
+    calls = 0
+
+    rng_state, climate_offset = _random(rng_state, 130)
+    calls += 1
+    climate_center = climate_offset + 34
+    for y in range(MAP_HEIGHT):
+        jitter = 0
+        for x in range(MAP_WIDTH):
+            offset = (y * MAP_WIDTH + x) * 8
+            if x % 10 == 0:
+                rng_state, jitter_value = _random(rng_state, 11)
+                calls += 1
+                jitter = jitter_value - 5
+
+            climate = 4 - abs(y - climate_center) // 34
+            output[offset + 5] = max(climate, 0) & 0xFF
+
+            if x > 0 and y > 0:
+                left, above = output[offset - 2], output[offset - MAP_WIDTH * 8 + 6]
+                if profile == "windows":
+                    left, above = _signed_byte(left), _signed_byte(above)
+                rainfall = _trunc_div(left + above, 2)
+                rng_state, variation = _random(rng_state, 5)
+                calls += 1
+                rainfall = (rainfall + variation + jitter - 2) & 0xFF
+            else:
+                rng_state, rainfall = _random(rng_state, 63)
+                calls += 1
+            tile = struct.unpack_from("<H", output, offset)[0]
+            rainfall_compare = (
+                _signed_byte(rainfall) if profile == "windows" else rainfall
+            )
+            if tile == TERRAIN_WATER_BASE and rainfall_compare < 32:
+                rainfall |= 0x10
+            rainfall_compare = (
+                _signed_byte(rainfall) if profile == "windows" else rainfall
+            )
+            if rainfall_compare < 10:
+                rainfall = 10
+            rainfall_compare = (
+                _signed_byte(rainfall) if profile == "windows" else rainfall
+            )
+            if rainfall_compare > 63:
+                rainfall = 63
+            output[offset + 6] = rainfall
+
+            if tile != TERRAIN_WATER_BASE:
+                if x > 0 and y > 0:
+                    left, above = output[offset - 1], output[offset - MAP_WIDTH * 8 + 7]
+                    if profile == "windows":
+                        left, above = _signed_byte(left), _signed_byte(above)
+                    fertility = _trunc_div(left + above, 2)
+                    rng_state, variation = _random(rng_state, 5)
+                    calls += 1
+                    fertility = (fertility + variation + jitter - 2) & 0xFF
+                    if tile != TERRAIN_LAND_BASE:
+                        fertility &= 0x1F
+                    fertility_compare = (
+                        _signed_byte(fertility) if profile == "windows" else fertility
+                    )
+                    if fertility_compare < 0:
+                        fertility = 0
+                    fertility_compare = (
+                        _signed_byte(fertility) if profile == "windows" else fertility
+                    )
+                    if fertility_compare > 100:
+                        fertility = 100
+                else:
+                    rng_state, fertility = _random(rng_state, 100)
+                    calls += 1
+                output[offset + 7] = fertility
+
+    for offset in range(6, MAP_GRID_SIZE, 8):
+        output[offset] = (_signed_byte(output[offset]) >> 4) & 0xFF
+    return TerrainInitializationResult(bytes(output), rng_state, climate_center, calls)
+
+
+def randomize_terrain_variants(
+    grid: bytes | bytearray,
+    patterns: tuple[TerrainPattern, ...],
+    rng_state: int,
+    *,
+    profile: str = "dos",
+    climate_center_row: int = 0,
+    field_random_calls: int = 0,
+) -> TerrainInitializationResult:
+    """Select a variant within each consecutive equal-corner terrain group."""
+    _validated_grid(grid)
+    _validated_rng_state(rng_state)
+    _validated_profile(profile)
+    output = bytearray(grid)
+    calls = 0
+    for index in range(MAP_CELL_COUNT):
+        offset = index * 8
+        tile = struct.unpack_from("<H", output, offset)[0]
+        additional = _pattern_for(tile, patterns).additional_variants
+        should_randomize = additional > 0 if profile == "dos" else 0 < additional < 0x80
+        if should_randomize:
+            rng_state, variant = _random(rng_state, additional + 1)
+            calls += 1
+            struct.pack_into("<H", output, offset, (tile + variant) & 0xFFFF)
+    return TerrainInitializationResult(
+        bytes(output), rng_state, climate_center_row, field_random_calls, calls
+    )
+
+
+def initialize_runtime_terrain(
+    shaded_grid: bytes | bytearray,
+    terrain_resource: bytes,
+    rng_state: int,
+    *,
+    profile: str = "dos",
+) -> TerrainInitializationResult:
+    """Reproduce all four post-shading working-grid initialization passes."""
+    patterns = parse_terrain_resource(terrain_resource)
+    classified = classify_terrain_tiles(shaded_grid)
+    transitioned = apply_water_transitions(classified, patterns)
+    fields = initialize_terrain_cell_fields(transitioned, rng_state, profile=profile)
+    return randomize_terrain_variants(
+        fields.grid,
+        patterns,
+        fields.rng_state,
+        profile=profile,
+        climate_center_row=fields.climate_center_row,
+        field_random_calls=fields.field_random_calls,
+    )
 
 
 def _f32(value: float) -> float:
