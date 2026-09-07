@@ -98,7 +98,7 @@ number of city records follows; the parser does not infer count from file size:
 |---:|---|---|
 | `0x00` | `u16` | X coordinate |
 | `0x02` | `u16` | Y coordinate |
-| `0x04` | `u32` | Population/value field |
+| `0x04` | `u32` | Unknown value; preserved (`population` is a legacy JSON alias only) |
 | `0x08` | `char[21]` | NUL-terminated city name |
 
 An optional unframed 737-byte configuration record follows the cities, or follows

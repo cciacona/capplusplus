@@ -69,6 +69,12 @@ stored bytes 2–7 to be zero. They are zero across the supplied files, but the
 inspector accepts and preserves all 256 values in each byte. A future writer
 must not clear them merely because their purpose is still unresolved.
 
+The original editor uses the same two grids for incremental changes. It edits
+the source, copies each complete cell in the inclusive changed rectangle into
+the working grid, then converts and shades only that rectangle. The replacement
+`terrain.update_terrain_rectangle` reproduces this behavior, including global
+edge handling and outside-neighbor reads. See [terrain shading](terrain.md#partial-editor-rectangles).
+
 `decode_map_cell(eight_bytes)` exposes the signed height, stored shade, five
 opaque bytes and the first per-cell conversion. With stored height `h`, both
 builds perform:
@@ -122,10 +128,18 @@ They read count × record size bytes and reset selection to `min(count, 1)`.
 The inspector does neither allocation nor pointer dereferencing and preserves
 the stored pointer/selection exactly during a no-op round trip.
 
-Each city record remains `u16 x`, `u16 y`, `u32 population_candidate` and a
-21-byte name slot. Coordinates are bounded to `0..239` and `0..197`. The JSON
-key `population` is retained for compatibility, but the meaning of this scalar
-remains **inferred** until a controlled editor change confirms it.
+Each city record is `u16 x`, `u16 y`, an unresolved `u32` at offset 4 and a
+21-byte name slot. Coordinates are bounded to `0..239` and `0..197`. JSON now
+reports the scalar as `unknown_04_u32`; the older `population` key remains as an
+equal-value compatibility alias with `population_semantics` explicitly marking
+the interpretation unconfirmed.
+
+The map editor's add-city path assigns the coordinates and name but does not
+assign the offset-4 dword before appending the 29-byte record. The later runtime
+town synchronization reads the coordinates and copies the 21 name bytes from
+record offset 8, skipping offset 4. Some shipped nonzero values resemble real
+city populations, but neither observation establishes a serialization or
+runtime contract. The field therefore remains unknown and byte-preserved.
 
 The parser validates nonnegative capacity/count, positive growth, count no
 larger than capacity or the 16,384-record inspection budget, selected index in
@@ -135,6 +149,26 @@ Capacity itself does not cause allocation, even if it is very large. Bytes
 after a string NUL, unknown control fields and process-pointer residue remain
 intact. Unsupported layouts fail explicitly rather than absorbing extra bytes
 as cities or silently discarding them.
+
+## Recovered city-editor rules
+
+Both executables implement the same placement predicate:
+
+- The editor refuses to add a thirteenth city; this is an editor limit, while
+  the read-only parser retains its larger defensive inspection budget.
+- Every cell in the 7×7 square centered on the proposed coordinate must be
+  inside the map and have a raw source height `100 <= h < 215`. Consequently a
+  city center must be at least three cells from each global edge.
+- When a name is supplied, it must not exactly match an existing 21-byte city
+  name. The dialog separately rejects an empty or spaces-only name.
+- A position is too close when both `abs(new_x-old_x) < 15` and
+  `abs(new_y-old_y) < 15`. This is an axis-aligned 29×29 exclusion square, not
+  an inferred Euclidean radius.
+
+The delete tool searches existing records in reverse order and removes the
+first city satisfying the same two-axis `< 15` proximity test. These are static
+editor contracts from both builds; native dialog, redraw and saved-export
+experiments are still pending.
 
 ## Executable evidence
 
@@ -153,6 +187,10 @@ dumps are included in this repository.
 | Read array | `0x00476500` | `0x0008DECB` | Local allocation pointer replaces stored pointer; selection reset |
 | Initial terrain conversion | `0x00423AB0` | `0x00047519` | 240×198, eight-byte stride, signed heights and threshold formula |
 | Subsequent shading | `0x0043CB50` | `0x00048412` | Both bodies read neighbor heights and write byte 4; see terrain-function survey |
+| Add city | `0x00463520` | `0x00049D90` | Limit 12; validates terrain/proximity/name before appending |
+| Delete nearby city | `0x00463700` | `0x00049EEB` | Reverse scan; both axis differences must be below 15 |
+| Validate city placement | `0x00463A20` | `0x0004A1FB` | 7×7 source-height range, exact name and axis-aligned separation checks |
+| Synchronize city names | `0x00463980` | `0x0004A16B` | Coordinates locate runtime town; copies record bytes 8–28 only |
 
 Useful Windows call sites: `0x0047F779` writes 55 bytes; `0x0047F790` writes
 380,160 grid bytes; `0x0047F79C` invokes array serialization; `0x0047F7B4`
@@ -183,12 +221,33 @@ capplus-inspect roundtrip /path/to/installation --json
 PYTHONPATH=src python -m unittest tests.test_maps -v
 ```
 
-The remaining runtime experiment set should start from one user-created map
-and alter only one property per export: terrain height across the 99/100 and
-214/215 boundaries, a city coordinate, the candidate population, and each
-terrain/settings include toggle. Record both build hashes, input/output hashes,
-exact editor actions and changed byte ranges using [the experiment contract](experiments.md).
-Compare source and loaded working grids separately, with the palette and camera
-held fixed for screenshots. Unknown cell bytes must remain unknown if an action
-does not isolate their role. This experiment set is **planned, not performed**;
-there is no claim of native map-editor or rendering parity.
+## Native editor capture protocol
+
+Use one privately retained, user-created baseline map in both builds. Verify the
+starting files are byte-identical, then make a fresh copy for every row below.
+Export once without an edit first: a no-op rewrite must be measured rather than
+assumed harmless. Each edited export changes only the listed property.
+
+| Vector | Single action | Required observation |
+|---|---|---|
+| `map-noop` | Open and export without editing | Full hash, size and every changed byte range |
+| `terrain-interior` | Apply one terrain tool wholly inside the map | Selected bounds; per-cell changes by byte offset |
+| `terrain-edge` | Apply the same tool against one global edge | Clipped bounds and conditional edge shades |
+| `terrain-corner` | Apply the same tool at one global corner | Corner copy order and unchanged outside cells |
+| `terrain-thresholds` | Cross raw heights 99/100 and 214/215 one at a time | Source heights and loaded working height/shade |
+| `city-add` | Add one uniquely named city on valid land | New record bytes, array metadata and runtime town name |
+| `city-delete` | Delete only that city | Removed record, count/selection and retained record order |
+| `city-invalid` | Attempt edge, water, duplicate-name and too-close placements separately | Rejection result and unchanged export hash |
+| `map-flags` | Toggle terrain and settings inclusion separately | Header flags, conditional block boundaries and exact size |
+
+Run every vector in DOS and Windows and try each resulting file in the opposite
+build. Record executable hashes, baseline/export hashes, exact UI actions and
+scalar observations under the [experiment contract](experiments.md); retain all
+maps and screenshots privately. For terrain vectors, compare the stored source
+grid with a separately captured loaded working grid. Hold palette, camera and
+city markers fixed when taking screenshots. The offset-4 city value receives a
+separate vector only if an editor control actually addresses it.
+
+This experiment set is **planned, not performed**. Unknown cell bytes must stay
+unknown when an action does not isolate their role, and there is still no claim
+of native map-editor or complete rendering parity.

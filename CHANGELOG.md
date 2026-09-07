@@ -9,9 +9,15 @@
   remain unchanged.
 - Added an optional, exact-build Unicorn terrain-function survey and synthetic
   output-hash regressions without introducing an inspector runtime dependency.
-- Added 16 terrain tests and verified all 84 original-function grid comparisons
-  across both builds, both x87 precision settings, shipped maps and synthetic
-  probes. Whole-game editor and rendering validation remain pending.
+- Recovered the editor's two-grid partial terrain-update contract and added a
+  bounded `update_terrain_rectangle` API with exact outside-cell preservation.
+- Added 22 terrain tests and verified all 132 original-function grid comparisons
+  across both builds, both x87 precision settings, shipped maps, full-grid probes
+  and twelve partial rectangles. Native editor and rendering validation remain pending.
+- Documented the original city editor's limit, 7×7 terrain predicate,
+  axis-aligned separation rule, exact-name check and runtime name synchronization.
+- Reclassified city-record offset 4 as unknown after confirming the editor does
+  not assign it; retained `population` as an explicitly unconfirmed JSON alias.
 - Corrected `.MAP` framing from a 52-byte header and 32-byte footer to the
   executable-confirmed 55-byte header and 29-byte city-array header. Added map
   `layout_version: 2`, counted cities and optional unframed settings blocks.

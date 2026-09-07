@@ -19,7 +19,10 @@ from capplus_inspect.known import DOS_EXECUTABLE_SHA256, WINDOWS_EXECUTABLE_SHA2
 from capplus_inspect.loader_analysis import _regions
 from capplus_inspect.maps import MAP_GRID_SIZE, MAP_HEADER_SIZE, inspect_map
 from capplus_inspect.png_writer import write_new_file
-from capplus_inspect.terrain import TERRAIN_MODEL_VERSION, shade_terrain_grid, terrain_length_table
+from capplus_inspect.terrain import (
+    TERRAIN_FULL_BOUNDS, TERRAIN_MODEL_VERSION, shade_terrain_grid,
+    terrain_length_table, update_terrain_rectangle,
+)
 
 
 REFERENCE_HASHES = {"dos": DOS_EXECUTABLE_SHA256, "windows": WINDOWS_EXECUTABLE_SHA256}
@@ -126,17 +129,21 @@ class OriginalTerrainOracle:
         address = 0x4A3690 if self.build == "windows" else self.base + 0x164E8
         return bytes(self.uc.mem_read(address, 2050))
 
-    def terrain(self, grid: bytes) -> bytes:
+    def terrain(self, grid: bytes, bounds: tuple[int, int, int, int] = TERRAIN_FULL_BOUNDS) -> bytes:
         if len(grid) != MAP_GRID_SIZE:
             raise InspectError("terrain oracle requires one complete fixed-size source grid")
+        left, top, right, bottom = bounds
+        if not (0 <= left <= right < 240 and 0 <= top <= bottom < 198):
+            raise InspectError("terrain oracle bounds are invalid")
         self.uc.mem_write(0x600000, grid)
         self.uc.mem_write(0x700008, struct.pack("<I", self.grid))
         r = self.registers
         if self.build == "windows":
-            self._call(0x423AB0, (0, 0, 239, 197), {r.UC_X86_REG_ECX: self.world})
+            self._call(0x423AB0, bounds, {r.UC_X86_REG_ECX: self.world})
         else:
-            self._call(0x47519, (197,), {r.UC_X86_REG_EAX: self.world, r.UC_X86_REG_EDX: 0,
-                                        r.UC_X86_REG_EBX: 0, r.UC_X86_REG_ECX: 239})
+            self._call(0x47519, (bottom,), {r.UC_X86_REG_EAX: self.world,
+                                           r.UC_X86_REG_EDX: left, r.UC_X86_REG_EBX: top,
+                                           r.UC_X86_REG_ECX: right})
         return bytes(self.uc.mem_read(0x600000, MAP_GRID_SIZE))
 
 
@@ -156,6 +163,35 @@ def synthetic_grids() -> Iterator[tuple[str, bytes]]:
                 value = (i * 1103 + 65521) % 65536 - 32768
             struct.pack_into("<h6B", grid, i * 8, value, i % 256, 255, 19, 53, 79, 101)
         yield name, bytes(grid)
+
+
+PARTIAL_BOUNDS = (
+    (120, 99, 120, 99), (117, 96, 123, 102),
+    (37, 0, 43, 3), (37, 194, 43, 197),
+    (0, 80, 3, 86), (236, 80, 239, 86),
+    (0, 0, 3, 3), (236, 0, 239, 3),
+    (0, 194, 3, 197), (236, 194, 239, 197),
+    (0, 99, 239, 99), (120, 0, 120, 197),
+)
+
+
+def _copy_rectangle(source: bytes, working: bytes, bounds: tuple[int, int, int, int]) -> bytes:
+    left, top, right, bottom = bounds
+    output = bytearray(working)
+    size = (right - left + 1) * 8
+    for y in range(top, bottom + 1):
+        start = (y * 240 + left) * 8
+        output[start:start + size] = source[start:start + size]
+    return bytes(output)
+
+
+def partial_grids(profile: str) -> Iterator[tuple[str, bytes, bytes, tuple[int, int, int, int]]]:
+    """Two-grid editor probes: changed source plus an already-converted working grid."""
+    inputs = dict(synthetic_grids())
+    source = inputs["checker"]
+    working = shade_terrain_grid(inputs["ramp"], profile=profile)
+    for bounds in PARTIAL_BOUNDS:
+        yield "rect_" + "_".join(map(str, bounds)), source, working, bounds
 
 
 def compare_result(source: bytes, expected: bytes, actual: bytes) -> dict:
@@ -203,6 +239,13 @@ def survey(executables: dict[str, bytes], maps: list[Path]) -> dict:
                     actual = shade_terrain_grid(grid, profile=build)
                     results.append({"build": build, "control_word": hex(control_word),
                                     "kind": kind, "name": name, **compare_result(grid, expected, actual)})
+            for name, source, working, bounds in partial_grids(build):
+                prepared = _copy_rectangle(source, working, bounds)
+                expected = oracle.terrain(prepared, bounds)
+                actual = update_terrain_rectangle(source, working, bounds, profile=build)
+                results.append({"build": build, "control_word": hex(control_word),
+                                "kind": "partial_rectangle", "name": name,
+                                "bounds": list(bounds), **compare_result(prepared, expected, actual)})
     return {"schema_version": 1, "format": "capitalism_plus_terrain_function_survey",
             "terrain_model_version": TERRAIN_MODEL_VERSION, "emulator": "unicorn 2.1.4",
             "method": "isolated_original_function_emulation", "whole_game_validation": False,

@@ -148,7 +148,7 @@
         "docs/maps.md",
         "docs/terrain.md"
       ],
-      "notes": "Executable-confirmed header, optional blocks, signed heights and counted city-array header. Full-map shading is checked against isolated DOS/Windows functions; five cell bytes remain opaque and whole-game behavior is unverified. See docs/maps.md and docs/terrain.md."
+      "notes": "Executable-confirmed header, optional blocks, signed heights and counted city-array header. Full-map and partial editor-rectangle shading are checked against isolated DOS/Windows functions; five cell bytes and city-record offset 4 remain opaque, and whole-game behavior is unverified. See docs/maps.md and docs/terrain.md."
     },
     {
       "id": "fonts",

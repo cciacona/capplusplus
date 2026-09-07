@@ -88,6 +88,9 @@ class MapTests(unittest.TestCase):
         self.assertEqual(result["grid"]["overview_palette_index_offset"], 0)
         self.assertEqual(result["cities"][0]["name"], "Teston")
         self.assertEqual(result["cities"][0]["population"], 1_250_000)
+        self.assertEqual(result["cities"][0]["unknown_04_u32"], 1_250_000)
+        self.assertEqual(result["cities"][0]["population_semantics"],
+                         "unconfirmed_legacy_alias_for_unknown_04_u32")
 
     def test_rejects_partial_city_record(self) -> None:
         with self.assertRaises(FormatError):

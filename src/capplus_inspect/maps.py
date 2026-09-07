@@ -121,6 +121,7 @@ def inspect_map(data: bytes) -> dict[str, Any]:
     for index in range(array_header["record_count"] if array_header else 0):
         name = c_string(data[offset + 8 : offset + 29]).strip()
         x, y = u16(data, offset), u16(data, offset + 2)
+        unknown_04 = u32(data, offset + 4)
         if x >= MAP_WIDTH or y >= MAP_HEIGHT:
             raise FormatError("map city coordinates are outside the 240x198 grid", offset=offset)
         cities.append(
@@ -129,7 +130,9 @@ def inspect_map(data: bytes) -> dict[str, Any]:
                 "offset": offset,
                 "x": x,
                 "y": y,
-                "population": u32(data, offset + 4),
+                "unknown_04_u32": unknown_04,
+                "population": unknown_04,
+                "population_semantics": "unconfirmed_legacy_alias_for_unknown_04_u32",
                 "name": name,
             }
         )
