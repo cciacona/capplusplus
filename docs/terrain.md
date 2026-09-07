@@ -1,9 +1,11 @@
 # Terrain conversion and shading
 
 `shade_terrain_grid` reconstructs the full-map conversion performed on the
-240×198 working grid. `render-map --terrain-profile dos` or `windows` exports
-its shade bytes as indexed PNG pixels. Without that option, `render-map` keeps
-the historical source-height low-byte preview.
+240×198 working grid. `update_terrain_rectangle` reproduces the map editor's
+partial, inclusive rectangle update over separate source and working grids.
+`render-map --terrain-profile dos` or `windows` exports full-map shade bytes as
+indexed PNG pixels. Without that option, `render-map` keeps the historical
+source-height low-byte preview.
 
 ```powershell
 capplus-inspect render-map "MAPS\WORLD.MAP" ".\terrain.png" --palette "RESOURCE\PAL_STD.RES" --terrain-profile windows --palette-profile windows --scale 4
@@ -73,8 +75,37 @@ edge pass copies shade bytes in this order: top from row 1, bottom from row
 196, left from column 1, right from column 238. Corners consequently take the
 diagonal interior shade. Heights and opaque bytes retain their own cell values.
 
-Only the loader's full-map operation is implemented. Partial rectangles used
-by editing operations need their own contract and original-function checks.
+## Partial editor rectangles
+
+The editor maintains two complete cell grids. `World + 0x24` is the stored
+source grid containing signed raw heights; `World + 0x08` is the converted
+working grid used for display and later world initialization. A terrain edit:
+
+1. Changes an inclusive `(left, top, right, bottom)` rectangle in the source.
+2. Copies every complete eight-byte source cell in that rectangle to the same
+   working-grid positions, one contiguous span per row.
+3. Runs the same conversion and shading routine on that working rectangle.
+
+`update_terrain_rectangle(source_grid, working_grid, bounds, profile=...)`
+implements this contract without mutating either input. The working heights
+outside the rectangle must already be converted values in `0..255`; every byte
+outside the rectangle remains unchanged. All eight source bytes are copied
+inside before the height and shade fields are recomputed, so the five opaque
+bytes follow the source cells exactly.
+
+Conversion visits only the requested rectangle. Shading is clamped to its
+intersection with the global interior (`x=1..238`, `y=1..196`) and may read the
+already-converted neighbors just outside the rectangle. Border shade copying is
+performed only when the rectangle touches that global edge, and only across the
+rectangle's span. Its order remains top, bottom, left, right; this order matters
+at corners. The replacement requires explicit in-grid bounds instead of exposing
+the original routine's negative-left full-map sentinel.
+
+Twelve procedural rectangles cover a single cell, a 7×7 interior, all four
+edges, all four corners, one complete row and one complete column. Under both
+builds and both tested x87 control words, all 48 partial results match every
+byte produced by the original routine. Together with the 84 full-grid cases,
+the current survey contains 132 passing grid comparisons.
 
 ## Build-specific lookup tables and arithmetic
 
@@ -123,6 +154,10 @@ object; its data operands are relative to data-segment base `0xA0000`.
 |---|---:|---:|
 | Table initialization | `0x43CAC0` | `0x48384` |
 | Initial conversion and shading call | `0x423AB0` | `0x47519` |
+| Sculpt-tool source/working row copy | `0x4631E9` | `0x499FE` |
+| Sculpt-tool partial update call | `0x463251` | `0x49ABE` |
+| Flat-tool source/working row copy | `0x4634C8` | `0x49CE7` |
+| Flat-tool partial update call | `0x463502` | `0x49D7D` |
 | Neighbor shading | `0x43CB50` | `0x48412` |
 | Normalize vector | `0x43CF30` | `0x48861` |
 | Approximate three-dimensional length | `0x43CFD0` | `0x488FE` |
@@ -159,16 +194,18 @@ The environment is explicit and limited:
   initialized FDIV-workaround flag is zero; CPU detection is not run.
 - DOS stack checking at `0x96017` returns after its four-byte argument cleanup.
   Fixed emulated stack space replaces the original stack-availability check.
-- A minimal world object points to the supplied working grid. No original
-  process initialization, window, editor or event loop is executed.
+- A minimal world object points to the supplied working grid. The partial probes
+  prepare the source-to-working copy independently, then call the shared routine
+  with explicit bounds. No original process initialization, window, editor or
+  event loop is executed.
 
 The survey compares all 380,160 output bytes, not just image pixels, and also
-requires the five opaque bytes of every cell to remain unchanged. It always
-includes six procedural probes: flat water, land and peaks, a spatial ramp,
-a threshold checker pattern, and a signed-height stress pattern. User maps are
-optional additional inputs. JSON contains input/output hashes, first mismatch
-and mismatch count, table hashes, profiles, control words and stub descriptions.
-`whole_game_validation` remains false even when every function comparison passes.
+requires the five opaque bytes of every affected cell to follow the prepared
+input. It always includes six full-grid procedural probes and twelve partial
+rectangle probes. User maps are optional additional full-grid inputs. JSON
+contains input/output hashes, bounds, first mismatch and mismatch count, table
+hashes, profiles, control words and stub descriptions. `whole_game_validation`
+remains false even when every function comparison passes.
 
 Regression fixtures in `tests/fixtures/terrain-v1.json` contain only hashes of
 these newly generated synthetic grids and their observed function outputs.
@@ -179,7 +216,7 @@ itself. Run them without original data or the emulator:
 PYTHONPATH=src python -m unittest tests.test_terrain -v
 ```
 
-Whole-game editor exports, live working-grid captures, camera/palette-held
+Native editor exports, live working-grid captures, camera/palette-held
 screenshots and unresolved cell semantics remain the experiments in
 [maps](maps.md#corpus-validation-and-remaining-experiments). Isolated function
 emulation does not certify those behaviors or the entire 0.3 milestone.

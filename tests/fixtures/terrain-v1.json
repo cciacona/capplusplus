@@ -73,7 +73,69 @@
       "source_grid_sha256": "741ded162438e613a35b68a418a010e549bead9d79b19e9c589f0c93ffa46636"
     }
   ],
-  "provenance": "Isolated original DOS/Windows functions under Unicorn 2.1.4; both x87 0x027f and 0x037f agree. Inputs are procedural synthetic_grids(), with no original asset bytes.",
+  "partial_rectangles": [
+    {
+      "bounds": [120, 99, 120, 99],
+      "original_working_grid_sha256": "9795b598b5d0f056c45de27569cd2c7345d858b59c659f3f34dd5d19366ee2ed",
+      "prepared_grid_sha256": "b2d239f17968ca28a7f72865abf1259f40670b88bca1edb462a424baeb481886"
+    },
+    {
+      "bounds": [117, 96, 123, 102],
+      "original_working_grid_sha256": "5bdd417075179c1eaf4f3aaa9ddeeedddc220182c63baebfecb54eedcfbca03e",
+      "prepared_grid_sha256": "1d70fa20995115d401f899ab7d84567bbf79fb90ab2d5abba98da31d99cc47c5"
+    },
+    {
+      "bounds": [37, 0, 43, 3],
+      "original_working_grid_sha256": "61195dd7d27ff9463cdeefdaa81ddae51f9e05595e19c25c149f32f8a3dcd24e",
+      "prepared_grid_sha256": "d3e613c33582fee6bf343d09c40ce1b3871dbd73340fd3ae9b065ca444564e87"
+    },
+    {
+      "bounds": [37, 194, 43, 197],
+      "original_working_grid_sha256": "d53a74fc4088baef6ab79e94dea10ea40d10873edec7b1304428c3056b882afc",
+      "prepared_grid_sha256": "f871b637c1b3776e88ab1fdd51c51a957688c42691908510b6a3b926d14d1f04"
+    },
+    {
+      "bounds": [0, 80, 3, 86],
+      "original_working_grid_sha256": "12a22461d212922dc1d571f9c681f123778c042cab6404697f4810140ffd877f",
+      "prepared_grid_sha256": "31fd071090393181e8ae28188417a3bb28330a00b801916f2803261910e94150"
+    },
+    {
+      "bounds": [236, 80, 239, 86],
+      "original_working_grid_sha256": "3288275dafa1dd163d7a977841232af417f11042a4f5f5a1253e0b26187aef4e",
+      "prepared_grid_sha256": "dd8b24ec91f94ef7a9ed3d8bc523fc153a64e90da7d495b75260bef4034d14be"
+    },
+    {
+      "bounds": [0, 0, 3, 3],
+      "original_working_grid_sha256": "afc080f3832a81fac21817355ed85c1340ae4e3acaa442246cbbec311865b96d",
+      "prepared_grid_sha256": "68e8cd5ddfec72f91dc612648ade3b0d44f8863562fa2236668830332afeec0c"
+    },
+    {
+      "bounds": [236, 0, 239, 3],
+      "original_working_grid_sha256": "f75e52f2434431c5970a46273bf3d4e9a259123831aedfe29ece7f75a957228a",
+      "prepared_grid_sha256": "7920173cfe7a62623efcd2d00072d675aaf8a09fde06fe8783b3d110ccacb55b"
+    },
+    {
+      "bounds": [0, 194, 3, 197],
+      "original_working_grid_sha256": "c7a40d485ca020a9cf5f622e82b0aae623994a962e06531f14d426e998bec91b",
+      "prepared_grid_sha256": "e15aed8e329a78e9e0a97d30e5d80285c97d5ac90208be239c6290371c95c358"
+    },
+    {
+      "bounds": [236, 194, 239, 197],
+      "original_working_grid_sha256": "5f413a94fd9a7d9816bb46e15c888ed0a06db40dcf97f3abe3859e817025a0f1",
+      "prepared_grid_sha256": "601b9547eaf94e31b13f1016ab53946d9a6ad78b85243b3cc310c11c585259fc"
+    },
+    {
+      "bounds": [0, 99, 239, 99],
+      "original_working_grid_sha256": "a87481621ef60754acdb2f87dca0304ad2260cd3680ef690ec39a3a210d0feac",
+      "prepared_grid_sha256": "a22080d9161d13264fc35f8fc585d2e29b8d70eff40a5afac078a6d201c72b73"
+    },
+    {
+      "bounds": [120, 0, 120, 197],
+      "original_working_grid_sha256": "e70789e978399e29794abeedcc3280410a256f7c74ffad0c27334b5f7a290edc",
+      "prepared_grid_sha256": "0c73d71340d1a4e8f164f434e3bd6ca3cc87a3e23d7b056fd23b778867d7f342"
+    }
+  ],
+  "provenance": "Isolated original DOS/Windows functions under Unicorn 2.1.4; both x87 0x027f and 0x037f agree. Inputs are procedural synthetic_grids() and partial_grids(), with no original asset bytes.",
   "schema_version": 1,
   "table_sha256": {
     "dos": "11084a7919dfc351deaefd4ed81c79d25f25c814b5450a83480137b4f029ebd9",

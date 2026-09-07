@@ -15,10 +15,13 @@ from capplus_inspect.cli import main
 from capplus_inspect.errors import FormatError, InspectError
 from capplus_inspect.maps import MAP_GRID_SIZE, render_map
 from capplus_inspect.palette import palette_for_profile
-from capplus_inspect.terrain import shade_terrain_grid, terrain_length_table
+from capplus_inspect.terrain import (
+    TERRAIN_FULL_BOUNDS, shade_terrain_grid, terrain_length_table,
+    update_terrain_rectangle,
+)
 from scripts.terrain_survey import (
-    OriginalTerrainOracle, compare_result, main as survey_main, read_bounded,
-    survey, synthetic_grids,
+    PARTIAL_BOUNDS, OriginalTerrainOracle, compare_result, main as survey_main,
+    partial_grids, read_bounded, survey, synthetic_grids,
 )
 from .helpers import make_map, make_palette
 from .test_images import png_chunks
@@ -36,6 +39,16 @@ def png_pixels(path: Path) -> bytes:
     chunks = dict(png_chunks(path.read_bytes()))
     raw = zlib.decompress(chunks[b"IDAT"])
     return b"".join(raw[y * 241 + 1:(y + 1) * 241] for y in range(198))
+
+
+def copied_rectangle(source: bytes, working: bytes, bounds: tuple[int, int, int, int]) -> bytes:
+    left, top, right, bottom = bounds
+    result = bytearray(working)
+    for y in range(top, bottom + 1):
+        start = (y * 240 + left) * 8
+        end = (y * 240 + right + 1) * 8
+        result[start:end] = source[start:end]
+    return bytes(result)
 
 
 class TerrainReconstructionTests(unittest.TestCase):
@@ -89,6 +102,75 @@ class TerrainReconstructionTests(unittest.TestCase):
             self.assertEqual(result[border * 8 + 4], result[interior * 8 + 4])
             self.assertEqual(result[border * 8 + 2:border * 8 + 4],
                              self.inputs["ramp"][border * 8 + 2:border * 8 + 4])
+
+    def test_partial_rectangles_match_both_original_functions(self):
+        self.assertEqual([tuple(record["bounds"]) for record in GOLDENS["partial_rectangles"]],
+                         list(PARTIAL_BOUNDS))
+        for build in ("dos", "windows"):
+            source = self.inputs["checker"]
+            working = self.outputs[build, "ramp"]
+            for record in GOLDENS["partial_rectangles"]:
+                bounds = tuple(record["bounds"])
+                with self.subTest(build=build, bounds=bounds):
+                    prepared = copied_rectangle(source, working, bounds)
+                    self.assertEqual(hashlib.sha256(prepared).hexdigest(),
+                                     record["prepared_grid_sha256"])
+                    actual = update_terrain_rectangle(source, working, bounds, profile=build)
+                    self.assertEqual(hashlib.sha256(actual).hexdigest(),
+                                     record["original_working_grid_sha256"])
+
+    def test_partial_update_preserves_both_inputs_and_all_outside_bytes(self):
+        bounds = (117, 96, 123, 102)
+        source = bytearray(self.inputs["checker"])
+        working = bytearray(self.outputs["dos", "ramp"])
+        source_before, working_before = bytes(source), bytes(working)
+        result = update_terrain_rectangle(source, working, bounds)
+        self.assertEqual(source, source_before)
+        self.assertEqual(working, working_before)
+        left, top, right, bottom = bounds
+        for index in range(47520):
+            x, y = index % 240, index // 240
+            cell = slice(index * 8, index * 8 + 8)
+            if left <= x <= right and top <= y <= bottom:
+                for offset in (2, 3, 5, 6, 7):
+                    self.assertEqual(result[index * 8 + offset], source[index * 8 + offset])
+            else:
+                self.assertEqual(result[cell], working[cell])
+
+    def test_full_bounds_partial_update_equals_full_reconstruction(self):
+        source = self.inputs["signed_limits"]
+        for build in ("dos", "windows"):
+            with self.subTest(build=build):
+                actual = update_terrain_rectangle(source, bytes(MAP_GRID_SIZE),
+                                                  TERRAIN_FULL_BOUNDS, profile=build)
+                self.assertEqual(actual, self.outputs[build, "signed_limits"])
+
+    def test_partial_update_requires_preconverted_outside_heights(self):
+        working = bytearray(self.outputs["dos", "ramp"])
+        struct.pack_into("<h", working, 0, 256)
+        with self.assertRaisesRegex(FormatError, "outside.*converted"):
+            update_terrain_rectangle(self.inputs["checker"], working, (120, 99, 120, 99))
+
+    def test_partial_update_rejects_bad_lengths_bounds_and_profile(self):
+        source, working = self.inputs["checker"], self.outputs["dos", "ramp"]
+        for bad in ((), (0, 0, 1), [0, 0, 1, 1], (False, 0, 1, 1),
+                    (-1, 0, 1, 1), (0, -1, 1, 1), (2, 0, 1, 1),
+                    (0, 2, 1, 1), (0, 0, 240, 1), (0, 0, 1, 198)):
+            with self.subTest(bounds=bad), self.assertRaises(FormatError):
+                update_terrain_rectangle(source, working, bad)  # type: ignore[arg-type]
+        for bad_source, bad_working in ((source[:-1], working), (source, working + b"\0")):
+            with self.assertRaises(FormatError):
+                update_terrain_rectangle(bad_source, bad_working, (0, 0, 1, 1))
+        with self.assertRaises(FormatError):
+            update_terrain_rectangle(source, working, (0, 0, 1, 1), profile="unknown")
+
+    def test_partial_probe_inputs_are_stable_and_complete(self):
+        for build in ("dos", "windows"):
+            probes = list(partial_grids(build))
+            self.assertEqual([record[3] for record in probes], list(PARTIAL_BOUNDS))
+            self.assertEqual(len({record[0] for record in probes}), len(PARTIAL_BOUNDS))
+            self.assertTrue(all(record[1] == self.inputs["checker"] for record in probes))
+            self.assertTrue(all(record[2] == self.outputs[build, "ramp"] for record in probes))
 
     def test_grid_size_and_profile_fail_explicitly(self):
         for size in (0, 8, MAP_GRID_SIZE - 1, MAP_GRID_SIZE + 1):
