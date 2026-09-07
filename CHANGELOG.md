@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Corrected `.MAP` framing from a 52-byte header and 32-byte footer to the
+  executable-confirmed 55-byte header and 29-byte city-array header. Added map
+  `layout_version: 2`, counted cities and optional unframed settings blocks.
+- Decoded signed terrain heights, initial height/water-shade conversion and
+  transient city-array metadata. Preserved all unresolved cell/header bytes.
+- Corrected the old overview interpretation: exports preview source-height low
+  bytes, not original runtime shading. Existing preview pixels are unchanged.
+- Added 13 synthetic map tests for flag combinations, counts, bounds, negative
+  heights, pointer preservation, CLI routing and byte-exact reconstruction.
 - Added deterministic graphics catalogs and cross-installation comparison for
   decoded images, font glyphs, palettes, cursor bindings and opaque members.
 - Added stable source/record identifiers and explicit storage-order groups

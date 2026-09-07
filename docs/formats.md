@@ -70,22 +70,29 @@ See the [graphics catalog and palette evidence](graphics.md#palette-loading).
 
 ## Maps (`.MAP`)
 
-The first 380,244 bytes have four confirmed regions:
+The 55-byte header controls optional terrain/city and settings blocks. For a
+terrain-bearing map, the city records still start at byte 380,244:
 
 | Offset | Size | Meaning |
 |---:|---:|---|
 | `0x00000` | 22 | NUL-terminated internal map path |
-| `0x00016` | 30 | NUL-terminated display name |
-| `0x00034` | 380,160 | 240×198 grid of eight-byte cells |
-| `0x5CD34` | 32 | Undecoded footer |
+| `0x00016` | 31 | NUL-terminated display name |
+| `0x00035` | 1 | Nonzero includes terrain and cities |
+| `0x00036` | 1 | Nonzero includes a trailing 737-byte settings record |
+| `0x00037` | 380,160 | Optional 240×198 grid of eight-byte cells |
+| `0x5CD37` | 29 | Optional packed city-array header |
 
-The grid contains 47,520 row-major cells. Byte offset `0x03` within each cell is
-the `PAL_STD.RES` index used by the game's overview map. Rendering this byte
-directly produces the recognizable region/world image, and all city coordinates
-fall within the same 240×198 coordinate space. Meanings of the other seven bytes
-and the footer remain unknown.
+The grid contains 47,520 row-major cells. Each starts with a signed 16-bit
+terrain-height value. Byte 4 holds a derived shade that the original terrain
+pipeline recomputes; bytes 2, 3, 5, 6 and 7 remain explicitly opaque. The old
+52-byte-header/byte-3 interpretation accidentally selected the same source
+bytes as the correct 55-byte-header/byte-0 view. That view is a useful height
+preview, **not evidence of the original game's runtime palette or shading**.
 
-The bytes after the 380,244-byte core are zero or more 29-byte city records:
+The city-array header supplies capacity, growth, selected index, record count,
+29-byte record size, an inferred sort-key offset, an unknown control byte, and
+a transient pointer that the original loader replaces. Exactly the declared
+number of city records follows; the parser does not infer count from file size:
 
 | Record offset | Type | Meaning |
 |---:|---|---|
@@ -94,8 +101,12 @@ The bytes after the 380,244-byte core are zero or more 29-byte city records:
 | `0x04` | `u32` | Population/value field |
 | `0x08` | `char[21]` | NUL-terminated city name |
 
-The parser rejects a file shorter than the fixed core or a city tail not evenly
-divisible by 29.
+An optional unframed 737-byte configuration record follows the cities, or follows
+the header directly if terrain is absent. The parser checks all regions, city
+counts, record size, coordinates and the final file boundary. It never allocates
+from serialized capacity or follows stored pointers. All unknown bytes survive
+structural round trips. See [map contracts and executable evidence](maps.md),
+including the `layout_version: 2` correction and remaining experiment plan.
 
 ## Indexed image export
 

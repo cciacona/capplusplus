@@ -18,9 +18,9 @@ other proprietary game data. You must provide files from your own copy.
 - Recognize the analyzed unmodified DOS and Windows executables by SHA-256.
 - Verify all 72 files shared by the supplied DOS and Windows builds.
 - Parse `.SET` game sets as named containers of embedded dBASE tables.
-- Parse the confirmed 380,244-byte `.MAP` core and 29-byte city records.
-- Decode the core as a 240×198 grid of 47,520 eight-byte cells and render its
-  palette-indexed overview with optional city markers.
+- Parse `.MAP` headers, optional terrain/settings blocks and counted city records.
+- Inspect signed heights in the 240×198 grid and export a palette-indexed source
+  preview with optional city markers; original runtime shading is not implemented.
 - Decode the original 256-color palette and export supported indexed images to
   lossless PNG with exact palette indices and optional transparency.
 - Decode original bitmap fonts, DOS text screens, supplemental language glyphs,
@@ -111,7 +111,7 @@ capplus-inspect inspect "CAPPLUS.EXE" --json
 capplus-inspect inspect "CapWin.exe" --include-strings --minimum-string-length 8 --json
 ```
 
-Export sprites and render a map:
+Export sprites and preview a map's source heights:
 
 ```powershell
 capplus-inspect export-images "RESOURCE\I_PERSON.RES" ".\people" --palette "RESOURCE\PAL_STD.RES"
@@ -166,6 +166,7 @@ PYTHONPATH=src python3 -m unittest discover -s tests -t . -v
 - [Original file-loader contracts](docs/loaders.md)
 - [UI, layout-plan, and support-file formats](docs/ui-resources.md)
 - [Graphics catalog and palette profiles](docs/graphics.md)
+- [Map layout and terrain evidence](docs/maps.md)
 - [Audio formats and playback evidence](docs/audio.md)
 - [Format completeness and safety gates](docs/format-gates.md)
 - [Original-content coverage](docs/content-coverage.md)

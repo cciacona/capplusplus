@@ -69,6 +69,19 @@ def make_palette() -> bytes:
     return struct.pack("<II", 776, 0x12345678) + colors
 
 
+def make_map(cities: tuple[bytes, ...] = (), *, terrain: bool = True, settings: bytes | None = None) -> bytes:
+    header = bytearray(55)
+    header[:14] = b"MAPS\\TEST.MAP\0"
+    header[22:31] = b"Test Map\0"
+    header[53:55] = bytes((bool(terrain), settings is not None))
+    output = bytes(header)
+    if terrain:
+        count = len(cities)
+        output += bytes(380_160) + struct.pack("<6iBI", max(15, count), 15, min(1, count), count, 29, -1, 0, 0)
+        output += b"".join(cities)
+    return output + (settings if settings is not None else b"")
+
+
 def make_pe32_executable() -> bytes:
     data = bytearray(0x600)
     data[:2] = b"MZ"

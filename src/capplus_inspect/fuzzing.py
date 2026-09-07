@@ -131,6 +131,12 @@ def _minimal_save() -> bytes:
     return bytes(output)
 
 
+def _map() -> bytes:
+    header = bytes(53) + b"\x01\0"
+    array_header = struct.pack("<6iBI", 15, 15, 0, 0, 29, -1, 0, 0)
+    return header + bytes(380_160) + array_header
+
+
 def synthetic_fuzz_cases() -> tuple[FuzzCase, ...]:
     """Return small redistributable inputs that exercise every parser family."""
 
@@ -144,7 +150,7 @@ def synthetic_fuzz_cases() -> tuple[FuzzCase, ...]:
     xmidi = iff(b"FORM", b"XDIR" + iff(b"INFO", b"\x01\0")) + iff(b"CAT ", b"XMID" + sequence)
     return (
         FuzzCase("TEST.SET", _named_container([("TABLE", _dbf())])),
-        FuzzCase("TEST.MAP", bytes(380_244)),
+        FuzzCase("TEST.MAP", _map()),
         FuzzCase("PAL_STD.RES", _palette()),
         FuzzCase("FNT_STD.RES", _font()),
         FuzzCase("TEXT.RES", _offset_container([text_screen])),
