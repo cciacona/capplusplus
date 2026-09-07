@@ -19,8 +19,8 @@ other proprietary game data. You must provide files from your own copy.
 - Verify all 72 files shared by the supplied DOS and Windows builds.
 - Parse `.SET` game sets as named containers of embedded dBASE tables.
 - Parse `.MAP` headers, optional terrain/settings blocks and counted city records.
-- Inspect signed heights in the 240×198 grid and export a palette-indexed source
-  preview with optional city markers; original runtime shading is not implemented.
+- Inspect signed heights in the 240×198 grid and export source or reconstructed
+  terrain-shade previews with DOS/Windows profiles and optional city markers.
 - Decode the original 256-color palette and export supported indexed images to
   lossless PNG with exact palette indices and optional transparency.
 - Decode original bitmap fonts, DOS text screens, supplemental language glyphs,
@@ -117,6 +117,11 @@ Export sprites and preview a map's source heights:
 capplus-inspect export-images "RESOURCE\I_PERSON.RES" ".\people" --palette "RESOURCE\PAL_STD.RES"
 capplus-inspect render-map "MAPS\WORLD.MAP" ".\world.png" --palette "RESOURCE\PAL_STD.RES" --scale 4
 ```
+
+To preview reconstructed terrain shading, add `--terrain-profile dos` or
+`--terrain-profile windows`. The independent `--palette-profile windows`
+option applies the Windows palette conversion. See [terrain shading](docs/terrain.md)
+for original-function validation and the remaining full-game rendering limits.
 
 Inspect UI resources and export a font atlas:
 

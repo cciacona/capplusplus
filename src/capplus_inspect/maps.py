@@ -31,11 +31,7 @@ CELL_FIELD_NAMES = (
 )
 
 
-def decode_map_cell(data: bytes) -> dict[str, Any]:
-    """Decode one stored cell, not the transformed runtime terrain grid."""
-    if len(data) != MAP_CELL_SIZE:
-        raise FormatError("map cell must contain exactly eight bytes")
-    height = i16(data, 0)
+def _initial_terrain_state(height: int) -> tuple[int, int | None]:
     if height < 100:
         # x86 signed division truncates toward zero, unlike Python's // for negatives.
         quotient = abs(height) // 10 * (-1 if height < 0 else 1)
@@ -44,6 +40,15 @@ def decode_map_cell(data: bytes) -> dict[str, Any]:
     else:
         initial_height = ((height - 100) * 2 // 3 + 1) if height < 215 else min(height, 255)
         water_shade = None
+    return initial_height, water_shade
+
+
+def decode_map_cell(data: bytes) -> dict[str, Any]:
+    """Decode one stored cell; full-grid context is needed for its final shade."""
+    if len(data) != MAP_CELL_SIZE:
+        raise FormatError("map cell must contain exactly eight bytes")
+    height = i16(data, 0)
+    initial_height, water_shade = _initial_terrain_state(height)
     return {
         "terrain_height": height,
         "source_preview_index": data[0],
@@ -51,7 +56,7 @@ def decode_map_cell(data: bytes) -> dict[str, Any]:
         "unknown_bytes": {str(i): data[i] for i in (2, 3, 5, 6, 7)},
         "initial_terrain_height": initial_height,
         "initial_water_shade": water_shade,
-        "final_runtime_shade": None,  # The later neighbor-based shading pass is not implemented.
+        "final_runtime_shade": None,  # Requires neighbors; use terrain.shade_terrain_grid.
     }
 
 
@@ -180,9 +185,8 @@ def inspect_map(data: bytes) -> dict[str, Any]:
     }
 
 
-def _marked_overview(data: bytes, cities: list[dict[str, Any]]) -> bytes:
-    grid = data[MAP_HEADER_SIZE : MAP_HEADER_SIZE + MAP_GRID_SIZE]
-    pixels = bytearray(grid[MAP_OVERVIEW_PALETTE_OFFSET::MAP_CELL_SIZE])
+def _marked_overview(source_pixels: bytes, cities: list[dict[str, Any]]) -> bytes:
+    pixels = bytearray(source_pixels)
 
     def set_pixel(x: int, y: int, value: int) -> None:
         if 0 <= x < MAP_WIDTH and 0 <= y < MAP_HEIGHT:
@@ -208,6 +212,7 @@ def render_map(
     output: Path,
     *,
     palette_profile: str = "source",
+    terrain_profile: str | None = None,
     scale: int = 4,
     mark_cities: bool = True,
     force: bool = False,
@@ -218,8 +223,17 @@ def render_map(
     palette = palette_for_profile(palette_data, palette_profile)
     grid = data[MAP_HEADER_SIZE : MAP_HEADER_SIZE + MAP_GRID_SIZE]
     pixels = grid[MAP_OVERVIEW_PALETTE_OFFSET::MAP_CELL_SIZE]
+    working_grid = None
+    terrain_model_version = None
+    semantics = "source_height_low_byte_preview_not_runtime_palette"
+    if terrain_profile is not None:
+        from .terrain import TERRAIN_MODEL_VERSION, shade_terrain_grid
+        terrain_model_version = TERRAIN_MODEL_VERSION
+        working_grid = shade_terrain_grid(grid, profile=terrain_profile)
+        pixels = working_grid[4::MAP_CELL_SIZE]
+        semantics = "derived_terrain_shade_preview_isolated_original_functions_checked"
     if mark_cities:
-        pixels = _marked_overview(data, info["cities"])
+        pixels = _marked_overview(pixels, info["cities"])
     output = output.resolve()
     write_indexed_png(
         output,
@@ -235,7 +249,11 @@ def render_map(
         "format": "capitalism_plus_map_render",
         "map_sha256": info["sha256"],
         "map_layout_version": MAP_LAYOUT_VERSION,
-        "render_semantics": "source_height_low_byte_preview_not_runtime_palette",
+        "render_semantics": semantics,
+        "terrain_profile": terrain_profile,
+        "terrain_model_version": terrain_model_version,
+        "terrain_working_grid_sha256": sha256_bytes(working_grid) if working_grid is not None else None,
+        "whole_game_rendering_validated": False,
         "palette_sha256": sha256_bytes(palette_data),
         "palette_profile": palette_profile,
         "output_palette_rgb_sha256": sha256_bytes(bytes(channel for color in palette for channel in color)),

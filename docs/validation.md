@@ -93,7 +93,7 @@ point rounding as normalization concerns.
 
 ## Automated suite
 
-The development suite contains 154 tests covering DBF parsing, all three
+The development suite contains 170 tests covering DBF parsing, all three
 resource-container patterns, palettes, indexed PNG encoding, image export and
 overwrite protection, map structure/rendering, version-100 save framing, save
 comparison, installation-root discovery, CLI exit behavior, and malformed input rejection.
@@ -119,6 +119,9 @@ comparison/CLI behavior and optional palette conversion without pixel changes.
 Thirteen map-contract tests cover corrected offsets, all four block-presence
 combinations, counted cities, signed height conversion, bounds, opaque-byte and
 pointer preservation, source-preview equivalence and settings-only CLI behavior.
+Sixteen terrain tests add original-function-derived hashes for six procedural
+grids in both profiles, lookup-table hashes, opaque-byte preservation, borders,
+PNG indices/palettes, CLI defaults and the optional survey's rejection paths.
 
 Format-gate tests additionally cover the 26-format machine-readable catalog,
 mandatory provenance for all currently inferred field records, exhaustive
@@ -133,7 +136,7 @@ version consistency and safe source-archive extraction. The 27 new fixtures
 are synthetic and introduce no original payloads.
 
 The package gate builds a wheel and source distribution in a tracked-only
-temporary copy, runs all 154 tests from the extracted source distribution,
+temporary copy, runs all 170 tests from the extracted source distribution,
 rebuilds an equal-content wheel, and installs it offline in a fresh environment
 outside the checkout. Local Linux checks pass for installed metadata, CLI
 version, both bundled schemas, catalog validation and a 32-iteration fuzz smoke
@@ -214,3 +217,25 @@ observed one-to-four-ULP cross-build range.
 - Terrain/settings variants and the initial height conversion are supported by
   both executables and synthetic tests. The shipped corpus contains terrain-only
   files; no new map-editor or runtime rendering experiment is claimed.
+
+## Terrain function comparisons
+
+- The exact reference DOS and Windows functions were executed under Unicorn
+  2.1.4 with explicit platform stubs and x87 control words `0x027F` and `0x037F`.
+  This is isolated function execution, not a native game or editor session.
+- All four original lookup-table results match the replacement. Ten words
+  differ between DOS and Windows; neither table changes between the two tested
+  floating-point precision settings.
+- All 84 full-grid comparisons pass: 15 shipped maps and six procedural probes,
+  each checked in two builds under two control words. Every one of the 380,160
+  output bytes agrees, and all five opaque bytes per cell remain unchanged.
+- Both builds produce identical grids for these 21 inputs under both precision
+  settings, despite their lookup-table differences. This does not assert
+  cross-build equivalence for every possible map or partial editing rectangle.
+- World map working-grid SHA-256 is
+  `f1a6052830d9409b5b909a8e3cbdc3f30fa1d3c30bfffffa4d227a0d36e31c0b`.
+- Source inputs remain unchanged. Synthetic regression fixtures contain only
+  generated-input and original-function-output hashes, with no original assets.
+- Full-game working-grid captures, editor exports, screenshots, sprites and
+  camera behavior remain unverified. See [terrain](terrain.md) for formulas,
+  reproducible commands, stubs and the exact evidence boundary.

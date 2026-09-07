@@ -1,0 +1,83 @@
+{
+  "grids": [
+    {
+      "build": "dos",
+      "name": "flat_water",
+      "original_working_grid_sha256": "bcdbc249fdad0a299d2e07056fecd3888f63529cdf976341d9a623f5f2c47469",
+      "source_grid_sha256": "6ad0cbf467c07fd84af656be76c4fa6d7ce4c138237ef283034471f6be3d071c"
+    },
+    {
+      "build": "dos",
+      "name": "flat_land",
+      "original_working_grid_sha256": "c6f2c7f65ed2b2b62597f31af25a5b0a3c622301fe073bcfe373e3090cd437b5",
+      "source_grid_sha256": "3e92ae944fb6b0601fa80f5c414f9c8167cda14edc37673efa4ff085c1cfb557"
+    },
+    {
+      "build": "dos",
+      "name": "flat_peak",
+      "original_working_grid_sha256": "78f18559e78783d12959a1725c6b4dbdb16546c65cf6aac4abd93335ef57907f",
+      "source_grid_sha256": "a08e15b22f42d3bf19020623892074f80e6a4bc831791d4997da124e013df524"
+    },
+    {
+      "build": "dos",
+      "name": "ramp",
+      "original_working_grid_sha256": "08cc09ee8730a69cd67dddc6de9536ec18da2a39ba988af4207a244759894c19",
+      "source_grid_sha256": "94265b668b171006059775dff6d40582aef6d18616b0295f59a6529b1eb46799"
+    },
+    {
+      "build": "dos",
+      "name": "checker",
+      "original_working_grid_sha256": "9fdccf8756d2b6d9b1e47ab7430fba66003df1b8412810b3d35385f04626cec7",
+      "source_grid_sha256": "0498259fb20b88a7701e7b105a849c78087f8f6aab15df6005024d1d6c014bf2"
+    },
+    {
+      "build": "dos",
+      "name": "signed_limits",
+      "original_working_grid_sha256": "0d5e873a3d9410d3b8ce18ccb164859c1614d681f0d7b3473dbc48d034b6286e",
+      "source_grid_sha256": "741ded162438e613a35b68a418a010e549bead9d79b19e9c589f0c93ffa46636"
+    },
+    {
+      "build": "windows",
+      "name": "flat_water",
+      "original_working_grid_sha256": "bcdbc249fdad0a299d2e07056fecd3888f63529cdf976341d9a623f5f2c47469",
+      "source_grid_sha256": "6ad0cbf467c07fd84af656be76c4fa6d7ce4c138237ef283034471f6be3d071c"
+    },
+    {
+      "build": "windows",
+      "name": "flat_land",
+      "original_working_grid_sha256": "c6f2c7f65ed2b2b62597f31af25a5b0a3c622301fe073bcfe373e3090cd437b5",
+      "source_grid_sha256": "3e92ae944fb6b0601fa80f5c414f9c8167cda14edc37673efa4ff085c1cfb557"
+    },
+    {
+      "build": "windows",
+      "name": "flat_peak",
+      "original_working_grid_sha256": "78f18559e78783d12959a1725c6b4dbdb16546c65cf6aac4abd93335ef57907f",
+      "source_grid_sha256": "a08e15b22f42d3bf19020623892074f80e6a4bc831791d4997da124e013df524"
+    },
+    {
+      "build": "windows",
+      "name": "ramp",
+      "original_working_grid_sha256": "08cc09ee8730a69cd67dddc6de9536ec18da2a39ba988af4207a244759894c19",
+      "source_grid_sha256": "94265b668b171006059775dff6d40582aef6d18616b0295f59a6529b1eb46799"
+    },
+    {
+      "build": "windows",
+      "name": "checker",
+      "original_working_grid_sha256": "9fdccf8756d2b6d9b1e47ab7430fba66003df1b8412810b3d35385f04626cec7",
+      "source_grid_sha256": "0498259fb20b88a7701e7b105a849c78087f8f6aab15df6005024d1d6c014bf2"
+    },
+    {
+      "build": "windows",
+      "name": "signed_limits",
+      "original_working_grid_sha256": "0d5e873a3d9410d3b8ce18ccb164859c1614d681f0d7b3473dbc48d034b6286e",
+      "source_grid_sha256": "741ded162438e613a35b68a418a010e549bead9d79b19e9c589f0c93ffa46636"
+    }
+  ],
+  "provenance": "Isolated original DOS/Windows functions under Unicorn 2.1.4; both x87 0x027f and 0x037f agree. Inputs are procedural synthetic_grids(), with no original asset bytes.",
+  "schema_version": 1,
+  "table_sha256": {
+    "dos": "11084a7919dfc351deaefd4ed81c79d25f25c814b5450a83480137b4f029ebd9",
+    "windows": "cba9ae8c537b2d08e24a5e35f012c3b5996972962719300eb65cacc486870885"
+  },
+  "terrain_model_version": 1
+}

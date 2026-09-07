@@ -22,6 +22,7 @@ from .palette import PALETTE_PROFILES
 from .roundtrip import validate_roundtrip_bytes, validate_roundtrip_corpus
 from .schema_catalog import inspect_format_catalog
 from .saves import compare_saves
+from .terrain import TERRAIN_PROFILES
 from .util import json_ready
 
 
@@ -181,7 +182,8 @@ def _render_image_export(result: dict[str, Any]) -> list[str]:
 
 def _render_map_render(result: dict[str, Any]) -> list[str]:
     return [
-        "Capitalism Plus map source preview (not runtime shading)",
+        (f"Capitalism Plus derived terrain preview ({result['terrain_profile']})"
+         if result["terrain_profile"] else "Capitalism Plus map source preview (not runtime shading)"),
         f"  map: {result['display_name']}",
         f"  dimensions: {result['width']}x{result['height']}",
         f"  city markers: {result['city_markers']}",
@@ -644,6 +646,8 @@ def _build_parser() -> argparse.ArgumentParser:
     render_parser.add_argument("--scale", type=int, default=4, help="integer scale 1..32")
     render_parser.add_argument("--palette-profile", choices=PALETTE_PROFILES, default="source",
                                help="preserve source RGB (default) or use Windows palette quantization")
+    render_parser.add_argument("--terrain-profile", choices=TERRAIN_PROFILES,
+                               help="derive terrain shading for this build; omit for the source-height preview")
     render_parser.add_argument(
         "--no-cities", action="store_true", help="do not overlay city position markers"
     )
@@ -795,6 +799,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 args.palette.read_bytes(),
                 args.output,
                 palette_profile=args.palette_profile,
+                terrain_profile=args.terrain_profile,
                 scale=args.scale,
                 mark_cities=not args.no_cities,
                 force=args.force,

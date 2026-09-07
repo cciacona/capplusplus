@@ -85,15 +85,19 @@ floor division: `-1` gives shade 240, not 239. The discontinuity at 215 is
 present in both executables; it is not smoothed or "corrected" by the inspector.
 
 This first pass then calls a neighbor-based shading routine that reads nearby
-heights and writes byte 4. That subsequent pass, its floating-point behavior,
-and final rendering are **not implemented**. `final_runtime_shade` is null.
-The stored shade byte is reported separately, never presented as that result.
+heights and writes byte 4. The full-map operation is implemented by
+`terrain.shade_terrain_grid`, with independent DOS and Windows lookup profiles
+checked against isolated original functions. See [terrain shading](terrain.md)
+for the algorithm, arithmetic and validation limits. A single cell lacks the
+neighbor context, so `decode_map_cell` still reports `final_runtime_shade: null`.
+The stored shade byte is reported separately from any derived result.
 
-`render-map` retains the historical low-byte source preview. It maps `h & 255`
-through the supplied palette and can overlay city markers. Its JSON and text
-output explicitly identify this as a source-height preview, not runtime shading.
-The optional Windows palette profile only changes palette quantization; it does
-not turn the preview into a rendering of the original loaded world.
+`render-map` defaults to the historical low-byte source preview, mapping
+`h & 255` through the supplied palette. `--terrain-profile dos|windows` instead
+exports the derived working-grid shades. Either preview can overlay city
+markers. Text and JSON distinguish the two modes. The independent Windows
+palette profile changes palette quantization only; neither mode renders the
+complete original world's sprites, buildings, camera or UI.
 
 ## City-array header and records
 
@@ -148,14 +152,14 @@ dumps are included in this repository.
 | Write array | `0x004764B0` | `0x0008DE82` | 29-byte header then count × record size |
 | Read array | `0x00476500` | `0x0008DECB` | Local allocation pointer replaces stored pointer; selection reset |
 | Initial terrain conversion | `0x00423AB0` | `0x00047519` | 240×198, eight-byte stride, signed heights and threshold formula |
-| Subsequent shading | `0x0043CB50` | `0x00048412` | Called after conversion; Windows body reads neighbor heights and writes byte 4 |
+| Subsequent shading | `0x0043CB50` | `0x00048412` | Both bodies read neighbor heights and write byte 4; see terrain-function survey |
 
 Useful Windows call sites: `0x0047F779` writes 55 bytes; `0x0047F790` writes
 380,160 grid bytes; `0x0047F79C` invokes array serialization; `0x0047F7B4`
 writes 737 settings bytes. Matching reads are at `0x0047F8B5`, `0x0047F8C1`
 and `0x0047F8D9` after a 55-byte seek. Array capacity/growth/selection use can
 also be checked at `0x004762D0` and `0x00476300`. The later Windows shading
-write is `0x0043CE11`; full cross-build shading equivalence is still pending.
+write is `0x0043CE11`; [terrain evidence](terrain.md) covers both implementations.
 
 ## Corpus validation and remaining experiments
 

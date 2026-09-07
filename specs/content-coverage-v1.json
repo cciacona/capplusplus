@@ -144,9 +144,11 @@
         9
       ],
       "evidence": [
-        "docs/formats.md"
+        "docs/formats.md",
+        "docs/maps.md",
+        "docs/terrain.md"
       ],
-      "notes": "Executable-confirmed 55-byte header, optional blocks, signed heights and counted 29-byte city-array header; five cell bytes remain opaque and runtime shading remains unverified. See docs/maps.md."
+      "notes": "Executable-confirmed header, optional blocks, signed heights and counted city-array header. Full-map shading is checked against isolated DOS/Windows functions; five cell bytes remain opaque and whole-game behavior is unverified. See docs/maps.md and docs/terrain.md."
     },
     {
       "id": "fonts",

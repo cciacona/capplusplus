@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Reconstructed full-map terrain shading with separate DOS/Windows lookup
+  tables, signed arithmetic, neighbor lighting and original border-copy order.
+- Added `render-map --terrain-profile dos|windows`, independently selectable
+  palette conversion and working-grid fingerprints; source-preview defaults
+  remain unchanged.
+- Added an optional, exact-build Unicorn terrain-function survey and synthetic
+  output-hash regressions without introducing an inspector runtime dependency.
+- Added 16 terrain tests and verified all 84 original-function grid comparisons
+  across both builds, both x87 precision settings, shipped maps and synthetic
+  probes. Whole-game editor and rendering validation remain pending.
 - Corrected `.MAP` framing from a 52-byte header and 32-byte footer to the
   executable-confirmed 55-byte header and 29-byte city-array header. Added map
   `layout_version: 2`, counted cities and optional unframed settings blocks.

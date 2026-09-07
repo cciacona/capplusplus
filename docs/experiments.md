@@ -56,3 +56,9 @@ original game, replay actions, compare field values or prove numeric policies.
 The native differential runner and the first original-observation vectors
 remain separate deliverables. Schema changes that alter these semantics need
 a new version; do not reinterpret existing vectors in place.
+
+The [terrain-function survey](terrain.md#reproducing-isolated-original-function-comparisons)
+uses a separate report format for CPU emulation with explicit stubs. It provides
+function-output evidence, not an `original_observation` game session or a native
+differential replay. Its successful comparisons do not satisfy the checkpoint
+and live-game requirements above.
