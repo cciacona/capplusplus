@@ -16,18 +16,24 @@ from capplus_inspect.errors import FormatError, InspectError
 from capplus_inspect.maps import MAP_GRID_SIZE, render_map
 from capplus_inspect.palette import palette_for_profile
 from capplus_inspect.terrain import (
-    TERRAIN_FULL_BOUNDS, shade_terrain_grid, terrain_length_table,
+    TERRAIN_FULL_BOUNDS, TERRAIN_HILL_BASE, TERRAIN_LAND_BASE,
+    TERRAIN_WATER_BASE, TerrainInitializationResult, apply_water_transitions,
+    classify_terrain_tiles, initialize_runtime_terrain, initialize_terrain_cell_fields,
+    parse_terrain_resource, shade_terrain_grid, terrain_length_table,
     update_terrain_rectangle,
 )
 from scripts.terrain_survey import (
-    PARTIAL_BOUNDS, OriginalTerrainOracle, compare_result, main as survey_main,
-    partial_grids, read_bounded, survey, synthetic_grids,
+    PARTIAL_BOUNDS, OriginalTerrainOracle, compare_result, compare_runtime_result,
+    main as survey_main, partial_grids, read_bounded, survey, synthetic_grids,
 )
-from .helpers import make_map, make_palette
+from .helpers import make_dbf, make_map, make_palette, make_terrain_resource
 from .test_images import png_chunks
 
 
 GOLDENS = json.loads((Path(__file__).parent / "fixtures" / "terrain-v1.json").read_text())
+RUNTIME_GOLDENS = json.loads(
+    (Path(__file__).parent / "fixtures" / "terrain-runtime-v1.json").read_text()
+)
 
 
 def map_with_grid(grid: bytes, cities=()) -> bytes:
@@ -181,6 +187,121 @@ class TerrainReconstructionTests(unittest.TestCase):
                 shade_terrain_grid(self.inputs["flat_water"], profile=profile)
 
 
+class RuntimeTerrainInitializationTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.resource = make_terrain_resource()
+        cls.patterns = parse_terrain_resource(cls.resource)
+        cls.source_grids = dict(synthetic_grids())
+
+    def test_synthetic_resource_normalizes_groups_and_base_ids(self):
+        self.assertEqual(len(self.patterns), 49)
+        self.assertEqual(self.patterns[0].corners, (71, 71, 71, 71))
+        self.assertEqual(self.patterns[0].additional_variants, 4)
+        self.assertEqual(self.patterns[19].corners, (72, 72, 72, 72))
+        self.assertEqual(self.patterns[19].additional_variants, 11)
+        self.assertEqual(self.patterns[45].corners, (83, 83, 83, 83))
+        self.assertEqual(self.patterns[45].additional_variants, 3)
+        self.assertEqual(self.patterns[1].probability, 5)
+        self.assertEqual(self.patterns[1].filename, "SYN0001")
+
+    def test_classification_thresholds_replace_only_word_zero(self):
+        values = (-32768, 0, 1, 214, 215, 32767)
+        source = bytearray(struct.pack("<h6B", 1, 2, 3, 4, 5, 6, 7) * 47520)
+        for index, value in enumerate(values):
+            struct.pack_into("<h", source, index * 8, value)
+        before = bytes(source)
+        result = classify_terrain_tiles(source)
+        self.assertEqual(source, before)
+        expected = (TERRAIN_WATER_BASE, TERRAIN_WATER_BASE,
+                    TERRAIN_LAND_BASE, TERRAIN_LAND_BASE,
+                    TERRAIN_HILL_BASE, TERRAIN_HILL_BASE)
+        self.assertEqual(tuple(struct.unpack_from("<H", result, i * 8)[0]
+                               for i in range(len(values))), expected)
+        for offset in range(2, 8):
+            self.assertEqual(result[offset::8], before[offset::8])
+
+    def test_single_water_cell_builds_all_eight_corner_transitions(self):
+        grid = bytearray(struct.pack("<H6B", TERRAIN_LAND_BASE, 2, 3, 4, 5, 6, 7) * 47520)
+        cx, cy = 120, 99
+        struct.pack_into("<H", grid, (cy * 240 + cx) * 8, TERRAIN_WATER_BASE)
+        result = apply_water_transitions(grid, self.patterns)
+        expected = {
+            (-1, 0): "GSGS", (1, 0): "SGSG", (0, -1): "GGSS", (0, 1): "SSGG",
+            (-1, -1): "GGGS", (1, -1): "GGSG", (-1, 1): "GSGG", (1, 1): "SGGG",
+        }
+        for (dx, dy), corners in expected.items():
+            offset = ((cy + dy) * 240 + cx + dx) * 8
+            tile = struct.unpack_from("<H", result, offset)[0]
+            self.assertEqual(bytes(self.patterns[tile - 0x2000].corners).decode(), corners)
+            self.assertEqual(result[offset + 2:offset + 8], grid[offset + 2:offset + 8])
+
+    def test_runtime_outputs_match_original_function_hashes(self):
+        self.assertEqual(RUNTIME_GOLDENS["terrain_resource_sha256"],
+                         hashlib.sha256(self.resource).hexdigest())
+        self.assertEqual(len(RUNTIME_GOLDENS["grids"]), 12)
+        for record in RUNTIME_GOLDENS["grids"]:
+            build, name, seed = record["build"], record["name"], record["initial_rng_state"]
+            working = shade_terrain_grid(self.source_grids[name], profile=build)
+            with self.subTest(build=build, name=name):
+                self.assertEqual(hashlib.sha256(working).hexdigest(),
+                                 record["source_working_grid_sha256"])
+                result = initialize_runtime_terrain(working, self.resource, seed, profile=build)
+                self.assertEqual(hashlib.sha256(result.grid).hexdigest(),
+                                 record["original_runtime_grid_sha256"])
+                self.assertEqual(result.rng_state, record["final_rng_state"])
+                self.assertEqual(result.climate_center_row, record["climate_center_row"])
+                self.assertEqual(result.random_calls, record["random_calls"])
+
+    def test_generated_field_ranges_and_preservation(self):
+        working = shade_terrain_grid(self.source_grids["checker"])
+        classified = classify_terrain_tiles(working)
+        transitioned = apply_water_transitions(classified, self.patterns)
+        mutable = bytearray(transitioned)
+        before = bytes(mutable)
+        result = initialize_terrain_cell_fields(mutable, 0x12345678)
+        self.assertEqual(mutable, before)
+        for offset in (0, 1, 2, 3, 4):
+            self.assertEqual(result.grid[offset::8], before[offset::8])
+        self.assertLessEqual(max(result.grid[5::8]), 4)
+        self.assertLessEqual(max(result.grid[6::8]), 3)
+        water = [index for index in range(47520)
+                 if struct.unpack_from("<H", transitioned, index * 8)[0] == TERRAIN_WATER_BASE]
+        self.assertTrue(water)
+        self.assertTrue(all(result.grid[index * 8 + 7] == before[index * 8 + 7]
+                            for index in water))
+        self.assertEqual(result.field_random_calls, 52_273 + 47_520 - len(water))
+
+    def test_profiles_retain_the_compiler_signed_char_difference(self):
+        working = shade_terrain_grid(self.source_grids["flat_land"])
+        dos = initialize_runtime_terrain(working, self.resource, 0, profile="dos")
+        windows = initialize_runtime_terrain(working, self.resource, 0, profile="windows")
+        differences = [index for index, pair in enumerate(zip(dos.grid, windows.grid))
+                       if pair[0] != pair[1]]
+        self.assertTrue(differences)
+        self.assertEqual({index % 8 for index in differences}, {7})
+        self.assertEqual(dos.rng_state, windows.rng_state)
+
+    def test_malformed_resources_and_runtime_inputs_fail_explicitly(self):
+        wrong = make_dbf([("OTHER", "C", 1, 0)], [["X"]])
+        with self.assertRaisesRegex(FormatError, "field layout"):
+            parse_terrain_resource(wrong)
+        deleted = bytearray(self.resource)
+        header_length = struct.unpack_from("<H", deleted, 8)[0]
+        deleted[header_length] = ord("*")
+        with self.assertRaisesRegex(FormatError, "deleted"):
+            parse_terrain_resource(bytes(deleted))
+        for bad in (b"", bytes(8), bytes(380159), bytes(380161), "bad"):
+            with self.subTest(grid=type(bad).__name__, size=len(bad)), self.assertRaises(FormatError):
+                classify_terrain_tiles(bad)  # type: ignore[arg-type]
+        grid = bytes(380160)
+        for state in (-1, 0x100000000, True, "0"):
+            with self.subTest(state=state), self.assertRaises(FormatError):
+                initialize_terrain_cell_fields(grid, state)  # type: ignore[arg-type]
+        with self.assertRaises(FormatError):
+            initialize_terrain_cell_fields(grid, 0, profile="unknown")
+
+
 class TerrainPreviewTests(unittest.TestCase):
     def setUp(self):
         self.grid = struct.pack("<h6B", 128, 2, 3, 4, 5, 6, 7) * 47520
@@ -274,6 +395,14 @@ class TerrainSurveyTests(unittest.TestCase):
         self.assertFalse(result["passed"])
         with self.assertRaises(InspectError):
             compare_result(raw, raw, raw[:-1])
+        runtime = TerrainInitializationResult(raw, 1, 2, 3, 4)
+        expected = {"grid": raw, "rng_state": 1, "climate_center_row": 2}
+        self.assertTrue(compare_runtime_result(raw, expected, runtime)["passed"])
+        expected["rng_state"] = 2
+        self.assertFalse(compare_runtime_result(raw, expected, runtime)["passed"])
+        expected["grid"] = raw[:-1]
+        with self.assertRaises(InspectError):
+            compare_runtime_result(raw, expected, runtime)
 
     def test_bounded_reads_and_map_count(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -284,17 +413,17 @@ class TerrainSurveyTests(unittest.TestCase):
                 read_bounded(path, 8)
         for executables, paths in (({"dos": b""}, []), ({"dos": b"", "windows": b""}, [Path("unused")] * 65)):
             with self.assertRaises(InspectError):
-                survey(executables, paths)
+                survey(executables, paths, make_terrain_resource())
 
     def test_invalid_or_duplicate_maps_fail_before_emulation(self):
         with tempfile.TemporaryDirectory() as directory, patch("scripts.terrain_survey.OriginalTerrainOracle") as oracle:
             path = Path(directory) / "TEST.MAP"
             path.write_bytes(make_map())
             with self.assertRaisesRegex(InspectError, "collide"):
-                survey({"dos": b"", "windows": b""}, [path, path])
+                survey({"dos": b"", "windows": b""}, [path, path], make_terrain_resource())
             path.write_bytes(make_map(terrain=False))
             with self.assertRaisesRegex(InspectError, "no terrain"):
-                survey({"dos": b"", "windows": b""}, [path])
+                survey({"dos": b"", "windows": b""}, [path], make_terrain_resource())
             oracle.assert_not_called()
 
     def test_survey_refuses_existing_output_before_reading_inputs(self):

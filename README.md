@@ -21,6 +21,8 @@ other proprietary game data. You must provide files from your own copy.
 - Parse `.MAP` headers, optional terrain/settings blocks and counted city records.
 - Inspect signed heights in the 240×198 grid and export source or reconstructed
   terrain-shade previews with DOS/Windows profiles and optional city markers.
+- Reconstruct runtime terrain IDs, shoreline transitions, climate, rainfall,
+  soil fertility and variant selection from user-supplied `TERRAIN.RES` data.
 - Decode the original 256-color palette and export supported indexed images to
   lossless PNG with exact palette indices and optional transparency.
 - Decode original bitmap fonts, DOS text screens, supplemental language glyphs,

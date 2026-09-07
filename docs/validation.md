@@ -93,7 +93,7 @@ point rounding as normalization concerns.
 
 ## Automated suite
 
-The development suite contains 176 tests covering DBF parsing, all three
+The development suite contains 183 tests covering DBF parsing, all three
 resource-container patterns, palettes, indexed PNG encoding, image export and
 overwrite protection, map structure/rendering, version-100 save framing, save
 comparison, installation-root discovery, CLI exit behavior, and malformed input rejection.
@@ -119,10 +119,13 @@ comparison/CLI behavior and optional palette conversion without pixel changes.
 Thirteen map-contract tests cover corrected offsets, all four block-presence
 combinations, counted cities, signed height conversion, bounds, opaque-byte and
 pointer preservation, source-preview equivalence and settings-only CLI behavior.
-Twenty-two terrain tests add original-function-derived hashes for six full-grid
+Twenty-nine terrain tests add original-function-derived hashes for six full-grid
 and twelve partial-rectangle procedural probes, lookup-table hashes, two-grid
 copy semantics, immutable inputs, outside-byte preservation, bounds and prepared
-working-grid checks, PNG indices/palettes, CLI defaults and survey rejection paths.
+working-grid checks, PNG indices/palettes, CLI defaults and survey rejection
+paths. They also cover a procedural 49-row terrain grammar, base-ID thresholds,
+all eight shoreline directions, climate/rainfall/fertility generation, exact
+RNG accounting, malformed resources and the compiler signed-byte difference.
 
 Format-gate tests additionally cover the 26-format machine-readable catalog,
 mandatory provenance for all currently inferred field records, exhaustive
@@ -137,7 +140,7 @@ version consistency and safe source-archive extraction. The 27 new fixtures
 are synthetic and introduce no original payloads.
 
 The package gate builds a wheel and source distribution in a tracked-only
-temporary copy, runs all 176 tests from the extracted source distribution,
+temporary copy, runs all 183 tests from the extracted source distribution,
 rebuilds an equal-content wheel, and installs it offline in a fresh environment
 outside the checkout. Local Linux checks pass for installed metadata, CLI
 version, both bundled schemas, catalog validation and a 32-iteration fuzz smoke
@@ -215,6 +218,9 @@ observed one-to-four-ULP cross-build range.
 - Negative signed heights are present: 86 cells in Europe, 4 in South East Asia
   and 97 in World contain `-1`. Stored cell bytes 2 through 7 are zero throughout
   the supplied map corpus; nonzero opaque values are tested synthetically.
+- The later working-grid initializer replaces word 0 with terrain IDs, preserves
+  bytes 2–4, writes climate and rainfall to bytes 5–6, and writes soil fertility
+  to non-water byte 7. These runtime meanings do not apply to stored source bytes.
 - Terrain/settings variants and the initial height conversion are supported by
   both executables and synthetic tests. Partial editor rectangles are checked
   through isolated original functions, but the shipped corpus contains
@@ -232,15 +238,26 @@ observed one-to-four-ULP cross-build range.
   each checked in two builds under two control words. A further 48 comparisons
   cover twelve inclusive partial rectangles in both builds and control modes.
   Every one of all 132 complete-grid outputs agrees byte-for-byte.
+- A further 42 runtime-initialization comparisons pass: all 15 shipped maps and
+  six procedural probes in each build. Tile classification, ordered shoreline
+  transitions, climate/rainfall/fertility generation and variant selection all
+  match every output byte, final RNG state and climate-center row. The combined
+  survey therefore has 174 passing complete-grid comparisons.
 - Partial cases cover interior cells, all edges and corners, a complete row and
   a complete column. They validate the editor's source-to-working rectangle
   copy, prepared outside-neighbor reads, conditional border copies and five
   opaque bytes per affected cell.
-- Both builds produce identical outputs for these tested inputs under both
-  precision settings, despite their lookup-table differences. This does not
-  assert cross-build equivalence for every possible map or editor action.
+- Both builds produce identical shading outputs for these tested inputs under
+  both precision settings, despite their lookup-table differences. Runtime soil
+  fertility can differ because of the confirmed compiler signedness rule. This
+  does not assert cross-build equivalence for every possible map or editor action.
 - World map working-grid SHA-256 is
   `f1a6052830d9409b5b909a8e3cbdc3f30fa1d3c30bfffffa4d227a0d36e31c0b`.
+- With initial RNG state `0x47A28C03`, the World runtime-grid SHA-256 is
+  `806a0c5baabfc2e4ed8f64baf3ce561ade44334364870a0d85ed54ca95fd130a`
+  for DOS and `a93e9628188bfa9067bbdd2d5f115d30f87ecf8a9dcd35fda192c1e8610e593d`
+  for Windows. Both finish at RNG state `0x0658839F` with climate center row 57;
+  the grid difference is the confirmed signed-`char` fertility behavior.
 - Source inputs remain unchanged. Synthetic regression fixtures contain only
   generated-input and original-function-output hashes, with no original assets.
 - Full-game working-grid captures, editor exports, screenshots, sprites and

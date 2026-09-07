@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Reconstructed all four post-shading world-initialization passes: base tile
+  classification, `TERRAIN.RES` shoreline transitions, climate/rainfall/soil
+  generation and deterministic terrain-variant selection.
+- Confirmed runtime cell bytes 5–7 as climate, rainfall and soil fertility,
+  preserved unresolved bytes 2–3, and retained the DOS/Windows signed-`char`
+  fertility difference as an explicit compatibility profile.
+- Extended the isolated-function terrain survey with normalized user-owned
+  terrain resources, final RNG-state checks and synthetic runtime regressions.
+- Corrected stale roadmap and format-catalog references to the map's 29-byte
+  city-array header and unknown city-record dword.
 - Reconstructed full-map terrain shading with separate DOS/Windows lookup
   tables, signed arithmetic, neighbor lighting and original border-copy order.
 - Added `render-map --terrain-profile dos|windows`, independently selectable
