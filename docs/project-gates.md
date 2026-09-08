@@ -37,12 +37,15 @@ the repository; do not rely on a blanket `*.json` ignore.
 ## Specifications
 
 The ledger gate checks [content coverage](content-coverage.md),
-[feature parity](parity.md) and [experiment records](experiments.md). The schema
-files use a deliberately small JSON Schema subset implemented with the standard
-library; the validator is not a general JSON Schema engine. Unsupported
-validation keywords encountered during validation are errors. Unknown enum
-values, extra properties, contradictory reconciliation and missing local
-evidence references fail validation.
+[feature parity](parity.md), [compatibility quirks](compatibility-quirks.md), and
+[experiment records](experiments.md). Confirmed quirks require focused tests, and
+a catalog cannot declare itself complete while interpretations or profile
+policies remain unresolved. The schema files use a deliberately small JSON
+Schema subset implemented with the standard library; the validator is not a
+general JSON Schema engine. Unsupported validation keywords encountered during
+validation are errors. Unknown enum values, duplicate IDs, extra properties,
+contradictory completion states, and missing local evidence references fail
+validation.
 
 ## Versions and distribution
 

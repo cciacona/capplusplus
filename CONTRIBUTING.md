@@ -30,10 +30,14 @@ On Windows, activate the environment from `.venv\Scripts` and use `py` or
 8. Run the full standard-library test suite, catalog gate, and deterministic
    fuzz campaign.
 9. Update the content/parity ledgers when scope or evidence changes. Use the
-   versioned experiment schema for sanitized original observations.
+   versioned experiment schema for sanitized original observations, and record
+   behavior requiring a profile choice in the compatibility-quirks ledger.
 10. Review and stage only intended source files, then run repository and package
     gates. Stage new specs/fixtures explicitly; the boundary gate reads the index
     and the package check includes only tracked paths.
+11. Before adding third-party source or assets, record the immutable upstream
+    revision, exact material, purpose, and license. Update `THIRD_PARTY_NOTICES.md`
+    and follow [the reuse procedure](docs/reference-projects.md#reuse-procedure).
 
 ```bash
 PYTHONPATH=src python3 -m unittest discover -s tests -t . -v
@@ -53,6 +57,8 @@ for limits and [experiment records](docs/experiments.md) for observation contrac
   everyday usage without narrating individual development updates.
 - Record released and unreleased changes in `CHANGELOG.md`.
 - Keep planned milestones and future scope in `ROADMAP.md`.
+- Record stable architectural choices under `docs/decisions/`; do not hide a
+  changed decision inside an unrelated implementation diff.
 - Put detailed technical findings in focused files under `docs/` and link them
   from the README when they are useful to users or contributors.
 

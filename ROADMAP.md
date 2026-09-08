@@ -69,6 +69,10 @@ The engine should keep compatibility and future expansion separate:
 
 These are proposed component names, not existing native targets. The
 [pre-engine decision list](docs/architecture.md) tracks the unsettled contracts.
+Accepted boundaries are preserved in
+[architecture decision records](docs/decisions/README.md), and lessons from
+other reimplementations are recorded with their licenses in
+[reference projects](docs/reference-projects.md).
 The [feature ledger](docs/parity.md) tracks independent parity dimensions;
 its manual crosswalk is still pending and must be completed before certification.
 
@@ -123,6 +127,8 @@ correctly from both identical asset sets.
   byte preservation, semantics and behavior separately.
 - Use versioned [experiment records](docs/experiments.md) for behavioral claims;
   a synthetic example or opaque round trip is not original-game validation.
+- Maintain the [compatibility-quirks ledger](docs/compatibility-quirks.md) for
+  every verified behavior that requires a Classic/Extended policy choice.
 
 Exit gate: a round-trip reader/writer can reconstruct every supported non-save
 file byte-for-byte; save normalization can explain every changed byte in a
@@ -136,7 +142,8 @@ unexplained save differences must stay visible until resolved.
 
 - Establish C++20, CMake, SDL3, continuous integration, sanitizers, and packaged
   builds for Windows, Linux, and macOS.
-- Add installation discovery and hash-based compatibility reporting.
+- Add installation discovery and hash-based compatibility reporting using the
+  intentionally narrow [known-build policy](docs/decisions/0001-narrow-original-build-support.md).
 - Load original palettes, fonts, sprites, maps, strings, sound effects, and music.
 - Reproduce the title sequence, main menu, browser/spinner controls, windows,
   pointer behavior, keyboard shortcuts, and pause/speed controls.
@@ -151,7 +158,8 @@ running an economic simulation.
 ### 0.5 — End-to-end business vertical slice
 
 - Implement the deterministic calendar, speed levels, pause, RNG stream, command
-  log, and an open development-save format.
+  log, and version 1 of the open native-save format governed by the accepted
+  [save invariants](docs/decisions/0002-native-save-invariants.md).
 - Mirror all new-game setup choices needed for one controlled configuration.
 - Implement towns, consumers, one product chain, one local competitor, and
   import/local-market supply.
@@ -355,6 +363,9 @@ After 1.0, an **Extended profile** can add:
 
 Extended saves must declare their ruleset and enabled packages. Classic saves
 remain isolated so loading a mod cannot silently change a parity game.
+The accepted [content-identity boundary](docs/decisions/0004-content-identity.md)
+defines those guarantees while deliberately deferring package syntax until a
+real Extended prototype exists.
 
 ## Effort and project reality
 

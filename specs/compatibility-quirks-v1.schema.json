@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Cap++ compatibility quirks v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "format",
+    "baseline",
+    "catalog_status",
+    "entries"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "minLength": 1
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "format": {
+      "const": "capplusplus_compatibility_quirks"
+    },
+    "baseline": {
+      "type": "string",
+      "minLength": 1
+    },
+    "catalog_status": {
+      "enum": [
+        "active",
+        "complete"
+      ]
+    },
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title",
+          "domain",
+          "status",
+          "affected_builds",
+          "observed_behavior",
+          "classic_policy",
+          "extended_policy",
+          "risk",
+          "evidence",
+          "tests",
+          "notes"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "domain": {
+            "enum": [
+              "data",
+              "simulation",
+              "persistence",
+              "presentation",
+              "input",
+              "networking",
+              "platform"
+            ]
+          },
+          "status": {
+            "enum": [
+              "confirmed",
+              "inferred",
+              "pending"
+            ]
+          },
+          "affected_builds": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "dos_1_0",
+                "windows_1_0"
+              ]
+            }
+          },
+          "observed_behavior": {
+            "type": "string",
+            "minLength": 1
+          },
+          "classic_policy": {
+            "enum": [
+              "preserve",
+              "canonicalize",
+              "sanitize",
+              "reject",
+              "pending"
+            ]
+          },
+          "extended_policy": {
+            "enum": [
+              "inherit",
+              "fix",
+              "not_applicable",
+              "pending"
+            ]
+          },
+          "risk": {
+            "enum": [
+              "none",
+              "compatibility",
+              "data_integrity",
+              "determinism",
+              "safety"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "tests": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "notes": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

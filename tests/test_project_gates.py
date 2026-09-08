@@ -23,6 +23,7 @@ from scripts.project_gates import (
 class SpecificationTests(unittest.TestCase):
     def setUp(self):
         self.content = load_json(ROOT / "specs/content-coverage-v1.json")
+        self.quirks = load_json(ROOT / "specs/compatibility-quirks-v1.json")
         self.vector = load_json(ROOT / "tests/fixtures/experiments/synthetic-state-delta.json")
 
     def test_ledgers_reconcile_without_claiming_completion(self):
@@ -32,6 +33,9 @@ class SpecificationTests(unittest.TestCase):
         self.assertEqual(result["families"], 37)
         self.assertEqual(result["features"], 43)
         self.assertEqual(result["manual_crosswalk"], "pending")
+        self.assertEqual(result["compatibility_quirks"], 3)
+        self.assertEqual(result["pending_quirk_policies"], 2)
+        self.assertEqual(result["quirks_catalog"], "active")
 
     def test_every_known_core_path_has_one_family(self):
         report = inventory_report(list(CORE_FILE_SHA256), self.content, "shared_core")
@@ -111,6 +115,41 @@ class SpecificationTests(unittest.TestCase):
                     content_path.write_text(json.dumps(content), encoding="utf-8")
                     parity_path.write_text(json.dumps(parity), encoding="utf-8")
                     path.write_text(json.dumps(value), encoding="utf-8")
+                    with self.assertRaises(GateError):
+                        ledger_gate(root)
+
+    def test_quirk_ledger_rejects_invalid_or_unsubstantiated_entries(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for directory in ("specs", "docs", "tests"):
+                shutil.copytree(ROOT / directory, root / directory)
+            quirks_path = root / "specs/compatibility-quirks-v1.json"
+            original = load_json(quirks_path)
+            mutations = []
+
+            changed = copy.deepcopy(original)
+            changed["entries"][1]["tests"] = []
+            mutations.append(changed)
+
+            changed = copy.deepcopy(original)
+            changed["entries"][0]["evidence"] = ["docs/nonexistent.md"]
+            mutations.append(changed)
+
+            changed = copy.deepcopy(original)
+            changed["entries"][1]["id"] = changed["entries"][0]["id"]
+            mutations.append(changed)
+
+            changed = copy.deepcopy(original)
+            changed["catalog_status"] = "complete"
+            mutations.append(changed)
+
+            changed = copy.deepcopy(original)
+            changed["entries"][0]["classic_policy"] = "guess"
+            mutations.append(changed)
+
+            for value in mutations:
+                with self.subTest(value=value):
+                    quirks_path.write_text(json.dumps(value), encoding="utf-8")
                     with self.assertRaises(GateError):
                         ledger_gate(root)
 
