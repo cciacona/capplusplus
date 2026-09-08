@@ -112,6 +112,12 @@ def _render_save(result: dict[str, Any]) -> list[str]:
     ]
     if result.get("rng"):
         lines.append(f"  RNG state: {result['rng']['state_hex']}")
+    if result.get("clock"):
+        clock = result["clock"]
+        lines.append(
+            f"  clock: {clock['initial_date']} to {clock['current_date']} "
+            f"({clock['accumulated_playing_seconds']} playing seconds)"
+        )
     town = result.get("town_array", {})
     if town.get("parsed"):
         names = ", ".join(item["name"] for item in town["towns"])

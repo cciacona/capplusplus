@@ -17,7 +17,7 @@ capplus-inspect schema-catalog
 capplus-inspect schema-catalog --json > format-catalog.json
 ```
 
-Catalog version 1 covers 26 recognized on-disk structures and 73 field records.
+Catalog version 1 covers 26 recognized on-disk structures and 77 field records.
 Every field has a confidence level, one or more observation methods, and a
 provenance note. The dependency-free validator rejects duplicate or missing
 formats, invalid status/method values, and inferred fields without provenance.

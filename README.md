@@ -36,7 +36,8 @@ other proprietary game data. You must provide files from your own copy.
 - Inspect and export PCM sound banks and bounded XMIDI members, compare Windows
   effects, and inspect sound settings and single-BIN mixed-mode CUE geometry.
 - Parse version-100 `.SAV` metadata and the complete 24-section marker chain.
-- Decode the confirmed town array, town/item keys, selected market floats, and RNG state.
+- Decode the confirmed town array, town/item keys, selected market floats, RNG state,
+  and 65-byte simulation clock record.
 - Compare two saves section-by-section and measure cross-build float drift in ULPs.
 - Inspect MZ/LE and PE32 executable structure, including objects, sections, and imports.
 - Survey original file-loader boundaries across the DOS and Windows builds.

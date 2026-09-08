@@ -17,6 +17,7 @@ or unsafe legacy behavior that must be accepted only at an input boundary.
 | `town_pointer_residue` | Inferred | Sanitize | Two town-record dwords vary like runtime residue; original-save normalization handles only their registered byte ranges. Native state must never contain host pointers. |
 | `town_market_float_drift` | Confirmed | Pending | Four tracked town/item floats differ by 1–4 ULPs across the matched DOS/Windows saves; their meanings and canonical arithmetic still need controlled probes. |
 | `terrain_fertility_signed_char` | Confirmed | Pending | A negative intermediate clamps to 100 in DOS and 0 in Windows because the compilers compare the byte differently. The gameplay consequence must be measured before Classic selects a result. |
+| `playing_time_62_second_minute` | Confirmed | Preserve | Both builds divide accumulated seconds by 62 for displayed minutes and 3,720 for hours. Classic preserves that display; Extended may use conventional time. |
 
 `pending` is intentional and blocks code from quietly selecting a compatibility
 answer. It does not block continued research or APIs that expose both original

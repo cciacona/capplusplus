@@ -114,13 +114,13 @@ plain-MZ handling, CLI routing, and the three-report survey workflow without
 including original data.
 
 The structural parser intentionally stops short of general disassembly. The
-[loader-boundary survey](loaders.md) now completes the first targeted
-control-flow task with bounded direct-call and immediate-reference scans. The
-remaining executable-analysis targets are:
+[loader-boundary survey](loaders.md) completes the first targeted control-flow
+task with bounded direct-call and immediate-reference scans. The
+[clock/RNG survey](simulation-clock.md) identifies both saved states, matches
+isolated original functions with zero tolerance, and separates the simulation
+RNG from the presentation RNG. The remaining executable-analysis targets are:
 
-1. Identify the simulation clock and random-number state update sites using
-   save observations as external test oracles.
-2. Map DirectDraw, DirectSound, WinMM, and Windows-message call sites to isolate
+1. Map DirectDraw, DirectSound, WinMM, and Windows-message call sites to isolate
    rendering, audio, timing, and input from platform-independent behavior.
-3. Record behavior as black-box contracts and synthetic tests before writing
+2. Record further behavior as black-box contracts and synthetic tests before writing
    replacement engine code.
