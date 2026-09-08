@@ -168,25 +168,12 @@ PYTHONPATH=src python3 -m unittest discover -s tests -t . -v
 
 ## Documentation
 
-- [Observed binary formats](docs/formats.md)
-- [Executable survey](docs/executables.md)
-- [Original file-loader contracts](docs/loaders.md)
-- [UI, layout-plan, and support-file formats](docs/ui-resources.md)
-- [Graphics catalog and palette profiles](docs/graphics.md)
-- [Map layout and terrain evidence](docs/maps.md)
-- [Audio formats and playback evidence](docs/audio.md)
-- [Format completeness and safety gates](docs/format-gates.md)
-- [Original-content coverage](docs/content-coverage.md)
-- [Feature-parity ledger](docs/parity.md)
-- [Controlled experiment records](docs/experiments.md)
-- [Repository and package gates](docs/project-gates.md)
-- [Pre-engine architecture decisions](docs/architecture.md)
-- [Validation results](docs/validation.md)
+- [Documentation map](docs/README.md)
+- [Complete 1.0 parity roadmap](ROADMAP.md)
+- [Architecture decision records](docs/decisions/README.md)
 - [Clean-room development policy](CLEAN_ROOM.md)
-- [Security policy](SECURITY.md)
 - [Contributing](CONTRIBUTING.md)
 - [Release history](CHANGELOG.md)
-- [Complete 1.0 parity roadmap](ROADMAP.md)
 
 ## Status and caveats
 

@@ -230,10 +230,13 @@ def validate_experiment(vector: dict[str, Any], root: Path = ROOT) -> None:
 def ledger_gate(root: Path = ROOT) -> dict[str, Any]:
     content = load_json(root / "specs/content-coverage-v1.json")
     parity = load_json(root / "specs/feature-parity-v1.json")
+    quirks = load_json(root / "specs/compatibility-quirks-v1.json")
     validate_schema(content, load_json(root / "specs/content-coverage-v1.schema.json"))
     validate_schema(parity, load_json(root / "specs/feature-parity-v1.schema.json"))
+    validate_schema(quirks, load_json(root / "specs/compatibility-quirks-v1.schema.json"))
     families = unique_ids(content["families"] + content["non_file_content"])
     unique_ids(parity["features"])
+    unique_ids(quirks["entries"])
     totals: Counter[str] = Counter()
     for family in content["families"]:
         for source, count in family["observed_counts"].items():
@@ -260,7 +263,15 @@ def ledger_gate(root: Path = ROOT) -> dict[str, Any]:
                 raise GateError("validated parity requires reference evidence and tests")
         if parity["manual_crosswalk_status"] == "complete" and feature["reference_status"] == "needs_reference_check":
             raise GateError("complete manual crosswalk still contains unchecked references")
-    for record in content["families"] + content["non_file_content"] + parity["features"]:
+    for quirk in quirks["entries"]:
+        if quirk["status"] == "confirmed" and not quirk["tests"]:
+            raise GateError("confirmed compatibility quirks require focused tests")
+        if quirks["catalog_status"] == "complete" and (
+                quirk["status"] != "confirmed" or quirk["classic_policy"] == "pending"
+                or quirk["extended_policy"] == "pending"):
+            raise GateError("complete compatibility catalog contains unresolved entries")
+    records = content["families"] + content["non_file_content"] + parity["features"] + quirks["entries"]
+    for record in records:
         for reference in record["evidence"] + record.get("tests", []):
             if reference.startswith("https://"):
                 continue
@@ -276,6 +287,11 @@ def ledger_gate(root: Path = ROOT) -> dict[str, Any]:
     return {"families": len(content["families"]), "non_file_categories": len(content["non_file_content"]),
             "enumerated_sources": dict(totals), "retail_unclassified_files": retail["unclassified_files"],
             "features": len(parity["features"]), "manual_crosswalk": parity["manual_crosswalk_status"],
+            "compatibility_quirks": len(quirks["entries"]),
+            "pending_quirk_policies": sum(
+                quirk["classic_policy"] == "pending" or quirk["extended_policy"] == "pending"
+                for quirk in quirks["entries"]),
+            "quirks_catalog": quirks["catalog_status"],
             "synthetic_experiments": len(examples)}
 
 

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added accepted architecture records for narrow original-build support, native
+  save invariants, compatibility-quirk policy, and future content identity;
+  added a validated quirks ledger, reference-project license matrix, and
+  third-party attribution policy.
 - Reconstructed all four post-shading world-initialization passes: base tile
   classification, `TERRAIN.RES` shoreline transitions, climate/rainfall/soil
   generation and deterministic terrain-variant selection.

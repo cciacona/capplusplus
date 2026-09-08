@@ -1,9 +1,16 @@
-# Pre-engine decisions
+# Pre-engine architecture
 
-The roadmap's C++20/CMake/SDL3 direction is retained. The boundaries below are
-proposals to settle before 0.4, not claims that native targets already exist.
-Keep Python research usable while adding the engine incrementally to this
-repository; no immediate source-tree migration or second repository is needed.
+The roadmap's C++20/CMake/SDL3 direction is retained. The component names below
+remain proposals; the decision table distinguishes accepted requirements from
+open implementation choices. Keep Python research usable while adding the engine
+incrementally to this repository; no immediate source-tree migration or second
+repository is needed.
+
+Accepted choices live in [architecture decision records](decisions/README.md).
+They are requirements for later implementation, not claims that a native engine,
+save codec, or package manager already exists.
+
+## Proposed native components
 
 | Boundary | Proposed contract | Decision/evidence still needed |
 |---|---|---|
@@ -18,15 +25,18 @@ long-running simulation. Floating-point and iteration-order decisions need
 controlled probes before promising replay or multiplayer stability. Do not
 infer the original network/session protocol from platform-era conventions.
 
-Before the native shell PR, record short architecture decisions for:
+## Decision status
 
-- CMake target layout (candidate `engine/`, leaving Python `src/` intact),
-  compiler support and sanitizer CI;
-- native dependency acquisition, pinning, license review and offline builds;
-- install-data discovery, compatibility profiles and missing-asset behavior;
-- numeric policy and deterministic command/update/RNG ordering;
-- original-save import/export, native-save migration and Classic/Extended IDs;
-- version/tag ownership when both inspector and native application ship.
+| Area | Status | Record or remaining decision |
+|---|---|---|
+| Supported original builds | Accepted | [Keep recognition narrow](decisions/0001-narrow-original-build-support.md); OS-specific discovery and missing-data UX remain for 0.4. |
+| Native saves | Requirements accepted; wire format deferred | [Native-save invariants](decisions/0002-native-save-invariants.md); approve wire version 1 before stable 0.5 saves. |
+| Compatibility quirks | Accepted and active | [Quirk policy](decisions/0003-compatibility-quirks.md) and [validated ledger](compatibility-quirks.md). |
+| Profile/content identity | Boundary accepted; manifest syntax deferred | [Content identity](decisions/0004-content-identity.md); implement package syntax only against a real Extended prototype. |
+| Native target layout | Open before 0.4 | Choose the CMake directory/target layout, supported compilers, warnings, sanitizers, and test targets. |
+| Native dependencies | Open before the first dependency PR | Choose acquisition, version pinning, offline-build behavior, license review, and platform packaging. |
+| Numeric determinism | Open before 0.5 | Fix numeric representation plus command, update, iteration, RNG, hashing, and replay order. |
+| Release ownership | Open before 0.4 ships | Decide whether inspector and native application versions/tags advance together or independently. |
 
 For now `v*` tags describe the Python distribution and must match its metadata.
 Do not label the inspector's unreleased research as a released native game.

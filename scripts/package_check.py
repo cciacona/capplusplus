@@ -124,7 +124,10 @@ def package_check() -> dict[str, object]:
         # Development specifications, scripts and fixtures must survive the sdist.
         for relative in ("scripts/project_gates.py", "specs/content-coverage-v1.json",
                          "specs/feature-parity-v1.json", "specs/experiment-v1.schema.json",
-                         "tests/fixtures/experiments/synthetic-state-delta.json", "CLEAN_ROOM.md"):
+                         "specs/compatibility-quirks-v1.json",
+                         "specs/compatibility-quirks-v1.schema.json",
+                         "tests/fixtures/experiments/synthetic-state-delta.json", "CLEAN_ROOM.md",
+                         "THIRD_PARTY_NOTICES.md"):
             if not (unpacked / relative).is_file():
                 raise GateError(f"sdist omitted required development file: {relative}")
         run([sys.executable, "scripts/project_gates.py", "ledgers"], unpacked, env)

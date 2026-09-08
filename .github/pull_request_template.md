@@ -19,5 +19,7 @@ List the tests and reproducible checks that were run.
 - [ ] New format rules have synthetic tests, including malformed-input bounds.
 - [ ] Inputs remain read-only and exports retain overwrite protection.
 - [ ] JSON changes are additive, or `schema_version` was incremented.
+- [ ] Added third-party material has immutable provenance, compatible licensing,
+      required notices, and an updated `THIRD_PARTY_NOTICES.md` entry.
 - [ ] User-facing changes are recorded in `CHANGELOG.md`; planned work remains in
       `ROADMAP.md` rather than the README.

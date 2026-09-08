@@ -47,6 +47,20 @@ vectors separate from engine implementation tasks. A contributor who writes an
 engine subsystem should be able to explain its behavior in terms of documented
 inputs, outputs, and experiments.
 
+## Third-party references and reuse
+
+Other open reimplementations may be studied for general architecture, tooling,
+testing, and project-governance ideas. Their behavior is not evidence of how
+Capitalism Plus works, and their source must not replace the observations
+required above.
+
+Before copying or adapting third-party source, record the immutable upstream
+commit, exact files, license, purpose, and required attribution. Confirm that the
+license is compatible with this repository's MIT distribution and update
+`THIRD_PARTY_NOTICES.md`. GPL, AGPL, noncommercial, or otherwise incompatible
+source must not enter this codebase without an explicit licensing review and
+project-wide decision. See [reference projects](docs/reference-projects.md).
+
 ## User-owned data
 
 The tooling must require users to supply their own game files. It must not fetch,
