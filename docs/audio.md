@@ -112,13 +112,13 @@ manually audited call paths, not runtime traces or portable symbols.
 | Windows address | Observed operation |
 |---|---|
 | `0x00410230` | Poll enabled music; request another selection when the playing flag is clear |
-| `0x00410290` | Reseed Misc, request `random(8)`, add one, invoke the CD wrapper |
+| `0x00410290` | Reseed the presentation Misc, request `random(8)`, add one, invoke the CD wrapper |
 | `0x004423F0` | Open MCI CD audio and select TMSF time format |
 | `0x00442480` | Translate logical selections 1–8 to physical tracks 2–9 |
 | `0x0046AA10` | Stop the prior CD command, start selection and set a playing flag |
 | `0x0041CDE3` | Clear that flag on the `MM_MCINOTIFY` message path |
 | `0x0046AA70` | Open a named loose effect and start a looping DirectSound buffer |
-| `0x0047C530` | Reseed the global Misc object through the local-time conversion path |
+| `0x0047C530` | Reseed the selected Misc object through the local-time conversion path |
 
 For selection `n < 8`, MCI playback starts at track `n+1` and ends at the start
 of track `n+2`; selection 8 starts track 9 without a TO boundary. The commands
@@ -131,13 +131,16 @@ in the inspected selector, and this is not a proven fixed playlist. The inner
 play wrapper returns success even along an MCI-error path, so a set flag alone
 does not prove that physical playback started.
 
-Music selection passes the same global Misc object (`0x004A6180`) used by the
-known RNG contract. Its reseed path reaches `GetLocalTime` through IAT slot
-`0x004B12FC` and stores the resulting seed at Misc offset `0x79`. Subsequent
-selection uses the recovered LCG. **Inference requiring experiment:** enabled
-music may change simulation RNG state according to wall-clock time. Issue
-[#11](https://github.com/cciacona/capplusplus/issues/11) must control music state
-and observe RNG before/after initial selection and track notifications.
+Music selection passes presentation Misc object `0x004A6180`. The RNG serialized
+in save section `1001` instead belongs to object `0x004A4948`; both store their
+state at object offset `0x79`. The selector's reseed path reaches `GetLocalTime`
+through IAT slot `0x004B12FC`, then uses the recovered LCG. Isolated execution
+with a fixed wall-clock result confirms that the selector advances only the
+presentation object and leaves a sentinel simulation state unchanged. DOS also
+has distinct simulation and presentation objects. See the
+[clock/RNG survey](simulation-clock.md#presentation-rng-isolation). The earlier
+hypothesis that enabled music could change saved simulation RNG state is
+therefore rejected.
 
 | DOS address | Observed operation and limit |
 |---|---|

@@ -62,3 +62,9 @@ uses a separate report format for CPU emulation with explicit stubs. It provides
 function-output evidence, not an `original_observation` game session or a native
 differential replay. Its successful comparisons do not satisfy the checkpoint
 and live-game requirements above.
+
+The [clock/RNG survey](simulation-clock.md#exact-build-comparison) uses the same
+narrow evidence class. Its fixed-duration synthetic states establish exact
+clock-local transitions, callback boundaries and RNG outputs in both executable
+profiles. Stubbed subsystem callbacks mean it does not establish economic
+effects, pause/speed scheduling or whole-session determinism.

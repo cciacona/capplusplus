@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Recovered save section `1005` as the 65-byte calendar/playing-time clock,
+  including every field offset, day/month/year transition order and periodic
+  counter cadence.
+- Added exact clock and RNG models plus an optional exact-build Unicorn survey;
+  all 12 RNG sequences, six fixed-duration calendar runs and two loop probes
+  match the DOS and Windows functions with zero tolerance.
+- Confirmed separate saved-simulation and presentation RNG objects in both
+  builds, rejecting the earlier hypothesis that Windows music selection changes
+  the RNG serialized in saves.
+- Recorded the original 62-second playing-time minute as a profile-controlled
+  compatibility quirk and added synthetic original-function golden vectors.
 - Added accepted architecture records for narrow original-build support, native
   save invariants, compatibility-quirk policy, and future content identity;
   added a validated quirks ledger, reference-project license matrix, and

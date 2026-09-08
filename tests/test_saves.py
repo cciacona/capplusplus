@@ -15,6 +15,11 @@ class SaveTests(unittest.TestCase):
         self.assertEqual(result["save_version"], 100)
         self.assertEqual(result["section_count"], 24)
         self.assertEqual(result["rng"]["state_hex"], "0x12345678")
+        self.assertEqual(result["clock"]["initial_date"], "1990-01-01")
+        self.assertEqual(result["clock"]["current_date"], "1990-01-01")
+        self.assertEqual(result["clock"]["weekday"], "Monday")
+        self.assertTrue(result["clock"]["calendar_consistent"])
+        self.assertTrue(result["clock"]["matches_metadata_date"])
         self.assertEqual(result["settings_references"], ["TEST.SCT"])
         self.assertTrue(result["town_array"]["parsed"])
         self.assertEqual(result["town_array"]["dynamic_array"]["element_count"], 0)
@@ -31,6 +36,13 @@ class SaveTests(unittest.TestCase):
     def test_rejects_truncated_save(self) -> None:
         with self.assertRaises(FormatError):
             inspect_save(make_minimal_save()[:-100])
+
+    def test_rejects_clock_record_that_does_not_fill_its_section(self) -> None:
+        data = bytearray(make_minimal_save())
+        marker = data.index(b"\x05\x10\x41\x00")
+        data[marker + 2 : marker + 4] = b"\x40\x00"
+        with self.assertRaisesRegex(FormatError, "clock record"):
+            inspect_save(bytes(data))
 
 
 if __name__ == "__main__":

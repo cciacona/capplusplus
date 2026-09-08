@@ -238,7 +238,7 @@ help disambiguate marker-like byte pairs occurring inside variable data:
 | `1011` | 223 | Unknown |
 | `1001` | 4 | RNG state (`u32`, confirmed by cross-save equality) |
 | `1002` | 46 | Unknown |
-| `1005` | 67 | Unknown |
+| `1005` | 67 | Size-framed 65-byte clock state |
 | `1006` | 380,174 | Likely map/simulation grid; interpretation unknown |
 | `1007` | 182 | Unknown |
 | `1008` | 31 | Unknown |
@@ -247,6 +247,17 @@ help disambiguate marker-like byte pairs occurring inside variable data:
 
 Sizes of omitted markers are variable. Marker labels are serialization tags, not
 yet semantic names.
+
+### Clock state (`1005`)
+
+The payload begins with a `u16` compatible-record size; all three supplied saves
+store 65. The following 65 bytes are sixteen little-endian dwords plus one flag.
+Confirmed fields include initial/current JDN, capped calendar day, month, year,
+weekday, years elapsed, wall-clock samples, periodic counters, and the independent
+main-loop counter. All supplied current JDN values match the metadata date.
+
+The complete offset table, update order, executable addresses and exact-build
+function comparisons are in [simulation clock and RNG contracts](simulation-clock.md).
 
 ### Town array (`101B`)
 

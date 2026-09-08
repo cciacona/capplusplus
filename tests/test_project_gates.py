@@ -33,7 +33,7 @@ class SpecificationTests(unittest.TestCase):
         self.assertEqual(result["families"], 37)
         self.assertEqual(result["features"], 43)
         self.assertEqual(result["manual_crosswalk"], "pending")
-        self.assertEqual(result["compatibility_quirks"], 3)
+        self.assertEqual(result["compatibility_quirks"], 4)
         self.assertEqual(result["pending_quirk_policies"], 2)
         self.assertEqual(result["quirks_catalog"], "active")
 

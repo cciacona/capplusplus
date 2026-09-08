@@ -32,6 +32,8 @@ files; the original installation ZIP validation is earlier evidence.
 | Towns decoded | 7 | 7 | 5 |
 | Town/item records | 343 | 343 | 245 |
 | Town/item element size | 238 | 238 | 238 |
+| Clock record decoded | 65 bytes | 65 bytes | 65 bytes |
+| Clock date matches metadata | Yes | Yes | Yes |
 
 The paired DOS/Windows scenario saves have the same size (542,709 bytes), date,
 scenario reference, town/item keys, and RNG state. They agree at 541,674 byte
@@ -46,6 +48,12 @@ positions, or 99.8093% of the file. Section-aware comparison found:
 Those results support using one shared data/save compatibility layer for both
 original builds while treating platform-dependent pointer bytes and floating
 point rounding as normalization concerns.
+
+The matched saves' clock sections both represent 1990-01-04 from an initial
+1990-01-01 JDN. Their calendar fields and periodic counter framing agree; their
+wall-clock samples, accumulated playing seconds and loop counters may differ as
+expected for independently run sessions. The autosave clock represents
+1991-03-01 from the same initial date and is also calendar-consistent.
 
 ## Palette, images, and maps
 
@@ -74,6 +82,26 @@ point rounding as normalization concerns.
 - The synthetic framed-record probe preserves exact records, zero-extends
   smaller records, skips oversized tails, and rejects declared truncation.
 
+## Simulation clock and RNG functions
+
+- Both exact builds were executed under Unicorn 2.1.4 only within audited RNG,
+  clock and selector ranges; platform, downstream subsystem and event behavior
+  was replaced with documented deterministic stubs.
+- Six starting RNG states each ran through eight bounds in both builds. All 96
+  returned integers and twelve final states match the dependency-free model
+  exactly, including the zero-bound state advance.
+- Three calendar cases per build cover the day-30 cap, month boundary, leap day,
+  year boundary and every periodic-counter wrap. All six complete 65-byte final
+  states and callback counts match with zero tolerance.
+- A 25-iteration loop-counter case in each build starts at 9, ends at 4 and
+  dispatches event 11 three times without changing other clock bytes.
+- Fixed-time presentation probes confirm separate RNG instances. The exact
+  Windows music selector and the DOS presentation RNG pipeline both leave a
+  sentinel in the saved simulation RNG unchanged.
+- The committed golden fixture contains synthetic inputs and scalar/state
+  results only. No executable or save payload is included. See
+  [simulation clock and RNG contracts](simulation-clock.md).
+
 ## UI and support resources
 
 - All three fonts resolve to an exact 88-byte header, a monotonic cumulative
@@ -93,7 +121,7 @@ point rounding as normalization concerns.
 
 ## Automated suite
 
-The development suite contains 183 tests covering DBF parsing, all three
+The development suite contains 203 tests covering DBF parsing, all three
 resource-container patterns, palettes, indexed PNG encoding, image export and
 overwrite protection, map structure/rendering, version-100 save framing, save
 comparison, installation-root discovery, CLI exit behavior, and malformed input rejection.
@@ -106,6 +134,13 @@ generation, compatible-record size handling, and malformed truncation.
 UI tests additionally cover font bit order and empty glyphs, text and language
 containers, cursor offset resolution, ordered help geometry, empty plan/help
 cases, malformed offsets, 3×3 plan records, and framed config/HOF data.
+
+Twenty simulation tests cover LCG vectors and validation, compatible clock
+framing, calendar consistency, day/month/year/leap transitions, counter wraps,
+loop dispatch cadence, the 62-second display conversion, exact-build profile
+isolation, bounded survey inputs and protected report output. Their golden
+vectors were produced from synthetic states compared with both original
+functions; CI needs neither executable nor Unicorn.
 
 Audio tests cover independent WAV decoding, sample preservation, the original
 terminal-padding variant, malformed PCM/IFF lengths, bounded XMIDI recursion,
@@ -140,7 +175,7 @@ version consistency and safe source-archive extraction. The 27 new fixtures
 are synthetic and introduce no original payloads.
 
 The package gate builds a wheel and source distribution in a tracked-only
-temporary copy, runs all 183 tests from the extracted source distribution,
+temporary copy, runs all 203 tests from the extracted source distribution,
 rebuilds an equal-content wheel, and installs it offline in a fresh environment
 outside the checkout. Local Linux checks pass for installed metadata, CLI
 version, both bundled schemas, catalog validation and a 32-iteration fuzz smoke

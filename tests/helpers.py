@@ -1,9 +1,11 @@
 from __future__ import annotations
 
-import struct
 from collections.abc import Iterable
+from datetime import date
+import struct
 
 from capplus_inspect.saves import FIXED_PAYLOAD_SIZES, SECTION_MARKERS
+from capplus_inspect.simulation import clock_state_for_date
 
 
 def make_dbf(
@@ -227,6 +229,9 @@ def make_minimal_save(*, rng_state: int = 0x12345678) -> bytes:
         result.extend(struct.pack("<H", marker))
         if marker == 0x1001:
             payload = struct.pack("<I", rng_state)
+        elif marker == 0x1005:
+            clock = clock_state_for_date(date(1990, 1, 1)).to_bytes()
+            payload = struct.pack("<H", len(clock)) + clock
         elif marker == 0x101B:
             dynamic = bytearray(44)
             struct.pack_into("<IIIII", dynamic, 0, 0, 100, 0, 0, 238)

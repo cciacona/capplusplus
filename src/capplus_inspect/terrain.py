@@ -8,6 +8,7 @@ import struct
 from .dbf import inspect_dbf
 from .errors import FormatError
 from .maps import MAP_CELL_COUNT, MAP_GRID_SIZE, MAP_HEIGHT, MAP_WIDTH, _initial_terrain_state
+from .simulation import rng_bounded
 
 
 TERRAIN_PROFILES = ("dos", "windows")
@@ -19,7 +20,6 @@ TERRAIN_LAND_BASE = 0x2000
 TERRAIN_HILL_BASE = 0x2013
 TERRAIN_WATER_BASE = 0x202D
 MAX_TERRAIN_PATTERNS = 0x6000
-_RNG_MULTIPLIER = 0x015A4E35
 
 
 @dataclass(frozen=True)
@@ -65,9 +65,7 @@ def _validated_rng_state(state: int) -> None:
 
 
 def _random(state: int, maximum: int) -> tuple[int, int]:
-    state = (state * _RNG_MULTIPLIER + 1) & 0xFFFFFFFF
-    raw = (state >> 16) & 0x7FFF
-    return state, (raw * maximum) >> 15
+    return rng_bounded(state, maximum)
 
 
 def _signed_byte(value: int) -> int:

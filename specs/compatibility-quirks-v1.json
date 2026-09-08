@@ -70,6 +70,27 @@
         "tests/test_terrain.py"
       ],
       "notes": "The inspector exposes both original profiles. Measure the gameplay consequence before selecting the deterministic Classic rule."
+    },
+    {
+      "id": "playing_time_62_second_minute",
+      "title": "Playing-time display uses 62-second minutes",
+      "domain": "presentation",
+      "status": "confirmed",
+      "affected_builds": [
+        "dos_1_0",
+        "windows_1_0"
+      ],
+      "observed_behavior": "Both original playing-time formatters divide accumulated seconds by 62 for minutes and by 3720 for hours, so one displayed minute lasts 62 real seconds.",
+      "classic_policy": "preserve",
+      "extended_policy": "fix",
+      "risk": "compatibility",
+      "evidence": [
+        "docs/simulation-clock.md#playing-time-display-quirk"
+      ],
+      "tests": [
+        "tests/test_simulation.py"
+      ],
+      "notes": "Keep canonical accumulated playing time in seconds. Classic reproduces only the original display conversion; Extended may use conventional 60-second minutes without changing saved time."
     }
   ]
 }

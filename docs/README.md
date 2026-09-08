@@ -18,6 +18,7 @@ not evidence that the corresponding game system has been implemented.
 - [Original file-loader contracts](loaders.md)
 - [Map layout and terrain evidence](maps.md)
 - [Terrain conversion and runtime initialization](terrain.md)
+- [Simulation clock and random-number contracts](simulation-clock.md)
 - [UI, layout-plan, and support-file formats](ui-resources.md)
 - [Graphics catalog and palette profiles](graphics.md)
 - [Audio formats and playback evidence](audio.md)

@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "source": "scripts/simulation_survey.py isolated exact-build function comparison",
+  "executable_sha256": {
+    "dos": "76867a7cb9ba913cfb3390731361ef8e560b2ed087632389e525ad22ccb07bda",
+    "windows": "f887e1c4d16c7370caccbb362515e45a406e249bdf5397cd6f494edea2e16c0c"
+  },
+  "integer_tolerance": 0,
+  "original_builds_match": true,
+  "rng_vectors": [
+    {
+      "initial_state": "0x00000000",
+      "maxima": [0, 1, 8, 100, 32767, 8, 8, 8],
+      "values": [0, 0, 0, 33, 1089, 2, 1, 4],
+      "final_state": "0x44BB74B8"
+    },
+    {
+      "initial_state": "0x00000001",
+      "maxima": [0, 1, 8, 100, 32767, 8, 8, 8],
+      "values": [0, 0, 2, 3, 11655, 1, 4, 1],
+      "final_state": "0x190F3A19"
+    },
+    {
+      "initial_state": "0x12345678",
+      "maxima": [0, 1, 8, 100, 32767, 8, 8, 8],
+      "values": [0, 0, 3, 24, 18878, 6, 4, 5],
+      "final_state": "0xDA029030"
+    },
+    {
+      "initial_state": "0x47A28C03",
+      "maxima": [0, 1, 8, 100, 32767, 8, 8, 8],
+      "values": [0, 0, 3, 21, 25401, 3, 3, 6],
+      "final_state": "0x6009D0DB"
+    },
+    {
+      "initial_state": "0x89ABCDEF",
+      "maxima": [0, 1, 8, 100, 32767, 8, 8, 8],
+      "values": [0, 0, 5, 44, 29239, 0, 0, 5],
+      "final_state": "0x54CA6747"
+    },
+    {
+      "initial_state": "0xFFFFFFFF",
+      "maxima": [0, 1, 8, 100, 32767, 8, 8, 8],
+      "values": [0, 0, 5, 63, 23291, 3, 7, 7],
+      "final_state": "0x7067AF57"
+    }
+  ],
+  "clock_vectors": [
+    {
+      "name": "month_and_day_cap",
+      "initial_date": "1990-01-29",
+      "initial_epoch": "1990-01-01",
+      "initial_counters": [29, 29, 0, 0, 5, 11, 9],
+      "duration_days": 4,
+      "final_date": "1990-02-02",
+      "final_counters": [3, 0, 0, 0, 0, 0, 9],
+      "callbacks": {"day": 4, "month": 1, "year": 0}
+    },
+    {
+      "name": "leap_day",
+      "initial_date": "1992-02-27",
+      "initial_epoch": "1990-01-01",
+      "initial_counters": [0, 0, 0, 0, 0, 0, 0],
+      "duration_days": 3,
+      "final_date": "1992-03-01",
+      "final_counters": [3, 1, 0, 0, 1, 1, 0],
+      "callbacks": {"day": 3, "month": 1, "year": 0}
+    },
+    {
+      "name": "year_and_counter_wrap",
+      "initial_date": "1990-12-30",
+      "initial_epoch": "1990-01-01",
+      "initial_counters": [28, 29, 29, 9, 5, 11, 9],
+      "duration_days": 3,
+      "final_date": "1991-01-02",
+      "final_counters": [1, 0, 0, 0, 0, 0, 9],
+      "callbacks": {"day": 3, "month": 1, "year": 1}
+    }
+  ],
+  "loop_vector": {
+    "initial_counter": 9,
+    "iterations": 25,
+    "final_counter": 4,
+    "event_11_dispatches": 3
+  },
+  "presentation_rng_isolation": {
+    "fixed_wallclock_seed": "0x65432100",
+    "simulation_initial_state": "0x13579BDF",
+    "simulation_final_state": "0x13579BDF",
+    "presentation_final_state": "0x04F3D501",
+    "selection": 1,
+    "windows_selector_executed": true,
+    "dos_selector_reachability": "unresolved"
+  },
+  "playing_time_display": [
+    {"seconds": 0, "display": [0, 0]},
+    {"seconds": 61, "display": [0, 0]},
+    {"seconds": 62, "display": [0, 1]},
+    {"seconds": 3719, "display": [0, 59]},
+    {"seconds": 3720, "display": [1, 0]},
+    {"seconds": 3721, "display": [1, 0]},
+    {"seconds": 7440, "display": [2, 0]}
+  ]
+}

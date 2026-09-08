@@ -8,6 +8,7 @@ from typing import Any
 from . import SCHEMA_VERSION
 from .errors import FormatError
 from .records import read_compatible_record
+from .simulation import CLOCK_RECORD_SIZE, ClockState, decode_clock_state
 from .util import (
     c_string,
     f32,
@@ -72,6 +73,7 @@ FIXED_PAYLOAD_SIZES = {
 
 TOWN_MARKER = 0x101B
 RNG_MARKER = 0x1001
+CLOCK_MARKER = 0x1005
 TOWN_RECORD_EXPECTED = 371
 ITEM_INDEX_EXPECTED = 168
 FIRM_INDEX_EXPECTED = 364
@@ -436,6 +438,25 @@ def _parse_save(data: bytes) -> tuple[dict[str, Any], dict[str, Any]]:
         rng_state = u32(data, rng_start)
         result["rng"] = {"state": rng_state, "state_hex": f"0x{rng_state:08X}"}
 
+    clock_start, clock_end = section_map[CLOCK_MARKER]
+    clock_raw, clock_next, clock_saved_size = read_compatible_record(
+        data,
+        clock_start,
+        expected_size=CLOCK_RECORD_SIZE,
+        limit=clock_end,
+    )
+    if clock_next != clock_end:
+        raise FormatError("clock record does not fill section 0x1005", offset=clock_next)
+    clock = decode_clock_state(ClockState.from_bytes(clock_raw))
+    clock.update(
+        {
+            "record_saved_size": clock_saved_size,
+            "record_effective_size": len(clock_raw),
+            "matches_metadata_date": clock["current_date_jdn"] == current_jdn,
+        }
+    )
+    result["clock"] = clock
+
     town_start, town_end = section_map[TOWN_MARKER]
     try:
         town_public, town_internal = _decode_town_array(data, town_start, town_end)
@@ -589,6 +610,7 @@ def compare_saves(left_data: bytes, right_data: bytes) -> dict[str, Any]:
             "scenario": left["scenario_title"],
             "settings_references": left["settings_references"],
             "rng": left.get("rng"),
+            "clock": left.get("clock"),
         },
         "right": {
             "size": right["size"],
@@ -598,6 +620,7 @@ def compare_saves(left_data: bytes, right_data: bytes) -> dict[str, Any]:
             "scenario": right["scenario_title"],
             "settings_references": right["settings_references"],
             "rng": right.get("rng"),
+            "clock": right.get("clock"),
         },
         "same_size": len(left_data) == len(right_data),
         "byte_identical": left_data == right_data,
