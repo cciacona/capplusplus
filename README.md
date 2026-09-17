@@ -9,8 +9,8 @@ inspector and exporter for user-supplied Capitalism Plus installations and data
 files. It turns the original binary formats into versioned JSON that the future
 engine and parity-test harness can consume.
 
-The project contains no game executable, artwork, audio, maps, scenarios, or
-other proprietary game data. You must provide files from your own copy.
+**The project contains no game executable, artwork, audio, maps, scenarios, or
+other proprietary game data. You must provide files from your own copy.**
 
 ## Capabilities
 
@@ -178,15 +178,15 @@ PYTHONPATH=src python3 -m unittest discover -s tests -t . -v
 
 ## Status and caveats
 
-This is reverse-engineering tooling, not yet a playable engine. Fields described as
+This is reverse-engineering tool, not yet a playable engine. Fields described as
 “confirmed” have been checked against the supplied files; fields described as
-“inferred” still need controlled experiments. The JSON schema starts at version
+“inferred” still need to be tested. The JSON schema starts at version
 `1`, but the project itself is pre-1.0 and may gain new fields.
 
-Capitalism Plus is the property of its respective rights holders. This project
+*Capitalism Plus is the property of its respective rights holders. This project
 is an independent compatibility effort and is not affiliated with or endorsed by
 them. Laws governing reverse engineering differ by jurisdiction; contributors
-are responsible for following applicable law.
+are responsible for following applicable law.*
 
 ## License
 
