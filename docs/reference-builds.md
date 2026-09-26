@@ -9,6 +9,12 @@ announcement with [Steam build 25547109][steamdb]. A Steam build ID, a game's
 release label, the menu's internal version and the version number inside a save
 are separate identifiers.
 
+SteamDB [lists build 25547109][branches] on both the public and beta branches,
+with the public branch updated on 2026-09-26. Its publicly visible
+[depot file page][depot] still displays a manifest dated 2016. That older file
+list, including DOSBox, cannot establish what files Steam 1.01 currently
+installs.
+
 | Reference | Evidence in this repository | Executable and data | Save and behavior evidence | Current role |
 |---|---|---|---|---|
 | Retail DOS 1.0 | Supplied unmodified installation; [executable hash](executables.md#build-identities) and [validation record](validation.md) | Known MZ/LE executable; its 72 core files match the supplied Windows installation | Paired version-100 saves and controlled executable probes | Measured Classic reference; recognized by `capplus-inspect` |
@@ -62,3 +68,5 @@ existing 1.0 acceptance criteria by itself.
 
 [steam]: https://store.steampowered.com/news/app/450120/view/708909893000627895?l=english
 [steamdb]: https://steamdb.info/patchnotes/25547109/
+[branches]: https://steamdb.info/app/450120/depots/
+[depot]: https://steamdb.info/depot/450121/
