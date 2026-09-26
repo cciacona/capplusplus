@@ -39,7 +39,8 @@ No 1.0 requirement depends on hypothetical variants.
 The publisher [announced Steam Capitalism Plus version 1.01](../reference-builds.md)
 after this decision was accepted. The historical premise that no other release
 was known no longer holds. The narrow-recognition decision remains in effect:
-no 1.01 executable or data files have been measured, so the inspector must
-continue to report them as unknown rather than infer compatibility from the
-announcement. A measured inventory, save probe and scope decision will determine
-whether to supersede this record.
+a user-supplied 1.01 archive now has a measured executable fingerprint and a
+71/72 core-file match, but no live save or behavior validation. The inspector
+reports the executable as an unknown build with a PE header. A controlled save
+probe and scope decision will determine whether to supersede this record and
+recognize it as a supported build.

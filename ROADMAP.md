@@ -11,8 +11,9 @@ version-100 saves examined so far, and the feature inventory in the
 
 The [reference-build matrix](docs/reference-builds.md) distinguishes the
 measured retail DOS and Windows 1.0 builds from the newly announced Steam 1.01
-release. The latter's files, saves and behavior have not yet been inspected.
-Its announcement does not change Cap++ 1.0's acceptance criteria or imply
+release. A user-supplied archive has yielded executable and data evidence, but
+no live 1.01 save or behavior experiment yet. The announcement and static
+inventory do not change Cap++ 1.0's acceptance criteria or imply behavioral
 compatibility with the new release; measured differences may inform a later
 roadmap decision.
 

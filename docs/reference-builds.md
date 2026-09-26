@@ -1,13 +1,14 @@
 # Capitalism Plus reference builds
 
-This inventory separates an **announced release** from builds whose files and
-behavior have been measured. The original DOS and Windows installations remain
-the measured Classic-parity references. The [official Steam announcement][steam]
-dated 2026-09-26 calls its updated release *Capitalism Plus version 1.01*; its
-files have not yet been supplied for inspection. SteamDB associates the
-announcement with [Steam build 25547109][steamdb]. A Steam build ID, a game's
-release label, the menu's internal version and the version number inside a save
-are separate identifiers.
+This inventory separates **measured files** from **tested game behavior**. The
+original DOS and Windows installations remain the measured Classic-parity
+references. The [official Steam announcement][steam] dated 2026-09-26 calls its
+updated release *Capitalism Plus version 1.01*. A user-provided folder archive
+identified as that release was inspected on the same day. SteamDB associates
+the announcement with [Steam build 25547109][steamdb], but the archive does not
+contain a Steam app manifest to verify its exact depot build ID. A Steam build
+ID, the game's release label, the executable's embedded version string, and
+the version number inside a save are separate identifiers.
 
 SteamDB [lists build 25547109][branches] on both the public and beta branches,
 with the public branch updated on 2026-09-26. Its publicly visible
@@ -19,18 +20,47 @@ installs.
 |---|---|---|---|---|
 | Retail DOS 1.0 | Supplied unmodified installation; [executable hash](executables.md#build-identities) and [validation record](validation.md) | Known MZ/LE executable; its 72 core files match the supplied Windows installation | Paired version-100 saves and controlled executable probes | Measured Classic reference; recognized by `capplus-inspect` |
 | Retail Windows 1.0 | Supplied unmodified installation; [executable hash](executables.md#build-identities) and [validation record](validation.md) | Known PE32 executable; the 72 shared core files match DOS | Paired version-100 saves, cross-loading observation and controlled executable probes | Measured Classic reference; recognized by `capplus-inspect` |
-| Steam 1.01, announced 2026-09-26 | [Publisher announcement][steam]; SteamDB's [build record][steamdb] | Executable identity, dependencies, file list, core-file hashes and data differences **not measured** | Save version, load/resave compatibility, simulation and UI differences **not measured** | Candidate third reference; **not recognized or certified** by the inspector |
+| Steam 1.01 candidate archive, received 2026-09-26 | User-supplied ZIP, hashes and static comparison below; [publisher announcement][steam] | PE32 executable, SDL3 import, 71/72 old core-file hashes match; one changed UI resource | Seven pre-update save files are present; **no save made under 1.01 or live behavior test** | Measured third artifact; **not recognized or certified** as a compatible build by the inspector |
 
 The publisher says the Steam update uses SDL3 for video, runs on Windows 11
 without DOSBox, and offers borderless windowed play. It also says the original
 background music **has already been** restored; the announcement does not date
-that restoration. It does not say how the game logic was ported, whether old
-source code was used, whether DOS/Windows saves still load, or whether the new
-release contains changed game rules or content. SDL3 use alone does not prove
-native Linux or macOS builds. These remain open questions, not compatibility
-claims.
+that restoration. It does not say whether DOS/Windows saves still load or
+whether game rules changed. SDL3 use alone does not prove native Linux or macOS
+builds. These remain open questions, not compatibility claims.
 
-## Inspection plan for an owned Steam installation
+## Static inspection of the supplied 1.01 archive
+
+The supplied `Capitalism Plus101.zip` passes ZIP CRC validation. It contains
+585 files and has SHA-256
+`e578a84cc7669da94973cf4eeb582a8a8aa108d524dbfbd043b6422b4c2850f2`.
+It includes old user saves and configuration files, so its full inventory is
+**not** proof of a pristine Steam depot's contents. Only this exact archive is
+covered by the measurements below.
+
+| Observation | Result |
+|---|---|
+| Main executable | `CapPlus.exe`, 1,156,608 bytes, SHA-256 `b68a781b351fb9951992906a83770d0f46eba4d000c9f2ddb145dd9a45e34cd7`; PE32/i386 Windows GUI image, with an embedded `Version 1.01` string. |
+| Imports | `SDL3.dll`, `KERNEL32.dll`, `USER32.dll`, `ole32.dll`, `WINMM.dll`. The supplied ZIP includes `SDL3.dll` (2,328,064 bytes; SHA-256 `d60669949ab81274e6f6e92db3f7a1fcd04f05a344df77a365f96c33ac4f84f2`). No DOSBox executable or DOS LE game executable appears in this ZIP. |
+| Known core data | All 72 core files are present; 71 have the same SHA-256 as the two measured retail 1.0 installations. `Resource/I_SCEN.RES` retains its size (1,611,364 bytes) but differs (SHA-256 `6206a056af6d5a0ac2e1b8ead174eb17285e6da87aa7d6a7f0ade9655dada379`). Its 19-member index and offsets remain intact; the main-menu member and 14 small button-image members differ. |
+| Other packaged files | Relative to the supplied retail Windows **working directory** (113 files), 98 same-path files are byte-identical, four differ (the UI resource plus mutable configuration, hall of fame and sound settings), 483 paths appear only in this ZIP, and 11 only in the old working directory. The new-only paths include a different executable, SDL3, loose scenario/tutorial content and 388 OGG files. Some old-only OGGs were user-added replacement music; path additions alone do not establish new game features. |
+| Binary lineage clue | After normalizing directory prefixes in printable `.cpp` filename strings, 116 of 117 basenames from the retail Windows executable also occur in the 1.01 executable. This **strongly suggests shared source lineage**; strings alone cannot establish which source was used or whether simulation behavior is unchanged. |
+
+The current `capplus-inspect` recognized-build list still contains only the
+two unmodified retail binaries. The 1.01 executable is reported as an **unknown
+build with a PE header**. A synthetic regression test prevents the filename
+`CapPlus.exe` from incorrectly labeling an unknown PE build as DOS. The archive
+passes deep inspection of its supported data families, but four bundled saves
+hit the existing save-section resolver's limits.
+
+All seven bundled `.SAV` files carry version `100` in their headers. Three
+smaller files (`21ST_001` through `003`) resolve all 24 save sections. Four
+larger files (`21st_004`, `D1`, `D2`, `W1`) do not resolve with the current
+fixed-section assumptions; their ZIP timestamps precede the 1.01 announcement.
+These parser failures are **not evidence that 1.01 changed the save format**.
+No supplied save establishes a live load or resave under this release.
+
+## Remaining compatibility tests
 
 Track measurements and decisions in [issue #28](https://github.com/cciacona/capplusplus/issues/28).
 
@@ -38,29 +68,23 @@ Keep the installed files and saves private. Record only their names, lengths,
 cryptographic hashes, structural observations and sanitized experiment results
 in the repository; follow the [clean-room policy](../CLEAN_ROOM.md).
 
-1. Capture the Steam app and build IDs, acquisition date, complete file inventory
-   and SHA-256 digests. Preserve the current installation before Steam replaces
-   it with a later build. Record executable names, format, imports, bundled
-   libraries and version strings; distinguish inspected bytes from the
-   announcement's description.
-2. Run `capplus-inspect inspect <installation> --deep --json` read-only and record
-   which analyses work and which checks reject an unknown executable or changed
-   data. Compare paths and hashes for the 72 known shared core files against
-   both 1.0 installations. Do not add a known-build fingerprint from the release
-   label alone.
-3. On copies of the existing controlled saves, test Steam 1.01 loading and a
+1. Capture the Steam app manifest or the installed build ID to pin the exact
+   Steam depot represented by this archive. Resolve the four larger pre-update
+   saves under [issue #8](https://github.com/cciacona/capplusplus/issues/8)
+   without weakening existing fixed-section invariants.
+2. On copies of the existing controlled saves, test Steam 1.01 loading and a
    paused no-op resave. Record game date, elapsed time, RNG state and other
    relevant state before/after each operation. Compare save header, version,
    length, all section markers, counters and byte ranges with the existing
-   DOS/Windows controls under [issue #8](https://github.com/cciacona/capplusplus/issues/8).
-   Document rejected saves and crashes as observations too. Do not treat two
-   saves as same-state merely because they share a slot name.
-4. Probe any gameplay or presentation differences that the inventory and save
+   DOS/Windows controls. Document rejected saves and crashes as observations
+   too. Do not treat two saves as same-state merely because they share a slot name.
+3. Probe any gameplay or presentation differences that the inventory and save
    tests reveal. Add sanitized [experiment records](experiments.md) for
    behavioral claims. Decide whether 1.01 is a compatible additional oracle or
    a distinct profile, then revise the [roadmap](../ROADMAP.md), the
    [known-build decision](decisions/0001-narrow-original-build-support.md), and
-   recognition code with measured evidence.
+   recognition code with behavioral evidence. Keep the new executable hash out
+   of the recognized-build set until that scope is explicit.
 
 The current [Cap++ 1.0 roadmap](../ROADMAP.md) is a version of **this project**.
 The Steam release's 1.01 label does not change Cap++ milestone numbering or the

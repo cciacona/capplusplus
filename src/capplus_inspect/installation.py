@@ -36,6 +36,10 @@ class _Source(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def read_prefix(self, name: str, limit: int) -> bytes:
+        raise NotImplementedError
+
+    @abstractmethod
     def sha256(self, name: str) -> str:
         raise NotImplementedError
 
@@ -60,6 +64,10 @@ class _DirectorySource(_Source):
     def read(self, name: str) -> bytes:
         return self._files[name].read_bytes()
 
+    def read_prefix(self, name: str, limit: int) -> bytes:
+        with self._files[name].open("rb") as stream:
+            return stream.read(limit)
+
     def sha256(self, name: str) -> str:
         return sha256_file(self._files[name])
 
@@ -82,6 +90,10 @@ class _ZipSource(_Source):
 
     def read(self, name: str) -> bytes:
         return self.archive.read(self._infos[name])
+
+    def read_prefix(self, name: str, limit: int) -> bytes:
+        with self.archive.open(self._infos[name]) as stream:
+            return stream.read(limit)
 
     def sha256(self, name: str) -> str:
         digest = hashlib.sha256()
@@ -126,6 +138,21 @@ def _canonical_files(source: _Source) -> tuple[str, dict[str, str]]:
         canonical = actual[len(prefix) :] if prefix else actual
         files[canonical] = actual
     return root, files
+
+
+def _executable_format(prefix: bytes) -> str:
+    """Report a bounded header observation, independent of build recognition."""
+    if len(prefix) < 64 or prefix[:2] not in (b"MZ", b"ZM"):
+        return "unknown"
+    offset = int.from_bytes(prefix[0x3C:0x40], "little")
+    if offset < 64 or offset + 4 > len(prefix):
+        return "MZ"
+    signature = prefix[offset : offset + 4]
+    if signature == b"PE\0\0":
+        return "PE"
+    if signature[:2] in (b"LE", b"LX", b"NE"):
+        return signature[:2].decode("ascii")
+    return "MZ"
 
 
 def _inspect_deep(source: _Source, files: dict[str, str]) -> dict[str, Any]:
@@ -277,15 +304,18 @@ def inspect_installation(path: str | Path, *, deep: bool = False) -> dict[str, A
                 continue
             digest = source.sha256(files[name])
             recognized = digest == expected
+            executable_format = _executable_format(source.read_prefix(files[name], 65_536))
             executables.append(
                 {
                     "path": name,
-                    "variant": variant,
+                    "variant": variant if recognized else "unknown",
+                    "executable_format": executable_format,
                     "sha256": digest,
                     "recognized_unmodified": recognized,
                 }
             )
-            variants.append(variant)
+            if recognized:
+                variants.append(variant)
 
         matched: list[str] = []
         modified: list[dict[str, str]] = []

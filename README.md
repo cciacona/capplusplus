@@ -184,10 +184,10 @@ This is reverse-engineering tool, not yet a playable engine. Fields described as
 “inferred” still need to be tested. The JSON schema starts at version
 `1`, but the project itself is pre-1.0 and may gain new fields.
 
-The current fingerprints and validation results cover the measured retail DOS
-and Windows 1.0 builds. The announced Steam 1.01 release has not been inspected;
-see the [reference-build matrix](docs/reference-builds.md) before drawing
-compatibility conclusions about it.
+The recognized-build fingerprints and gameplay validation cover the retail DOS
+and Windows 1.0 builds. The user-supplied Steam 1.01 archive has been inspected
+for files and executable structure; save and behavior compatibility remain
+unverified. See the [reference-build matrix](docs/reference-builds.md).
 
 *Capitalism Plus is the property of its respective rights holders. This project
 is an independent compatibility effort and is not affiliated with or endorsed by

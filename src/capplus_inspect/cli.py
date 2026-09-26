@@ -76,7 +76,10 @@ def _render_installation(result: dict[str, Any]) -> list[str]:
     ]
     for executable in result["executables"]:
         status = "recognized" if executable["recognized_unmodified"] else "unknown/modified"
-        lines.append(f"  {executable['variant']} executable: {status}")
+        lines.append(
+            f"  {executable['variant']} executable: {status} "
+            f"({executable['executable_format']})"
+        )
     if assets["modified"]:
         lines.append(f"  modified core files: {len(assets['modified'])}")
     if assets["missing"]:

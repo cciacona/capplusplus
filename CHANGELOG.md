@@ -2,10 +2,11 @@
 
 ## Unreleased
 
-- Recorded the announced Steam Capitalism Plus 1.01 as an unmeasured third
-  reference, with an evidence matrix and installation/save comparison plan;
-  existing build recognition and Cap++ 1.0 gates remain based on retail DOS and
-  Windows 1.0 observations.
+- Recorded the supplied Steam Capitalism Plus 1.01 archive's executable, SDL3
+  dependency, 71/72 shared-core match and changed UI resource; documented
+  pending live save/behavior comparisons against the retail 1.0 references.
+- Report an unknown PE executable named `CapPlus.exe` as an unknown build with
+  its observed format instead of mislabeling it as a recognized DOS variant.
 - Recovered save section `1005` as the 65-byte calendar/playing-time clock,
   including every field offset, day/month/year transition order and periodic
   counter cadence.

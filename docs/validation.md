@@ -3,8 +3,8 @@
 The tool was checked against the user-supplied, unmodified DOS and Windows
 game directories and three mutually compatible version-100 saves.
 These are the measured retail 1.0 builds; the announced Steam 1.01 release
-has no file or save validation record yet. See the
-[reference-build matrix](reference-builds.md).
+has a separate static file comparison, but no live save or behavior validation.
+See the [reference-build matrix](reference-builds.md).
 
 ## Installations
 

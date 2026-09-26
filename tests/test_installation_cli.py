@@ -10,8 +10,24 @@ from pathlib import Path
 from capplus_inspect.cli import main
 from capplus_inspect.installation import inspect_installation
 
+from .helpers import make_pe32_executable
+
 
 class InstallationTests(unittest.TestCase):
+    def test_unrecognized_pe_named_like_dos_build_is_not_labeled_dos(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            archive_path = Path(directory) / "ported-game.zip"
+            with zipfile.ZipFile(archive_path, "w") as archive:
+                archive.writestr("CapPlus.exe", make_pe32_executable())
+                archive.writestr("GAMESET/1STD.SET", b"synthetic")
+                archive.writestr("MAPS/WORLD.MAP", b"synthetic")
+                archive.writestr("RESOURCE/TEXT.RES", b"synthetic")
+            result = inspect_installation(archive_path)
+        self.assertEqual(result["variant"], "unknown")
+        self.assertEqual(result["executables"][0]["variant"], "unknown")
+        self.assertEqual(result["executables"][0]["executable_format"], "PE")
+        self.assertFalse(result["executables"][0]["recognized_unmodified"])
+
     def test_finds_wrapped_installation_root(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             archive_path = Path(directory) / "game.zip"
