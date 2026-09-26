@@ -68,6 +68,39 @@ Keep the installed files and saves private. Record only their names, lengths,
 cryptographic hashes, structural observations and sanitized experiment results
 in the repository; follow the [clean-room policy](../CLEAN_ROOM.md).
 
+### First controlled 1.01 save test
+
+The supplied `21ST_001.SAV` is a suitable **retail DOS** starting point: it is
+542,709 bytes, SHA-256
+`4bf3a8f20777be56b0ade3ad3ad1f3ab593d18e12ec859cca0a1f85bbc883f4b`,
+with a version-100 header, 24 resolved sections, game date 1990-01-04,
+16 accumulated playing seconds and RNG state `0x47A28C03`. Its previously
+supplied retail Windows resave `21ST_002.SAV` retained that date but recorded
+29 seconds and RNG state `0xA58A72CE`. An unchanged date alone is therefore
+insufficient to call a load/resave state preserving.
+
+1. In Steam's **Properties → Installed Files**, record the installed build ID.
+   Hash the installed `CapPlus.exe` and compare with the archive executable's
+   SHA-256 above before attributing a play test to the measured archive.
+2. Keep an untouched copy of `21ST_001.SAV` outside the game's save directory.
+   With the game closed, ensure a copy is available for loading in 1.01. Do
+   not overwrite the only copy or use an existing save slot as the output.
+3. Launch 1.01, load `21ST_001.SAV`, pause as soon as the game permits, and
+   save into a **different** slot without issuing gameplay commands. Record
+   whether the load succeeded, any warnings, whether time advanced before the
+   pause, the displayed game date before/after, and the output filename. A
+   failed load is a result; do not modify the old save to make it load.
+4. Start a separate new game under 1.01, pause and save in another new slot.
+   This independent save establishes what 1.01 writes without requiring it to
+   accept a retail save. Keep both resulting saves private and provide them
+   for analysis alongside the installed build ID and installed executable hash.
+5. Compare each output's header version, section chain, length, date, clock,
+   RNG and section-level changes with the untouched input and the retail
+   `001` → `002` control. If the game advanced a day or the start states
+   differ, record that limitation; do not label the pair a no-op equivalence.
+
+### Follow-up analysis
+
 1. Capture the Steam app manifest or the installed build ID to pin the exact
    Steam depot represented by this archive. Resolve the four larger pre-update
    saves under [issue #8](https://github.com/cciacona/capplusplus/issues/8)
