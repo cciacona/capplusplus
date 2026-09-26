@@ -13,6 +13,7 @@ not evidence that the corresponding game system has been implemented.
 
 ## Original-format and executable research
 
+- [Reference builds and Steam 1.01 investigation](reference-builds.md)
 - [Observed binary formats](formats.md)
 - [Executable survey](executables.md)
 - [Original file-loader contracts](loaders.md)

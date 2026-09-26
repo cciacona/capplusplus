@@ -33,3 +33,13 @@ The current implementation stays simple and auditable. If another patch,
 regional executable, or legitimately distinct data set is found later, this
 record should be superseded with the smallest model supported by that evidence.
 No 1.0 requirement depends on hypothetical variants.
+
+## Subsequent evidence (2026-09-26)
+
+The publisher [announced Steam Capitalism Plus version 1.01](../reference-builds.md)
+after this decision was accepted. The historical premise that no other release
+was known no longer holds. The narrow-recognition decision remains in effect:
+no 1.01 executable or data files have been measured, so the inspector must
+continue to report them as unknown rather than infer compatibility from the
+announcement. A measured inventory, save probe and scope decision will determine
+whether to supersede this record.

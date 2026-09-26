@@ -14,8 +14,8 @@ other proprietary game data. You must provide files from your own copy.**
 
 ## Capabilities
 
-- Validate a DOS or Windows installation directory, or inspect its ZIP directly.
-- Recognize the analyzed unmodified DOS and Windows executables by SHA-256.
+- Validate an analyzed retail DOS or Windows 1.0 installation directory, or inspect its ZIP directly.
+- Recognize the analyzed unmodified retail DOS 1.0 and Windows 1.0 executables by SHA-256.
 - Verify all 72 files shared by the supplied DOS and Windows builds.
 - Parse `.SET` game sets as named containers of embedded dBASE tables.
 - Parse `.MAP` headers, optional terrain/settings blocks and counted city records.
@@ -170,6 +170,7 @@ PYTHONPATH=src python3 -m unittest discover -s tests -t . -v
 ## Documentation
 
 - [Documentation map](docs/README.md)
+- [Reference-build matrix and Steam 1.01 investigation](docs/reference-builds.md)
 - [Complete 1.0 parity roadmap](ROADMAP.md)
 - [Architecture decision records](docs/decisions/README.md)
 - [Clean-room development policy](CLEAN_ROOM.md)
@@ -182,6 +183,11 @@ This is reverse-engineering tool, not yet a playable engine. Fields described as
 “confirmed” have been checked against the supplied files; fields described as
 “inferred” still need to be tested. The JSON schema starts at version
 `1`, but the project itself is pre-1.0 and may gain new fields.
+
+The current fingerprints and validation results cover the measured retail DOS
+and Windows 1.0 builds. The announced Steam 1.01 release has not been inspected;
+see the [reference-build matrix](docs/reference-builds.md) before drawing
+compatibility conclusions about it.
 
 *Capitalism Plus is the property of its respective rights holders. This project
 is an independent compatibility effort and is not affiliated with or endorsed by
