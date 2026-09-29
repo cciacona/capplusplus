@@ -7,8 +7,10 @@ compatibility phase; it is not yet a playable replacement.
 **Steam Capitalism Plus 1.01 is the sole original release targeted for Cap++
 1.0.** Retail DOS and Windows 1.0 files remain historical research inputs, not
 supported game installations. The initial 1.01 fingerprint covers the supplied
-archive's executable and 72 core assets; gameplay and 1.01-created saves still
-need live validation. See the [support decision](docs/decisions/0005-steam-1-01-only-target.md).
+archive's executable and 72 core assets. One user-reported 1.01-created save
+has now been parsed, but gameplay and save load/resave behavior remain untested.
+See the
+[support decision](docs/decisions/0005-steam-1-01-only-target.md).
 
 `capplus-inspect` is the project's dependency-free, non-destructive command-line
 inspector and exporter for user-supplied Capitalism Plus installations and data
@@ -40,8 +42,8 @@ other proprietary game data. You must provide files from your own copy.**
 - Identify named, offset-indexed, and sequential-image resource containers.
 - Inspect and export PCM sound banks and bounded XMIDI members, compare Windows
   effects, and inspect sound settings and single-BIN mixed-mode CUE geometry.
-- Parse examined historical version-100 `.SAV` metadata and the complete
-  24-section marker chain; 1.01-created saves await validation.
+- Parse examined version-100 `.SAV` metadata and the complete 24-section marker
+  chain, including one save reported to have been created under Steam 1.01.
 - Decode the confirmed town array, town/item keys, selected market floats, RNG state,
   and 65-byte simulation clock record.
 - Compare two saves section-by-section and measure cross-build float drift in ULPs.
@@ -192,9 +194,10 @@ This is reverse-engineering tool, not yet a playable engine. Fields described as
 `1`, but the project itself is pre-1.0 and may gain new fields.
 
 The inspector recognizes the measured Steam 1.01 executable and all 72 target
-core files. Most gameplay and save evidence still comes from historical retail
-DOS/Windows research, so Cap++ does not yet claim Steam 1.01 gameplay parity or
-save compatibility. See the [reference-build matrix](docs/reference-builds.md).
+core files. One 1.01-created save parses structurally, while most gameplay and
+deeper save evidence still comes from historical retail DOS/Windows research.
+Cap++ does not yet claim Steam 1.01 gameplay parity or save import/resave
+compatibility. See the [reference-build matrix](docs/reference-builds.md).
 
 *Capitalism Plus is the property of its respective rights holders. This project
 is an independent compatibility effort and is not affiliated with or endorsed by

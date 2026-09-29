@@ -21,7 +21,7 @@ installs.
 |---|---|---|---|---|
 | Retail DOS 1.0 | Supplied unmodified installation; [executable hash](executables.md#build-identities) and [validation record](validation.md) | Known MZ/LE executable; its 72 core files match the supplied Windows installation | Paired version-100 saves and controlled executable probes | Historical evidence; identifiable by `capplus-inspect`, **not supported** by Cap++ 1.0 |
 | Retail Windows 1.0 | Supplied unmodified installation; [executable hash](executables.md#build-identities) and [validation record](validation.md) | Known PE32 executable; the 72 shared core files match DOS | Paired version-100 saves, cross-loading observation and controlled executable probes | Historical evidence; identifiable by `capplus-inspect`, **not supported** by Cap++ 1.0 |
-| Steam 1.01 measured archive, received 2026-09-26 | User-supplied ZIP, hashes and static comparison below; [publisher announcement][steam] | PE32 executable, SDL3 import, 71/72 retail core-file hashes match; one changed UI resource | Seven pre-update saves are present; **no save made under 1.01 or live behavior test** | Sole supported **input target** for Cap++ 1.0; exact executable and 72 target core hashes recognized, gameplay parity not certified |
+| Steam 1.01 measured archive, received 2026-09-26 | User-supplied ZIP, hashes and static comparison below; [publisher announcement][steam] | PE32 executable, SDL3 import, 71/72 retail core-file hashes match; one changed UI resource | Seven pre-update saves are in the archive; one separately supplied 1.01-created save parses as version 100 with 24 sections; no controlled resave or gameplay probe | Sole supported **input target** for Cap++ 1.0; exact executable and 72 target core hashes recognized, gameplay parity not certified |
 
 The publisher says the Steam update uses SDL3 for video, runs on Windows 11
 without DOSBox, and offers borderless windowed play. It also says the original
@@ -60,7 +60,32 @@ smaller files (`21ST_001` through `003`) resolve all 24 save sections. Four
 larger files (`21st_004`, `D1`, `D2`, `W1`) do not resolve with the current
 fixed-section assumptions; their ZIP timestamps precede the 1.01 announcement.
 These parser failures are **not evidence that 1.01 changed the save format**.
-No supplied save establishes a live load or resave under this release.
+
+## Separately supplied Steam 1.01 save
+
+On 2026-09-29 the user identified a separately uploaded `21ST_001.SAV` as a
+save written by the Steam release. It is **not** the older same-named DOS save
+in the ZIP. The new file is 539,679 bytes, SHA-256
+`98eab55b7813d979a38262cc68ac1dd08a7d1b81c8950cf25a86df184dfc4bbd`.
+Its saved wall-clock sample corresponds to 2026-09-29T15:47:39Z, consistent
+with the reported fresh creation, though a save file alone cannot establish
+the installed Steam depot build ID or executable hash.
+
+The read-only inspector resolves a **single complete 24-marker chain** in the
+same marker order as the historical version-100 saves. The header still reports
+version `100`; all 15 currently cataloged fixed-size sections retain their
+expected sizes. It decodes a consistent 65-byte clock record (1990-01-02,
+five accumulated playing seconds), RNG state `0x6169BC67`, seven towns and 343
+town/item records. These are structural observations of **one** 1.01-created
+save, not evidence that every later game state, load, writer, or multiplayer
+save behaves identically.
+
+The older `21ST_001.SAV` is 542,709 bytes, SHA-256
+`4bf3a8f20777be56b0ade3ad3ad1f3ab593d18e12ec859cca0a1f85bbc883f4b`,
+and represents 1990-01-04 with a different RNG state. The filenames and
+scenario reference match, but the dates, RNG and variable section sizes differ.
+They are **not equivalent starting states**, so a byte-level comparison cannot
+measure a 1.01 load/resave or establish retail save migration.
 
 ## Target validation still needed
 
@@ -73,10 +98,11 @@ in the repository; follow the [clean-room policy](../CLEAN_ROOM.md).
 1. Record the installed Steam build ID (or app manifest) and hash the installed
    executable to connect a live play test to this measured archive. The archive
    alone does not identify its depot manifest.
-2. In Steam 1.01, start a new game and save to an unused slot. Preserve the save
-   privately and inspect its version, section chain, date, clock, RNG and other
-   state. Repeat with a controlled pause/load/resave to measure its persistence
-   behavior. **No retail save needs to be loaded into Steam** for this target.
+2. The first 1.01-created save is now measured. Preserve it privately and, when
+   testing persistence, load a copy in Steam 1.01, pause and resave to a **new**
+   slot without gameplay commands. Compare its version, sections, date, clock,
+   RNG and byte changes with this exact starting save. Record any time advance
+   or failed load. **No retail save needs to be loaded into Steam** for this target.
 3. Inventory a clean Steam installation, including scenarios, tutorials, sound,
    music and other loose content; distinguish depot files from user saves and
    settings. Probe gameplay and presentation behavior under this exact target
