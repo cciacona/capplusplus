@@ -55,3 +55,12 @@ behavior; cross-loading an old save is unnecessary for this scope decision.
 - The [profile and content identities](0004-content-identity.md) still apply:
   a validated Steam asset fingerprint is the initial Certified Classic data
   source. Later patches require explicit policy and evidence.
+
+## Subsequent save evidence (2026-09-29)
+
+A separately supplied save reported as created in Steam 1.01 has a version-100
+header and the historical 24-section marker order; the read-only inspector
+parses it. Its hash and structural findings are recorded in the
+[reference matrix](../reference-builds.md). This advances the target-format
+inventory without changing the decision: the installed depot identity and a
+controlled 1.01 load/resave still need measurement.

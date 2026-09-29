@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Recorded a separately supplied save reported as Steam 1.01-created: version-100 header,
+  24-section chain, consistent clock/RNG metadata and distinct SHA-256 from
+  the older same-named retail save. Target load/resave remains untested.
 - Made the measured Steam 1.01 release the sole Cap++ 1.0 target. Retail
   DOS/Windows executables remain identifiable for historical research; target
   installation validation now uses the 1.01 executable and core hashes.

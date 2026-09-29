@@ -102,6 +102,11 @@ pointer/float locations and 358 remain explicitly unclassified. Those bytes
 remain a historical research question. The 1.0 save gate instead requires a
 controlled no-op test of a save created under Steam 1.01.
 
+A first user-reported Steam 1.01-created save now parses as version 100 with
+all 24 historical markers and 15 cataloged fixed section lengths. That is a
+single read-only structural observation; it is not the controlled 1.01
+load/resave pair needed to classify changed bytes or enable a writer.
+
 ## Reproducible parser fuzzing
 
 The binary fuzzer uses 21 generated, redistributable fixtures, including PCM,

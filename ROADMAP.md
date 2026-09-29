@@ -7,7 +7,8 @@ native modern application while requiring assets from a legally owned copy.
 
 The retail DOS/Windows files and saves remain historical research evidence.
 The [Steam 1.01 archive](docs/reference-builds.md) supplies the initial target
-executable and core-data fingerprints; live 1.01 saves, behavior, and the exact
+executable and core-data fingerprints. One user-reported 1.01-created save now
+parses structurally; controlled load/resave, gameplay behavior, and the exact
 Steam depot build ID still need measurement. The feature inventory also uses the
 [Capitalism Plus manual](https://cdn.akamai.steamstatic.com/steam/apps/450120/manuals/Capitalism_Plus_Manual.pdf).
 

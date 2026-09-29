@@ -1,13 +1,33 @@
-# Historical retail validation record through the 0.3 development snapshot
+# Validation records
 
 The tool was checked against the user-supplied, unmodified DOS and Windows
 game directories and three mutually compatible version-100 saves.
 These are historical retail 1.0 research builds, not Cap++ 1.0 supported input.
 The Steam 1.01 target has a separate static file comparison and exact
-executable/core fingerprint, but no live save or behavior validation.
+executable/core fingerprint. A new 1.01-created save now parses structurally,
+but controlled target load/resave and gameplay behavior remain untested.
 See the [reference-build matrix](reference-builds.md).
 
-## Installations
+## Steam 1.01-created save (2026-09-29)
+
+The user identified a separate `21ST_001.SAV` as freshly saved in Steam 1.01.
+It is 539,679 bytes (SHA-256
+`98eab55b7813d979a38262cc68ac1dd08a7d1b81c8950cf25a86df184dfc4bbd`),
+distinct from the older same-named DOS save. Read-only inspection reports
+version `100`, one unambiguous 24-section chain in the historical order, the
+15 cataloged fixed section sizes unchanged, and no trailing bytes in the
+decoded town array. Its date is 1990-01-02, the calendar/playing-time record
+is internally consistent at five seconds, RNG state is `0x6169BC67`, and the
+town array has seven towns and 343 town/item records. The internal wall-clock
+sample corresponds to 2026-09-29T15:47:39Z, consistent with fresh creation.
+
+The earlier DOS `21ST_001.SAV` has a different hash, size, date, RNG state and
+variable section sizes. A same-name comparison is **not** a controlled resave
+pair. This one sample validates that the current reader can parse its observed
+framing; it does not validate game loading, Cap++ import, original-format
+writing, or the provenance of an exact Steam depot build.
+
+## Historical retail installations
 
 | Check | Extracted DOS directory | Extracted Windows directory |
 |---|---:|---:|
@@ -27,7 +47,7 @@ two supplied builds. Their expected SHA-256 values are embedded only as hashes;
 no source file bytes are included. This audio pass rechecks the intact extracted
 files; the original installation ZIP validation is earlier evidence.
 
-## Saves
+## Historical retail saves
 
 | Check | DOS scenario save | Matching Windows scenario save | Windows autosave |
 |---|---:|---:|---:|
