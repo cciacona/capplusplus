@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from .errors import FormatError
-from .known import DOS_EXECUTABLE_SHA256, WINDOWS_EXECUTABLE_SHA256
+from .known import DOS_EXECUTABLE_SHA256, STEAM_101_EXECUTABLE_SHA256, WINDOWS_EXECUTABLE_SHA256
 from .util import require_range, sha256_bytes, u16, u32
 
 
@@ -112,6 +112,7 @@ LE_OBJECT_FLAGS = {
 KNOWN_EXECUTABLES = {
     DOS_EXECUTABLE_SHA256: "Capitalism Plus DOS CAPPLUS.EXE",
     WINDOWS_EXECUTABLE_SHA256: "Capitalism Plus Windows CapWin.exe",
+    STEAM_101_EXECUTABLE_SHA256: "Capitalism Plus Steam 1.01 CapPlus.exe (measured archive)",
 }
 
 
@@ -717,6 +718,7 @@ def inspect_executable(
         "sha256": digest,
         "recognized_unmodified": digest in KNOWN_EXECUTABLES,
         "recognized_build": KNOWN_EXECUTABLES.get(digest),
+        "supported_target": digest == STEAM_101_EXECUTABLE_SHA256,
         "dos_header": dos,
     }
     if signature == b"PE\0\0":

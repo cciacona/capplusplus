@@ -41,8 +41,9 @@ changing the meaning of an existing digest.
 ## Profile boundaries
 
 - **Certified Classic** uses the built-in Classic ruleset and validated original
-  data with no external package affecting simulation or presentation. This is
-  the configuration used by the complete parity matrix.
+  Steam 1.01 data with no external package affecting simulation or presentation.
+  This is the configuration used by the complete parity matrix under the
+  [sole-target decision](0005-steam-1-01-only-target.md).
 - **Classic rules** may eventually permit explicitly presentation-only or
   localization packages. Such a session retains Classic simulation identity but
   is not certified for presentation parity.

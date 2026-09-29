@@ -70,12 +70,15 @@ def _render_installation(result: dict[str, Any]) -> list[str]:
         f"  input: {result['input']}",
         f"  source: {result['source_kind']}",
         f"  build: {result['variant']}",
+        f"  supported target: {'yes' if result['supported_release'] else 'no'}",
         f"  files: {result['file_count']}",
+        f"  core reference: {assets['reference']}",
         f"  core assets: {assets['matched']}/{assets['expected']} recognized",
         f"  complete and unmodified: {'yes' if assets['complete_and_unmodified'] else 'no'}",
     ]
     for executable in result["executables"]:
-        status = "recognized" if executable["recognized_unmodified"] else "unknown/modified"
+        status = (executable["support_status"] if executable["recognized_unmodified"]
+                  else "unknown/modified")
         lines.append(
             f"  {executable['variant']} executable: {status} "
             f"({executable['executable_format']})"
@@ -278,6 +281,7 @@ def _render_executable(result: dict[str, Any]) -> list[str]:
         f"  bytes: {result['size']}",
         f"  SHA-256: {result['sha256']}",
         f"  recognized build: {recognized}",
+        f"  supported target: {'yes' if result['supported_target'] else 'no'}",
         f"  executable format: {result['executable_format']}",
     ]
     if result["recognized_new_header"]:
@@ -585,7 +589,7 @@ def _build_parser() -> argparse.ArgumentParser:
     inspect_parser.add_argument(
         "--require-clean",
         action="store_true",
-        help="return exit status 3 unless all 72 known core files are unmodified",
+        help="return exit status 3 unless the supported Steam 1.01 build and its 72 core files match",
     )
 
     compare_parser = subparsers.add_parser(
@@ -748,7 +752,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             require_clean_failed = bool(
                 args.require_clean
                 and result.get("format") == "capitalism_plus_installation"
-                and not result["core_assets"]["complete_and_unmodified"]
+                and not result["supported_release"]
             )
             as_json = args.json
         elif args.command == "compare-saves":

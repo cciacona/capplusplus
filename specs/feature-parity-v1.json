@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "format": "capplusplus_feature_parity",
-  "baseline": "ROADMAP.md; this is a candidate feature ledger, not an independently completed manual crosswalk.",
+  "baseline": "Steam Capitalism Plus 1.01 per ROADMAP.md; candidate feature ledger, pending a target-specific manual and observation crosswalk.",
   "manual_crosswalk_status": "pending",
   "dimensions": [
     "data",
@@ -902,7 +902,7 @@
       "title": "Original save import",
       "target": "0.8",
       "requirements": [
-        "Version-100 saves from both original builds",
+        "Saves created by the measured Steam 1.01 release",
         "Persistent ownership, arrays and unknown-field handling"
       ],
       "reference_status": "needs_reference_check",
@@ -1090,7 +1090,7 @@
       "title": "User-owned content discovery",
       "target": "0.4",
       "requirements": [
-        "DOS/Windows installation discovery",
+        "Steam 1.01 installation discovery and measured build validation",
         "Case-insensitive source lookup and build identification",
         "All required content roots including scenarios and tutorials"
       ],

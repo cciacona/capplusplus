@@ -1,9 +1,10 @@
-# Validation record through the 0.3 development snapshot
+# Historical retail validation record through the 0.3 development snapshot
 
 The tool was checked against the user-supplied, unmodified DOS and Windows
 game directories and three mutually compatible version-100 saves.
-These are the measured retail 1.0 builds; the announced Steam 1.01 release
-has a separate static file comparison, but no live save or behavior validation.
+These are historical retail 1.0 research builds, not Cap++ 1.0 supported input.
+The Steam 1.01 target has a separate static file comparison and exact
+executable/core fingerprint, but no live save or behavior validation.
 See the [reference-build matrix](reference-builds.md).
 
 ## Installations

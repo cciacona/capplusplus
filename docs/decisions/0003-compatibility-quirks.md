@@ -49,3 +49,8 @@ of Capitalism Plus behavior.
 The prose view and update procedure live in
 [compatibility quirks](../compatibility-quirks.md). The ledger is not a list of
 every unfinished feature and must not duplicate the parity catalog.
+
+Following the [Steam 1.01-only scope decision](0005-steam-1-01-only-target.md),
+the existing DOS/Windows evidence remains historical. A Classic policy inferred
+from that evidence needs a Steam observation before it becomes a target parity
+claim.

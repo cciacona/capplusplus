@@ -4,6 +4,12 @@
 for modern systems. The project is currently in its reverse-engineering and data
 compatibility phase; it is not yet a playable replacement.
 
+**Steam Capitalism Plus 1.01 is the sole original release targeted for Cap++
+1.0.** Retail DOS and Windows 1.0 files remain historical research inputs, not
+supported game installations. The initial 1.01 fingerprint covers the supplied
+archive's executable and 72 core assets; gameplay and 1.01-created saves still
+need live validation. See the [support decision](docs/decisions/0005-steam-1-01-only-target.md).
+
 `capplus-inspect` is the project's dependency-free, non-destructive command-line
 inspector and exporter for user-supplied Capitalism Plus installations and data
 files. It turns the original binary formats into versioned JSON that the future
@@ -14,9 +20,8 @@ other proprietary game data. You must provide files from your own copy.**
 
 ## Capabilities
 
-- Validate an analyzed retail DOS or Windows 1.0 installation directory, or inspect its ZIP directly.
-- Recognize the analyzed unmodified retail DOS 1.0 and Windows 1.0 executables by SHA-256.
-- Verify all 72 files shared by the supplied DOS and Windows builds.
+- Validate the measured Steam 1.01 executable and 72 core assets from an
+  installation directory or ZIP. Identify older retail builds as historical.
 - Parse `.SET` game sets as named containers of embedded dBASE tables.
 - Parse `.MAP` headers, optional terrain/settings blocks and counted city records.
 - Inspect signed heights in the 240×198 grid and export source or reconstructed
@@ -35,7 +40,8 @@ other proprietary game data. You must provide files from your own copy.**
 - Identify named, offset-indexed, and sequential-image resource containers.
 - Inspect and export PCM sound banks and bounded XMIDI members, compare Windows
   effects, and inspect sound settings and single-BIN mixed-mode CUE geometry.
-- Parse version-100 `.SAV` metadata and the complete 24-section marker chain.
+- Parse examined historical version-100 `.SAV` metadata and the complete
+  24-section marker chain; 1.01-created saves await validation.
 - Decode the confirmed town array, town/item keys, selected market floats, RNG state,
   and 65-byte simulation clock record.
 - Compare two saves section-by-section and measure cross-build float drift in ULPs.
@@ -75,19 +81,19 @@ PYTHONPATH=src python3 -m capplus_inspect --version
 
 ## Examples
 
-Inspect and validate a complete installation:
+Inspect and validate the exact measured Steam 1.01 target:
 
 ```powershell
-capplus-inspect inspect "C:\Games\Capitalism Plus" --deep --require-clean
+capplus-inspect inspect "C:\Program Files (x86)\Steam\steamapps\common\Capitalism Plus" --require-clean
 ```
 
-Inspect the original directory ZIP without extracting it:
+Inspect a user-owned Steam directory ZIP without extracting it:
 
 ```powershell
-capplus-inspect inspect "Capitalism Plus DOS.zip" --deep
+capplus-inspect inspect "Capitalism Plus101.zip" --deep
 ```
 
-Export a stable machine-readable inventory:
+Export a stable machine-readable historical inventory for research:
 
 ```powershell
 capplus-inspect inspect "Capitalism Plus WIN.zip" --deep --json > windows-build.json
@@ -154,7 +160,8 @@ capplus-inspect fuzz --iterations 2048 --seed 0x4341502B2B
 ```
 
 Exit codes are `0` for success, `2` for an unreadable or invalid input, and `3`
-when `--require-clean` detects missing or changed core files or `compare-audio`
+when `--require-clean` does not find the exact measured Steam 1.01 executable
+and all 72 target core files, or when `compare-audio`
 finds a missing, extra, malformed, or differing effect. Graphics commands also
 return `3` for differing catalogs or an unmet `--require-reference` check.
 
@@ -170,7 +177,7 @@ PYTHONPATH=src python3 -m unittest discover -s tests -t . -v
 ## Documentation
 
 - [Documentation map](docs/README.md)
-- [Reference-build matrix and Steam 1.01 investigation](docs/reference-builds.md)
+- [Reference-build matrix and Steam 1.01 target](docs/reference-builds.md)
 - [Complete 1.0 parity roadmap](ROADMAP.md)
 - [Architecture decision records](docs/decisions/README.md)
 - [Clean-room development policy](CLEAN_ROOM.md)
@@ -184,10 +191,10 @@ This is reverse-engineering tool, not yet a playable engine. Fields described as
 “inferred” still need to be tested. The JSON schema starts at version
 `1`, but the project itself is pre-1.0 and may gain new fields.
 
-The recognized-build fingerprints and gameplay validation cover the retail DOS
-and Windows 1.0 builds. The user-supplied Steam 1.01 archive has been inspected
-for files and executable structure; save and behavior compatibility remain
-unverified. See the [reference-build matrix](docs/reference-builds.md).
+The inspector recognizes the measured Steam 1.01 executable and all 72 target
+core files. Most gameplay and save evidence still comes from historical retail
+DOS/Windows research, so Cap++ does not yet claim Steam 1.01 gameplay parity or
+save compatibility. See the [reference-build matrix](docs/reference-builds.md).
 
 *Capitalism Plus is the property of its respective rights holders. This project
 is an independent compatibility effort and is not affiliated with or endorsed by

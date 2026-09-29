@@ -2,40 +2,41 @@
 
 **Cap++** is a clean, open-source reimplementation of **Capitalism Plus**.
 Version 1.0 is not merely “playable.” Its target is complete
-player-visible parity with the original game, running as a native modern
-application while requiring assets from a legally owned DOS or Windows copy.
+player-visible parity with the Steam Capitalism Plus 1.01 release, running as a
+native modern application while requiring assets from a legally owned copy.
 
-This roadmap is grounded in the shipped DOS and Windows data, the compatible
-version-100 saves examined so far, and the feature inventory in the
+The retail DOS/Windows files and saves remain historical research evidence.
+The [Steam 1.01 archive](docs/reference-builds.md) supplies the initial target
+executable and core-data fingerprints; live 1.01 saves, behavior, and the exact
+Steam depot build ID still need measurement. The feature inventory also uses the
 [Capitalism Plus manual](https://cdn.akamai.steamstatic.com/steam/apps/450120/manuals/Capitalism_Plus_Manual.pdf).
 
-The [reference-build matrix](docs/reference-builds.md) distinguishes the
-measured retail DOS and Windows 1.0 builds from the newly announced Steam 1.01
-release. A user-supplied archive has yielded executable and data evidence, but
-no live 1.01 save or behavior experiment yet. The announcement and static
-inventory do not change Cap++ 1.0's acceptance criteria or imply behavioral
-compatibility with the new release; measured differences may inform a later
-roadmap decision.
+**Steam 1.01 is the sole supported original release for Cap++ 1.0.** This is a
+project-scope decision, not a claim that the unfinished reimplementation is
+playable or that retail 1.0 saves load in Steam 1.01. A later Steam patch is a
+new fingerprint requiring review; the 1.01 label alone does not identify its bytes.
 
 ## Definition of 1.0
 
 Cap++ 1.0 is complete only when it can replace the original executable for
 a normal player. It must:
 
-1. Locate and validate an original DOS or Windows installation without changing it.
+1. Locate and validate a measured Steam 1.01 installation without changing it.
 2. Load every shipped game set, map, scenario, tutorial, plan, graphic, sound,
-   music track, and supported version-100 save.
+   music track, and supported Steam 1.01 save.
 3. Reproduce all original game modes, firms, functional units, reports,
    economic systems, AI behavior, goals, editors, and multiplayer functionality.
-4. Preserve the original rules and limits in a selectable **Classic profile**.
+4. Preserve the Steam 1.01 rules and limits in a selectable **Classic profile**.
 5. Run natively on current 64-bit Windows, Linux, and macOS without DOSBox,
    Win16/Win32 compatibility layers, optical-disc checks, or mounted CD images.
 6. Provide reliable windowed, borderless, and fullscreen operation; modern audio;
    arbitrary display scaling; remappable input; and deterministic simulation.
-7. Save and resume all supported modes. Original version-100 save import is
-   mandatory. Original-format export is a 1.0 target and may be disabled only
-   for a structure that cannot be written without corrupting unknown data.
-8. Pass a published parity test matrix against both original executables.
+7. Save and resume all supported modes. Import of saves actually produced by
+   Steam 1.01 is mandatory once their format is measured. Export to that game's
+   save format is a 1.0 target and may be disabled only for a structure that
+   cannot be written without corrupting unknown data. Retail DOS/Windows save
+   migration is optional and carries no 1.0 gate.
+8. Pass a published parity test matrix against the measured Steam 1.01 release.
 9. Ship no copyrighted game assets. The open-source release contains only new
    engine code, documentation, schemas, and synthetic tests.
 
@@ -50,17 +51,17 @@ Parity is divided into five independently testable layers.
 
 | Layer | 1.0 requirement |
 |---|---|
-| Content | All supplied original data loads with the correct meaning and ordering. |
-| Simulation | Given equivalent state, decisions and economic results match the original within documented numeric tolerances. |
-| Interaction | Every original command, setup option, report, map mode, editor action, and shortcut has an equivalent. |
-| Presentation | Original graphics, fonts, palette behavior, animation, sound effects, and music are presented correctly from user-owned files. |
+| Content | Shipped Steam 1.01 data loads with the correct meaning and ordering. |
+| Simulation | Given equivalent state, decisions and economic results match Steam 1.01 within documented numeric tolerances. |
+| Interaction | Every Steam 1.01 command, setup option, report, map mode, editor action, and shortcut has an equivalent. |
+| Presentation | Steam 1.01 graphics, fonts, palette behavior, animation, sound effects, and music are presented correctly from user-owned files. |
 | Persistence/network | Saves, scenarios, layout plans, hall of fame, configuration, and multiplayer state survive round trips. |
 
 Integer, identifier, inventory, ownership, and event outcomes must match exactly.
 Floating-point comparisons use field-specific tolerances established by controlled
-experiments. The DOS and Windows originals already differ by 1–4 ULPs in several
-market fields, so one deterministic canonical result is preferable to emulating
-platform-dependent drift unless that drift changes a gameplay decision.
+experiments against Steam 1.01. Historical DOS/Windows comparisons differ by
+1–4 ULPs in several market fields; those differences do not set a tolerance
+for the new target without controlled 1.01 observations.
 
 ## Architecture to settle before gameplay work
 
@@ -100,7 +101,8 @@ after its acceptance tests pass.
 
 ### 0.2 — Asset visibility and map overview
 
-Status: implemented in `capplus-inspect` 0.2.
+Status: inspector features implemented in 0.2; target Steam 1.01 visuals need
+review before this target-specific exit gate is closed.
 
 - Decode the 256-color palette structure.
 - Export direct, sequential, offset-indexed, and named indexed images to lossless PNG.
@@ -111,7 +113,8 @@ Status: implemented in `capplus-inspect` 0.2.
 
 Exit gate: all 15 shipped maps render recognizable overviews; representative
 portraits, terrain, firm, interface, scenario, and game-set images export
-correctly from both identical asset sets.
+correctly from the target asset set. The earlier retail validation remains
+historical evidence; the changed 1.01 menu resource needs visual review.
 
 ### 0.3 — Complete original-data specification
 
@@ -122,36 +125,39 @@ correctly from both identical asset sets.
   configuration resources.
 - Catalog every graphic and animation frame, hotspot, transparent color, and
   palette rule.
-- Decode the sound bank, music index, Windows extracted sounds, and CD/OGG track mapping.
+- Decode the sound bank, music index, Steam 1.01 effects, and shipped OGG track mapping.
 - Specify `.SET`, `.II`, `.II2`, `.DFI`, `.FI`, `.IP`, `.PIC`, `.PLA`, `.PLO`,
   `.PLP`, `.RTI`, `.RTP`, `.RTX`, `.MAP`, `.SCN`, `.SCP`, `.SCS`, `.SCT`,
   `.TUT`, `.HIN`, `.SAM`, `.SPH`, `.SAV`, `.CFG`, and `.HOF`, including
   extensionless scenario/tutorial/sound families.
-- Assign semantic names to all 24 save sections and every persistent structure.
+- Map the sections and persistent structures in Steam 1.01-created saves. If
+  they retain the historical 24-marker chain, name and validate all 24.
 - Add bounds tests, malformed-input tests, corpus validation, and parser fuzzing.
 - Publish versioned schemas and a provenance note for every inferred field.
-- Reconcile the [content inventory](docs/content-coverage.md), including every
-  retail file, and justify legacy-only exclusions explicitly. Track framing,
+- Reconcile the [content inventory](docs/content-coverage.md) against a clean
+  Steam 1.01 depot, including its loose assets and music. Keep the retail CD
+  ledger as historical evidence. Track framing,
   byte preservation, semantics and behavior separately.
 - Use versioned [experiment records](docs/experiments.md) for behavioral claims;
   a synthetic example or opaque round trip is not original-game validation.
 - Maintain the [compatibility-quirks ledger](docs/compatibility-quirks.md) for
   every verified behavior that requires a Classic/Extended policy choice.
 
-Exit gate: a round-trip reader/writer can reconstruct every supported non-save
-file byte-for-byte; save normalization can explain every changed byte in a
-controlled no-op load/save test.
+Exit gate: a round-trip reader/writer can reconstruct every supported Steam
+1.01 non-save file byte-for-byte; save normalization can explain every changed
+byte in a controlled 1.01 no-op load/save test.
 
 Passing structural preservation gates alone does not satisfy the semantic and
-inventory requirements above. The remaining retail classification gap and
-unexplained save differences must stay visible until resolved.
+inventory requirements above. The Steam content-inventory gap and unexplained
+1.01 save differences must stay visible until resolved; historical retail
+cross-build differences are not 1.0 blockers.
 
 ### 0.4 — Native engine shell
 
 - Establish C++20, CMake, SDL3, continuous integration, sanitizers, and packaged
   builds for Windows, Linux, and macOS.
 - Add installation discovery and hash-based compatibility reporting using the
-  intentionally narrow [known-build policy](docs/decisions/0001-narrow-original-build-support.md).
+  intentionally narrow [Steam target policy](docs/decisions/0005-steam-1-01-only-target.md).
 - Load original palettes, fonts, sprites, maps, strings, sound effects, and music.
 - Reproduce the title sequence, main menu, browser/spinner controls, windows,
   pointer behavior, keyboard shortcuts, and pause/speed controls.
@@ -262,7 +268,7 @@ bankruptcy decisions under controlled setups.
 - Implement newspaper, display options, news log, and event tracker.
 - Implement every product, firm, corporate, person, financial, and goal report,
   including browsers, filters, searches, graphs, navigation, and editable controls.
-- Load and resume original version-100 saves from both original builds.
+- Load and resume saves created by the measured Steam 1.01 release.
 
 Exit gate: every player-facing item in the original manual has an automated or
 documented manual acceptance test and every shipped scenario/tutorial can be completed.
@@ -274,7 +280,7 @@ documented manual acceptance test and every shipped scenario/tutorial can be com
 - Use deterministic command synchronization, periodic state hashes, desync dumps,
   reconnect, pause, speed voting/authority rules, and headless-server support.
 - Reproduce the original auto mode used when a participant is temporarily absent.
-- Finish original-save export, configuration migration, hall-of-fame persistence,
+- Finish Steam-save export where safe, configuration migration, hall-of-fame persistence,
   music order/looping, sound triggers, animation timing, and all display modes.
 - Run long-duration soak tests, save/load at every game state, network fault tests,
   performance profiling, controller/input edge cases, and accessibility review.
@@ -287,8 +293,8 @@ multiplayer across supported operating systems, and zero missing manual features
 
 The 1.0 release gate requires all of the following:
 
-- Every shipped tutorial, scenario, map, game set, layout plan, and version-100
-  save used by the test corpus loads successfully.
+- Every shipped Steam 1.01 tutorial, scenario, map, game set, layout plan, and
+  1.01-created save used by the test corpus loads successfully.
 - Every firm, unit, product, report, editor action, stock action, personnel action,
   goal, and game mode has a passing parity test.
 - Ten-year fixed-seed simulation runs are deterministic across Windows, Linux,
@@ -338,8 +344,8 @@ float state in ULPs or domain-specific error bounds.
 
 ### Scenario replays
 
-Recorded command streams are replayed in the DOS original, Windows original, and
-Cap++. Checkpoints cover daily, monthly, yearly, goal, bankruptcy, takeover,
+Recorded command streams are replayed in Steam 1.01 and Cap++. Checkpoints
+cover daily, monthly, yearly, goal, bankruptcy, takeover,
 and save/reload boundaries. Multiplayer uses the same command stream on multiple
 operating systems and verifies state hashes.
 

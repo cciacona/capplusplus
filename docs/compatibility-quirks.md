@@ -5,6 +5,11 @@ The canonical catalog is
 validated by `python scripts/project_gates.py ledgers`. This page explains how to
 use it; it does not replace the machine-readable entries.
 
+The current entries were observed in retail DOS/Windows 1.0. Steam 1.01 is the
+sole Cap++ 1.0 target; a confirmed *retail* observation does not confirm the
+same behavior in Steam. Classic policies based on those observations require
+1.01 probes before they can certify target parity.
+
 Quirks are behaviors that need an explicit compatibility choice, not ordinary
 unfinished features. A quirk may be a DOS/Windows compiler disagreement,
 platform residue in a save, an original bug whose preservation affects gameplay,
@@ -17,7 +22,7 @@ or unsafe legacy behavior that must be accepted only at an input boundary.
 | `town_pointer_residue` | Inferred | Sanitize | Two town-record dwords vary like runtime residue; original-save normalization handles only their registered byte ranges. Native state must never contain host pointers. |
 | `town_market_float_drift` | Confirmed | Pending | Four tracked town/item floats differ by 1–4 ULPs across the matched DOS/Windows saves; their meanings and canonical arithmetic still need controlled probes. |
 | `terrain_fertility_signed_char` | Confirmed | Pending | A negative intermediate clamps to 100 in DOS and 0 in Windows because the compilers compare the byte differently. The gameplay consequence must be measured before Classic selects a result. |
-| `playing_time_62_second_minute` | Confirmed | Preserve | Both builds divide accumulated seconds by 62 for displayed minutes and 3,720 for hours. Classic preserves that display; Extended may use conventional time. |
+| `playing_time_62_second_minute` | Confirmed in retail only | Pending | Both historical builds divide accumulated seconds by 62 for displayed minutes and 3,720 for hours. Check Steam 1.01 before choosing a Classic display policy. |
 
 `pending` is intentional and blocks code from quietly selecting a compatibility
 answer. It does not block continued research or APIs that expose both original

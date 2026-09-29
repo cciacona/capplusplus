@@ -81,7 +81,7 @@
         "windows_1_0"
       ],
       "observed_behavior": "Both original playing-time formatters divide accumulated seconds by 62 for minutes and by 3720 for hours, so one displayed minute lasts 62 real seconds.",
-      "classic_policy": "preserve",
+      "classic_policy": "pending",
       "extended_policy": "fix",
       "risk": "compatibility",
       "evidence": [
@@ -90,7 +90,7 @@
       "tests": [
         "tests/test_simulation.py"
       ],
-      "notes": "Keep canonical accumulated playing time in seconds. Classic reproduces only the original display conversion; Extended may use conventional 60-second minutes without changing saved time."
+      "notes": "Keep canonical accumulated playing time in seconds. The 62-second display was verified in historical DOS/Windows builds, not Steam 1.01; Classic's target behavior needs a Steam probe. Extended may use conventional 60-second minutes without changing saved time."
     }
   ]
 }
