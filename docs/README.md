@@ -13,6 +13,7 @@ not evidence that the corresponding game system has been implemented.
 
 ## Original-format and executable research
 
+- [Reference builds and Steam 1.01 target](reference-builds.md)
 - [Observed binary formats](formats.md)
 - [Executable survey](executables.md)
 - [Original file-loader contracts](loaders.md)
@@ -27,7 +28,7 @@ not evidence that the corresponding game system has been implemented.
 
 - [Validation results](validation.md)
 - [Format completeness and safety gates](format-gates.md)
-- [Original-content coverage](content-coverage.md)
+- [Historical retail content coverage; Steam inventory pending](content-coverage.md)
 - [Compatibility-quirks ledger](compatibility-quirks.md)
 - [Controlled experiment records](experiments.md)
 - [Repository and package gates](project-gates.md)

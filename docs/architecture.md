@@ -29,7 +29,7 @@ infer the original network/session protocol from platform-era conventions.
 
 | Area | Status | Record or remaining decision |
 |---|---|---|
-| Supported original builds | Accepted | [Keep recognition narrow](decisions/0001-narrow-original-build-support.md); OS-specific discovery and missing-data UX remain for 0.4. |
+| Supported original release | Accepted | [Steam 1.01 only](decisions/0005-steam-1-01-only-target.md); OS-specific discovery and missing-data UX remain for 0.4. |
 | Native saves | Requirements accepted; wire format deferred | [Native-save invariants](decisions/0002-native-save-invariants.md); approve wire version 1 before stable 0.5 saves. |
 | Compatibility quirks | Accepted and active | [Quirk policy](decisions/0003-compatibility-quirks.md) and [validated ledger](compatibility-quirks.md). |
 | Profile/content identity | Boundary accepted; manifest syntax deferred | [Content identity](decisions/0004-content-identity.md); implement package syntax only against a real Extended prototype. |

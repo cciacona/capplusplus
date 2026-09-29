@@ -1,5 +1,12 @@
 # Original-content coverage
 
+This ledger records the historical retail corpus. Its unresolved CD files no
+longer gate Cap++ 1.0. The sole supported target is Steam 1.01; the supplied
+archive's 585 files include user saves/settings and cannot stand in for a clean
+depot inventory. A new Steam source inventory and family reconciliation are
+required before claiming target content coverage. See the
+[reference matrix](reference-builds.md) and [scope decision](decisions/0005-steam-1-01-only-target.md).
+
 [`specs/content-coverage-v1.json`](../specs/content-coverage-v1.json) is the
 inventory ledger. It includes unsupported families; the bundled inspector
 format catalog describes implemented structures and is not an inventory of
@@ -9,7 +16,7 @@ everything the original game needs. Counts are evidence, not progress percentage
 
 | Source | Files | Evidence and limitation |
 |---|---:|---|
-| Shared installation core | 72 | Exact hashes in `src/capplus_inspect/known.py`; game sets 24, maps 15, resources 33. |
+| Historical retail shared core | 72 | Exact hashes in `src/capplus_inspect/known.py`; game sets 24, maps 15, resources 33. Steam 1.01 changes one menu resource and has its own core-hash baseline. |
 | `CapPlus.gam` data image | 1,001 | Directory recount only from a truncated local copy; historical complete-image identity in the ledger. |
 | Retail CD filesystem | 1,604 | Earlier verified disc comparison; not freshly re-enumerated in this hardening pass. |
 | Retail files not yet classified here | 531 | 1,604 minus the two disjoint inventories above. This is an open gap. |

@@ -13,10 +13,11 @@ Statuses have the following meanings:
 
 | Record | Status | Decision |
 |---|---|---|
-| [0001](0001-narrow-original-build-support.md) | Accepted | Keep original-build recognition intentionally narrow. |
+| [0001](0001-narrow-original-build-support.md) | Superseded | Historical narrow retail-build recognition policy. |
 | [0002](0002-native-save-invariants.md) | Accepted | Fix native-save invariants before fixing its wire format. |
 | [0003](0003-compatibility-quirks.md) | Accepted | Track compatibility quirks independently from feature completion. |
 | [0004](0004-content-identity.md) | Accepted | Give profiles, rulesets, and future content stable identities. |
+| [0005](0005-steam-1-01-only-target.md) | Accepted | Target Steam 1.01 only for Cap++ 1.0 input and parity. |
 
 An accepted record can still contain explicitly deferred details. Those details
 must be resolved by the named milestone before code relies on them. Changing an

@@ -11,7 +11,13 @@ from . import SCHEMA_VERSION
 from .containers import inspect_set
 from .errors import FormatError, InspectError
 from .file_formats import inspect_auxiliary_file
-from .known import CORE_FILE_SHA256, DOS_EXECUTABLE_SHA256, WINDOWS_EXECUTABLE_SHA256
+from .known import (
+    CORE_FILE_SHA256,
+    DOS_EXECUTABLE_SHA256,
+    STEAM_101_CORE_FILE_SHA256,
+    STEAM_101_EXECUTABLE_SHA256,
+    WINDOWS_EXECUTABLE_SHA256,
+)
 from .maps import inspect_map
 from .saves import inspect_save
 from .util import sha256_file
@@ -33,6 +39,10 @@ class _Source(ABC):
 
     @abstractmethod
     def read(self, name: str) -> bytes:
+        raise NotImplementedError
+
+    @abstractmethod
+    def read_prefix(self, name: str, limit: int) -> bytes:
         raise NotImplementedError
 
     @abstractmethod
@@ -60,6 +70,10 @@ class _DirectorySource(_Source):
     def read(self, name: str) -> bytes:
         return self._files[name].read_bytes()
 
+    def read_prefix(self, name: str, limit: int) -> bytes:
+        with self._files[name].open("rb") as stream:
+            return stream.read(limit)
+
     def sha256(self, name: str) -> str:
         return sha256_file(self._files[name])
 
@@ -82,6 +96,10 @@ class _ZipSource(_Source):
 
     def read(self, name: str) -> bytes:
         return self.archive.read(self._infos[name])
+
+    def read_prefix(self, name: str, limit: int) -> bytes:
+        with self.archive.open(self._infos[name]) as stream:
+            return stream.read(limit)
 
     def sha256(self, name: str) -> str:
         digest = hashlib.sha256()
@@ -126,6 +144,21 @@ def _canonical_files(source: _Source) -> tuple[str, dict[str, str]]:
         canonical = actual[len(prefix) :] if prefix else actual
         files[canonical] = actual
     return root, files
+
+
+def _executable_format(prefix: bytes) -> str:
+    """Report a bounded header observation, independent of build recognition."""
+    if len(prefix) < 64 or prefix[:2] not in (b"MZ", b"ZM"):
+        return "unknown"
+    offset = int.from_bytes(prefix[0x3C:0x40], "little")
+    if offset < 64 or offset + 4 > len(prefix):
+        return "MZ"
+    signature = prefix[offset : offset + 4]
+    if signature == b"PE\0\0":
+        return "PE"
+    if signature[:2] in (b"LE", b"LX", b"NE"):
+        return signature[:2].decode("ascii")
+    return "MZ"
 
 
 def _inspect_deep(source: _Source, files: dict[str, str]) -> dict[str, Any]:
@@ -269,28 +302,41 @@ def inspect_installation(path: str | Path, *, deep: bool = False) -> dict[str, A
 
         executables: list[dict[str, Any]] = []
         variants: list[str] = []
-        for name, variant, expected in (
-            ("capplus.exe", "dos", DOS_EXECUTABLE_SHA256),
-            ("capwin.exe", "windows", WINDOWS_EXECUTABLE_SHA256),
+        for name, profiles in (
+            ("capplus.exe", (("steam-1.01", STEAM_101_EXECUTABLE_SHA256),
+                             ("dos", DOS_EXECUTABLE_SHA256))),
+            ("capwin.exe", (("windows", WINDOWS_EXECUTABLE_SHA256),)),
         ):
             if name not in files:
                 continue
             digest = source.sha256(files[name])
-            recognized = digest == expected
+            variant = next((label for label, expected in profiles if digest == expected), "unknown")
+            recognized = variant != "unknown"
+            executable_format = _executable_format(source.read_prefix(files[name], 65_536))
             executables.append(
                 {
                     "path": name,
                     "variant": variant,
+                    "executable_format": executable_format,
                     "sha256": digest,
                     "recognized_unmodified": recognized,
+                    "support_status": (
+                        "target" if variant == "steam-1.01"
+                        else "historical" if recognized else "unknown"
+                    ),
                 }
             )
-            variants.append(variant)
+            if recognized:
+                variants.append(variant)
 
+        target_executable = "steam-1.01" in variants
+        historical_executable = any(variant in {"dos", "windows"} for variant in variants)
+        asset_reference = "retail-1.0" if historical_executable and not target_executable else "steam-1.01"
+        core_hashes = CORE_FILE_SHA256 if asset_reference == "retail-1.0" else STEAM_101_CORE_FILE_SHA256
         matched: list[str] = []
         modified: list[dict[str, str]] = []
         missing: list[str] = []
-        for canonical, expected in sorted(CORE_FILE_SHA256.items()):
+        for canonical, expected in sorted(core_hashes.items()):
             actual = files.get(canonical)
             if actual is None:
                 missing.append(canonical)
@@ -306,6 +352,8 @@ def inspect_installation(path: str | Path, *, deep: bool = False) -> dict[str, A
         extension_counts = Counter(
             Path(name).suffix.lower() or "<none>" for name in files
         )
+        core_clean = len(matched) == len(core_hashes)
+        supported_release = target_executable and core_clean
         result: dict[str, Any] = {
             "schema_version": SCHEMA_VERSION,
             "format": "capitalism_plus_installation",
@@ -313,16 +361,23 @@ def inspect_installation(path: str | Path, *, deep: bool = False) -> dict[str, A
             "source_kind": source.kind,
             "installation_root": root,
             "variant": "+".join(variants) if variants else "unknown",
+            "support_status": (
+                "supported" if supported_release
+                else "historical" if historical_executable and not target_executable
+                else "unverified"
+            ),
+            "supported_release": supported_release,
             "file_count": len(files),
             "extension_counts": dict(sorted(extension_counts.items())),
             "executables": executables,
             "core_assets": {
-                "expected": len(CORE_FILE_SHA256),
+                "reference": asset_reference,
+                "expected": len(core_hashes),
                 "present": len(matched) + len(modified),
                 "matched": len(matched),
                 "modified": modified,
                 "missing": missing,
-                "complete_and_unmodified": len(matched) == len(CORE_FILE_SHA256),
+                "complete_and_unmodified": core_clean,
             },
             "counts": {
                 "game_set_files": sum(name.startswith("gameset/") for name in files),

@@ -34,7 +34,7 @@ class SpecificationTests(unittest.TestCase):
         self.assertEqual(result["features"], 43)
         self.assertEqual(result["manual_crosswalk"], "pending")
         self.assertEqual(result["compatibility_quirks"], 4)
-        self.assertEqual(result["pending_quirk_policies"], 2)
+        self.assertEqual(result["pending_quirk_policies"], 3)
         self.assertEqual(result["quirks_catalog"], "active")
 
     def test_every_known_core_path_has_one_family(self):

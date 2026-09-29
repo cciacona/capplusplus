@@ -4,6 +4,9 @@ This document records the first reproducible static survey of the user-supplied,
 unmodified Capitalism Plus executables. It describes file-format facts and
 observable platform boundaries only. It does not contain executable bytes,
 decompiler output, or reconstructed proprietary source.
+The detailed DOS/Windows function survey below is historical research. The
+measured Steam 1.01 executable is the sole supported original-release target;
+its static fingerprint is recorded here and in the [reference matrix](reference-builds.md).
 
 Run the survey locally with files from your own copy:
 
@@ -53,6 +56,7 @@ and synthetic tests.
 |---|---:|---|---|
 | DOS `CAPPLUS.EXE` | 848,637 bytes | `76867a7cb9ba913cfb3390731361ef8e560b2ed087632389e525ad22ccb07bda` | MZ stub + 32-bit LE |
 | Windows `CapWin.exe` | 709,120 bytes | `f887e1c4d16c7370caccbb362515e45a406e249bdf5397cd6f494edea2e16c0c` | PE32 |
+| Steam 1.01 archive `CapPlus.exe` | 1,156,608 bytes | `b68a781b351fb9951992906a83770d0f46eba4d000c9f2ddb145dd9a45e34cd7` | PE32/i386, imports SDL3 |
 
 These hashes identify only the analyzed files. A different hash is not by
 itself evidence of tampering; it may be another legitimate release.

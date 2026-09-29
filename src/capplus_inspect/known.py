@@ -1,7 +1,8 @@
-"""Hashes for the unmodified retail-compatible files supplied for analysis."""
+"""Measured executable and core-data hashes; only Steam 1.01 is the target."""
 
 DOS_EXECUTABLE_SHA256 = "76867a7cb9ba913cfb3390731361ef8e560b2ed087632389e525ad22ccb07bda"
 WINDOWS_EXECUTABLE_SHA256 = "f887e1c4d16c7370caccbb362515e45a406e249bdf5397cd6f494edea2e16c0c"
+STEAM_101_EXECUTABLE_SHA256 = "b68a781b351fb9951992906a83770d0f46eba4d000c9f2ddb145dd9a45e34cd7"
 
 _CORE_HASHES = """
 75f2ead2dd515ab4e122c56ea48ff66d89e633be6e6cd94f8db9ba01ec7fea2f gameset/1std.ii
@@ -81,6 +82,13 @@ e28a97bf0e22d01f998208eea78d6a626edd19d7016867817d6d690f88610710 resource/i_titl
 CORE_FILE_SHA256 = {
     path: digest
     for digest, path in (line.split() for line in _CORE_HASHES.strip().splitlines())
+}
+
+# The measured 1.01 archive differs in one menu/button image resource. The
+# retail hashes remain available for historical research, not release support.
+STEAM_101_CORE_FILE_SHA256 = {
+    **CORE_FILE_SHA256,
+    "resource/i_scen.res": "6206a056af6d5a0ac2e1b8ead174eb17285e6da87aa7d6a7f0ade9655dada379",
 }
 
 del _CORE_HASHES

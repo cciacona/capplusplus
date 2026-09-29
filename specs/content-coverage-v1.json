@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "format": "capplusplus_content_coverage",
-  "scope": "Known original file families, not a claim that every retail file or field is decoded.",
+  "scope": "Historical retail file-family ledger; not the Steam 1.01 release inventory or a claim that every field is decoded.",
   "sources": {
     "shared_core": {
       "expected_files": 72,

@@ -13,8 +13,9 @@ content-family dependencies and independently tracked dimensions:
 
 The initial 43 rows are candidate groups derived from `ROADMAP.md`, **not a
 completed independent manual crosswalk**. `manual_crosswalk_status` is `pending`.
-Every original feature needs a precise manual section and/or a controlled
-reference observation before validation. Split grouped requirements into
+Steam 1.01 is the sole release target. Every target feature needs a precise
+manual section and/or a controlled Steam observation before validation; retail
+DOS/Windows observations are historical leads. Split grouped requirements into
 separate IDs whenever their implementation or verification can diverge. An
 omitted requirement discovered in the manual is a new row, not an excuse to
 reduce the 1.0 contract.

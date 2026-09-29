@@ -43,12 +43,13 @@ then reconstructs the file from the regions. It compares both bytes and SHA-256.
 
 ```bash
 capplus-inspect roundtrip "RESOURCE/PAL_STD.RES"
-capplus-inspect roundtrip "Capitalism Plus DOS" --json > dos-roundtrip.json
+capplus-inspect roundtrip "Capitalism Plus101.zip" --json > steam-roundtrip.json
 ```
 
-Directory and valid ZIP inputs select every known core asset plus the recognized
+Directory and valid ZIP inputs select the 72 cataloged core assets plus the
 game executable, `CAPITAL.CFG`, `CAPITAL.HOF`, `CAPITAL.SND`, and loose `Sounds/`
-effects. The report contains sizes,
+effects. They do not yet cover every loose Steam 1.01 file or OGG track. The
+report contains sizes,
 hashes, format identifiers, coverage levels, and result counts—not original
 payload bytes.
 
@@ -65,15 +66,16 @@ fields. Original save writing remains disabled.
 
 ### Private-corpus result
 
-Both supplied installations pass independently:
+The measured Steam 1.01 archive and both historical retail installations pass
+independently:
 
-| Gate | DOS | Windows |
-|---|---:|---:|
-| Supported non-save files | 76 | 101 |
-| Structurally segmented | 74 | 99 |
-| Opaque passthrough | 2 | 2 |
-| Byte-identical reconstruction | 76 / 76 | 101 / 101 |
-| Source formats represented | 22 | 23 |
+| Gate | Steam 1.01 archive | Historical DOS | Historical Windows |
+|---|---:|---:|---:|
+| Currently selected non-save files | 101 | 76 | 101 |
+| Structurally segmented | 99 | 74 | 99 |
+| Opaque passthrough | 2 | 2 | 2 |
+| Byte-identical reconstruction | 101 / 101 | 76 / 76 | 101 / 101 |
+| Source formats represented | 23 | 22 | 23 |
 
 The opaque inputs are `RESOURCE/JOB.RTI` and `RESOURCE/JOB.RTX`. Naming them in
 the report prevents byte preservation from being mistaken for format decoding.
@@ -96,8 +98,9 @@ matched version-100 DOS/Windows saves:
 The policy never rewrites a save or declares arbitrary saves equivalent. It
 counts classified and unclassified same-position byte differences separately.
 For the supplied matched pair, 677 of 1,035 differing bytes fall in registered
-pointer/float locations and 358 remain explicitly unclassified. Later format
-work must account for those bytes before the roadmap's no-op save gate can pass.
+pointer/float locations and 358 remain explicitly unclassified. Those bytes
+remain a historical research question. The 1.0 save gate instead requires a
+controlled no-op test of a save created under Steam 1.01.
 
 ## Reproducible parser fuzzing
 

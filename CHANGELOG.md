@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Made the measured Steam 1.01 release the sole Cap++ 1.0 target. Retail
+  DOS/Windows executables remain identifiable for historical research; target
+  installation validation now uses the 1.01 executable and core hashes.
+- Revised the roadmap, reference matrix, and open research scope so retail
+  cross-loads and the retail CD inventory no longer block 1.0; live Steam saves,
+  clean depot content, and gameplay parity still require measurement.
+- Recorded the supplied Steam Capitalism Plus 1.01 archive's executable, SDL3
+  dependency, 71/72 shared-core match and changed UI resource; documented
+  pending live save/behavior comparisons against the retail 1.0 references.
+- Report an unknown PE executable named `CapPlus.exe` as an unknown build with
+  its observed format instead of mislabeling it as a recognized DOS variant.
 - Recovered save section `1005` as the 65-byte calendar/playing-time clock,
   including every field offset, day/month/year transition order and periodic
   counter cadence.

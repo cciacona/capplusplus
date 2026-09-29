@@ -9,8 +9,8 @@ animation timing, per-call palette selection or complete presentation parity.
 ## Commands
 
 ```powershell
-capplus-inspect catalog-graphics "C:\Games\Capitalism Plus" --require-reference
-capplus-inspect catalog-graphics "Capitalism Plus DOS.zip" --json > graphics-catalog.json
+capplus-inspect catalog-graphics "Capitalism Plus101.zip" --require-reference
+capplus-inspect catalog-graphics "Capitalism Plus101.zip" --json > graphics-catalog.json
 capplus-inspect compare-graphics "Capitalism Plus DOS.zip" "Capitalism Plus WIN.zip" --json
 ```
 
@@ -21,8 +21,9 @@ produce the same catalog regardless of platform, installation location or
 archive ordering. Its hashes are fingerprints of user-owned data, not assets.
 
 Exit 2 indicates malformed, ambiguous or unsupported input. Comparison exits 3
-when catalogs differ. `--require-reference` exits 3 unless every known graphics
-source matches its reference hash. Without that option, valid custom or partial
+when catalogs differ. `--require-reference` checks the measured **Steam 1.01**
+graphics hashes and exits 3 unless every known graphics source matches. Without
+that option, valid custom or partial
 sets can be inspected; missing, changed and additional sources remain explicit.
 Two equal partial catalogs do not become a complete reference installation.
 
@@ -35,7 +36,7 @@ other resources as images because their first bytes happen to resemble image
 dimensions. An unsupported selected graphics source causes an error instead of
 silently reducing coverage.
 
-Both intact supplied installations produce this inventory:
+The measured Steam 1.01 archive produces this inventory:
 
 | Category | Count |
 |---|---:|
@@ -55,11 +56,13 @@ The three fonts contribute 286 slots, including any empty slots. Five members
 in each of `I_SCEN.RES` and `I_SCENW.RES` do not decode as indexed images; their
 names, source spans and hashes remain visible in `opaque_members`.
 
-The two catalogs are exactly equal, with catalog SHA-256
-`7da5ff39258adc44e0b46dfd50c6db550d872f357a8e50ce63b5977a1ca4f824`.
-These totals concern supported installation graphics. They do not close the
-[retail inventory gap](content-coverage.md), turn the map overview into a decoded
-world renderer, or establish complete animation semantics.
+The Steam catalog SHA-256 is
+`250722a8aeb6f6d41abce94dceac888aebd2a62fc12d5a58c9336b18d5299037`.
+The two historical retail catalogs were exactly equal to each other with hash
+`7da5ff39258adc44e0b46dfd50c6db550d872f357a8e50ce63b5977a1ca4f824`;
+their menu/button resource now differs from the target reference. These totals
+do not close the [Steam inventory gap](content-coverage.md), turn the map
+overview into a decoded world renderer, or establish animation semantics.
 
 ## Stable identities and source geometry
 

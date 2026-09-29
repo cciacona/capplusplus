@@ -13,7 +13,7 @@ from .containers import parse_named_index, parse_offset_index
 from .errors import FormatError
 from .fonts import decode_font
 from .images import decode_indexed_images
-from .known import CORE_FILE_SHA256
+from .known import STEAM_101_CORE_FILE_SHA256
 from .palette import palette_for_profile, parse_palette
 from .ui_resources import inspect_cursor_table
 from .util import sha256_bytes, u16, u32
@@ -263,10 +263,10 @@ def catalog_graphics_files(files: Mapping[str, bytes]) -> dict[str, Any]:
                                     "hotspot": {"x": cursor["hotspot_x"], "y": cursor["hotspot_y"],
                                                 "status": "confirmed_source_fields"}})
 
-    expected = {p for p in CORE_FILE_SHA256 if _source_kind(p)}
+    expected = {p for p in STEAM_101_CORE_FILE_SHA256 if _source_kind(p)}
     missing = sorted(expected - selected.keys())
     changed = sorted(s["path"] for s in sources if s["path"] in expected
-                     and s["sha256"] != CORE_FILE_SHA256[s["path"]])
+                     and s["sha256"] != STEAM_101_CORE_FILE_SHA256[s["path"]])
     unresolved = [b["id"] for b in cursor_bindings if b["reference_status"] == "missing_image_source"]
     result = {"schema_version": SCHEMA_VERSION, "catalog_version": CATALOG_VERSION,
               "format": "capitalism_plus_graphics_catalog",
